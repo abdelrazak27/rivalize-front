@@ -88,7 +88,7 @@ export const SignUpProvider = ({ children }) => {
         return true;
     };
 
-    const handleSignUp = () => {
+    const handleSignUp = (onSuccess) => {
         createUserWithEmailAndPassword(auth, userDetails.email, userDetails.password)
             .then(userCredentials => {
                 const user = userCredentials.user;
@@ -104,11 +104,11 @@ export const SignUpProvider = ({ children }) => {
                 setDoc(userRef, userData)
                     .then(() => {
                         console.log('Utilisateur ajouté à Firestore avec succès');
+                        if(onSuccess) onSuccess();
                     })
                     .catch((error) => {
                         console.error('Erreur lors de l\'ajout de l\'utilisateur à Firestore: ', error);
                     });
-
             })
             .catch((error) => {
                 const errorMessage = getErrorMessage(error.code);

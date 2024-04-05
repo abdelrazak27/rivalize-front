@@ -5,7 +5,7 @@ import { useSignUp } from '../../context/SignUpContext';
 import { useNavigation } from '@react-navigation/native';
 
 
-const SignUpStepThree = ({ onPrevious }) => {
+const SignUpStepThree = ({ onPrevious, onSignUpSuccess }) => {
     const { userDetails, handleChange, validateFields, handleSignUp, setLicenceValidationMessage, licenceValidationMessage } = useSignUp();
 
     const checkLicence = () => {
@@ -61,9 +61,6 @@ const SignUpStepThree = ({ onPrevious }) => {
                 </>
             )}
             <Button title="Précédent" onPress={onPrevious} />
-            <Button title='TEST COMPLETE' onPress={() => {
-                navigation.navigate('SignUpComplete');
-            }} />
             <Button title="S'inscrire" onPress={() => {
                 if (!userDetails.accountType) {
                     Alert.alert('Erreur', 'Veuillez choisir un type de compte.');
@@ -89,7 +86,7 @@ const SignUpStepThree = ({ onPrevious }) => {
                 }
 
                 if (validateFields(fieldsToValidate)) {
-                    handleSignUp();
+                    handleSignUp(onSignUpSuccess);
                 }
             }} />
         </View>
