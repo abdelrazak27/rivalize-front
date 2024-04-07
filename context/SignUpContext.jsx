@@ -3,7 +3,7 @@ import { createContext, useContext, useState } from 'react';
 import { Alert } from 'react-native';
 import { app, db } from '../firebaseConfig';
 import { doc, setDoc } from 'firebase/firestore';
-import citiesData from '../screens/SignUpScreen/data/sortedFrance.json'
+import citiesData from '../screens/SignUpScreen/data/citiesFR.json'
 
 const SignUpContext = createContext();
 const auth = getAuth(app);
@@ -42,12 +42,42 @@ export const SignUpProvider = ({ children }) => {
         return `${day}/${month}/${year}`;
     };
 
+    // const handleChange = (name, value) => {
+    //     setUserDetails((prevDetails) => ({
+    //         ...prevDetails,
+    //         [name]: value,
+    //     }));
+    // };
+
     const handleChange = (name, value) => {
-        setUserDetails((prevDetails) => ({
-            ...prevDetails,
-            [name]: value,
-        }));
+        setUserDetails((prevDetails) => {
+            let updatedDetails = { ...prevDetails, [name]: value };
+    
+            if (name === 'accountType') {
+                // Logique pour ajuster les valeurs en fonction du type de compte
+                if (value === 'coach') {
+                    // Pour un coach, on réinitialise les champs spécifiques aux joueurs
+                    updatedDetails.playerName = '';
+                    updatedDetails.playerNumber = '';
+                    // Mise à jour de fieldsToValidate pour un coach
+                    fieldsToValidate = ['accountType', 'licenceNumber'];
+                } else if (value === 'visitor') {
+                    // Pour un visiteur, on réinitialise les champs de licence et de joueur
+                    updatedDetails.playerName = '';
+                    updatedDetails.playerNumber = '';
+                    updatedDetails.licenceNumber = '';
+                    // Ajustez selon ce qui est nécessaire pour un visiteur
+                    fieldsToValidate = ['accountType'];
+                } else if (value === 'player') {
+                    // Pour un joueur, assurez-vous que les champs requis sont inclus
+                    fieldsToValidate = ['accountType', 'licenceNumber', 'playerName', 'playerNumber'];
+                }
+            }
+    
+            return updatedDetails;
+        });
     };
+    
 
     const validateFields = (fieldsToValidate, step) => {
 
@@ -63,9 +93,15 @@ export const SignUpProvider = ({ children }) => {
         }
 
         if (step === 1) {
-            const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!regex.test(userDetails.email)) {
+            const EMAIL_REGEX = /(?:[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+(?:[A-Z]{2,}|[a-zA-Z]{2,}\d{0,2})(?<!-)/;
+            if (!EMAIL_REGEX.test(userDetails.email)) {
                 Alert.alert('Erreur', 'Veuillez saisir une adresse mail valide.');
+                return false;
+            }
+
+            const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+            if(!PASSWORD_REGEX.test(userDetails.password)) {
+                Alert.alert('Erreur', 'Le mot de passe ne respecte pas les exigences de sécurité.');
                 return false;
             }
 
@@ -75,12 +111,21 @@ export const SignUpProvider = ({ children }) => {
             }
         }
         if (step === 2) {
+            const nameRegex = /^[a-zA-ZàâäéèêëïîôöùûüçÀÂÄÉÈÊËÏÎÔÖÙÛÜÇ' -]+$/;
+            if (!nameRegex.test(userDetails.firstname)) {
+                Alert.alert("Erreur", "Merci d'indiquer un prénom valide");
+                return false;
+            }
+            if (!nameRegex.test(userDetails.lastname)) {
+                Alert.alert("Erreur", "Merci d'indiquer un nom valide");
+                return false;
+            }
             if (userDetails.birthday && calculateAge(userDetails.birthday) < 5) {
                 Alert.alert("Erreur", "L'âge minimum pour être inscrit est de 5 ans.");
                 return false;
             }
             if (userDetails.city.trim() && !citiesData.some((city) => city.Nom_commune.toLowerCase() === userDetails.city.toLowerCase().trim())) {
-                Alert.alert("Erreur", "Veuillez sélectionner une ville valide de la liste.");
+                Alert.alert("Erreur", "Veuillez sélectionner une ville valide de la liste. Si elle n'est pas présente, vous pouvez indiquer une ville voisine.");
                 return false;
             }
         }

@@ -15,6 +15,14 @@ const SignUpStepOne = ({ onNext }) => {
                 value={userDetails.email}
                 onChangeText={(text) => handleChange('email', text)}
             />
+            <Text>Le mot de passe doit contenir :</Text>
+            
+            <Text>- Longueur minimale de 8 caractères</Text>
+            <Text>- Au moins une lettre minuscule</Text>
+            <Text>- Au moins une lettre majuscule</Text>
+            <Text>- Au moins un chiffre</Text>
+            <Text>- Au moins un caractère spécial</Text>
+            
             <TextInput
                 style={styles.input}
                 placeholder="Mot de passe *"

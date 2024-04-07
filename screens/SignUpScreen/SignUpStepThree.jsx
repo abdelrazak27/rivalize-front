@@ -9,16 +9,16 @@ const SignUpStepThree = ({ onPrevious, onSignUpSuccess }) => {
     const { userDetails, handleChange, validateFields, handleSignUp, setLicenceValidationMessage, licenceValidationMessage } = useSignUp();
 
     const checkLicence = () => {
-        if ((userDetails.accountType === 'coach' && userDetails.licenceNumber.startsWith('FFFC') && userDetails.licenceNumber.length > 4) ||
-            (userDetails.accountType === 'player' && userDetails.licenceNumber.startsWith('FFFP') && userDetails.licenceNumber.length > 4)) {
+        const regexAlphanumeric = /^[a-zA-Z0-9]+$/;
+        if ((userDetails.accountType === 'coach' && userDetails.licenceNumber.startsWith('FFFC') && userDetails.licenceNumber.length > 4) && regexAlphanumeric.test(userDetails.licenceNumber) ||
+            (userDetails.accountType === 'player' && userDetails.licenceNumber.startsWith('FFFP') && userDetails.licenceNumber.length > 4) && regexAlphanumeric.test(userDetails.licenceNumber)) {
             setLicenceValidationMessage('Licence enregistrée à la FFF.');
         } else {
             setLicenceValidationMessage('Licence non enregistrée à la FFF.');
         }
     };
 
-    const navigation = useNavigation();
-    
+    const navigation = useNavigation();    
 
     return (
         <View style={styles.container}>
@@ -80,9 +80,22 @@ const SignUpStepThree = ({ onPrevious, onSignUpSuccess }) => {
                 let fieldsToValidate = ['accountType'];
 
                 if (userDetails.accountType === 'player') {
-                    fieldsToValidate = fieldsToValidate.concat(['playerName', 'playerNumber', 'licenceNumber']);
+                    fieldsToValidate.push(['playerName', 'playerNumber', 'licenceNumber']);
                 } else if (userDetails.accountType === 'coach') {
                     fieldsToValidate.push('licenceNumber');
+                }
+
+                const regexTwoDigits = /^\d{1,2}$/;
+                const nameRegex = /^[a-zA-ZàâäéèêëïîôöùûüçÀÂÄÉÈÊËÏÎÔÖÙÛÜÇ' -]+$/;
+
+                if(fieldsToValidate.includes('playerNumber') && !regexTwoDigits.test(userDetails.playerNumber)) {
+                    Alert.alert('Erreur', 'Votre numéro du joueur doit contenir deux chiffres.');
+                    return;
+                }
+                
+                if(fieldsToValidate.includes('playerName') && !nameRegex.test(userDetails.playerName)) {
+                    Alert.alert('Erreur', 'Votre nom du joueur est invalide.');
+                    return;
                 }
 
                 if (validateFields(fieldsToValidate)) {

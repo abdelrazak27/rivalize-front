@@ -1,6 +1,6 @@
 import { View, TextInput, Button, Text, Platform } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import citiesData from './data/sortedFrance.json';
+import citiesData from './data/citiesFR.json';
 import { useState } from 'react';
 import styles from './styles';
 import ModalDateTimePicker from 'react-native-modal-datetime-picker';

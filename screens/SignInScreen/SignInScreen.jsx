@@ -13,13 +13,6 @@ const SignInScreen = () => {
         signInWithEmailAndPassword(auth, email, password)
             .then((userCredentials) => {
                 const user = userCredentials.user;
-                console.log('*****');
-                console.log('Connexion réussie');
-                console.log('UID   : ', user.uid);
-                console.log('Email : ', user.email);
-                console.log('*****');
-                console.log('user : ', user);
-                console.log('*****');
             })
             .catch((error) => {
                 const errorCode = error.code;

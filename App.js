@@ -5,6 +5,7 @@ import SignUpScreen from './screens/SignUpScreen/SignUpScreen';
 import SignInScreen from './screens/SignInScreen/SignInScreen';
 import SignUpComplete from './screens/SignUpScreen/SignUpComplete';
 import HomeScreen from './screens/HomeScreen/HomeScreen';
+import ConnexionScreen from './screens/ConnexionScreen/ConnexionScreen';
 
 const Stack = createStackNavigator();
 
@@ -12,12 +13,12 @@ export default function App() {
   return (
     <NavigationContainer>
       <View style={styles.container}>
-        <Stack.Navigator initialRouteName="SignUpScreen">
+        <Stack.Navigator initialRouteName="ConnexionScreen">
+          <Stack.Screen name="ConnexionScreen" component={ConnexionScreen} />
           <Stack.Screen name="HomeScreen" component={HomeScreen} />
           <Stack.Screen name="SignUpScreen" component={SignUpScreen} />
           <Stack.Screen name="SignInScreen" component={SignInScreen} />
           <Stack.Screen name="SignUpComplete" component={SignUpComplete} />
-
         </Stack.Navigator>
       </View>
     </NavigationContainer>
