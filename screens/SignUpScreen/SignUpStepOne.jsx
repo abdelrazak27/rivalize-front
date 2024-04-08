@@ -21,8 +21,8 @@ const SignUpStepOne = ({ onNext }) => {
             <Text>- Au moins une lettre minuscule</Text>
             <Text>- Au moins une lettre majuscule</Text>
             <Text>- Au moins un chiffre</Text>
-            <Text>- Au moins un caractère spécial</Text>
-            
+            <Text>- Au moins un caractère spécial : @ $ ! % * ? &</Text>
+
             <TextInput
                 style={styles.input}
                 placeholder="Mot de passe *"

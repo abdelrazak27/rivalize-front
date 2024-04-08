@@ -1,20 +1,41 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import { View, TextInput, Button, Alert } from 'react-native';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 import app from '../../firebaseConfig';
+import { useUser } from '../../context/UserContext';
+import { doc, getDoc, getFirestore } from 'firebase/firestore';
+import { CommonActions, useNavigation } from '@react-navigation/native';
 
 const auth = getAuth(app);
 
 const SignInScreen = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const { setUser } = useUser();
+    const db = getFirestore(app);
+    const navigation = useNavigation();
 
     const handleSignIn = () => {
         signInWithEmailAndPassword(auth, email, password)
-            .then((userCredentials) => {
+            .then(async (userCredentials) => {
                 const user = userCredentials.user;
+                const userRef = doc(db, "utilisateurs", user.uid);
+                const userSnap = await getDoc(userRef);
+                if (userSnap.exists()) {
+                    const userData = { uid: user.uid, email: user.email, ...userSnap.data() };
+                    setUser(userData);
+                    navigation.dispatch(
+                        CommonActions.reset({
+                            index: 0,
+                            routes: [{ name: 'HomeScreen' }],
+                        })
+                    );
+                } else {
+                    Alert.alert('Erreur de connexion', 'Une erreur est survenue dans la récupération des données.');
+                }
             })
             .catch((error) => {
+                // Gestion des erreurs
                 const errorCode = error.code;
                 const errorMessage = getErrorMessage(errorCode);
                 Alert.alert('Erreur de connexion', errorMessage);

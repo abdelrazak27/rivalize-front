@@ -82,9 +82,9 @@ export const SignUpProvider = ({ children }) => {
     const validateFields = (fieldsToValidate, step) => {
 
         const requiredFields = fieldsToValidate.concat(
-            userDetails.accountType === "player" && step === 3 ? ['playerName', 'playerNumber', 'licenceNumber'] : [],
-            userDetails.accountType === "coach" && step === 3 ? ['licenceNumber'] : []
-        );
+            ...(userDetails.accountType === "player" && step === 3 ? ['playerName', 'playerNumber', 'licenceNumber'] : []),
+            ...(userDetails.accountType === "coach" && step === 3 ? ['licenceNumber'] : [])
+        );        
 
         const missingField = requiredFields.find(field => !userDetails[field]);
         if (missingField) {

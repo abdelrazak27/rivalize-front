@@ -80,7 +80,7 @@ const SignUpStepThree = ({ onPrevious, onSignUpSuccess }) => {
                 let fieldsToValidate = ['accountType'];
 
                 if (userDetails.accountType === 'player') {
-                    fieldsToValidate.push(['playerName', 'playerNumber', 'licenceNumber']);
+                    fieldsToValidate.push('playerName', 'playerNumber', 'licenceNumber');
                 } else if (userDetails.accountType === 'coach') {
                     fieldsToValidate.push('licenceNumber');
                 }
