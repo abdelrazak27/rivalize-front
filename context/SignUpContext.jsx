@@ -4,6 +4,7 @@ import { Alert } from 'react-native';
 import { app, db } from '../firebaseConfig';
 import { doc, setDoc } from 'firebase/firestore';
 import citiesData from '../screens/SignUpScreen/data/citiesFR.json'
+import { useUser } from './UserContext';
 
 const SignUpContext = createContext();
 const auth = getAuth(app);
@@ -11,6 +12,7 @@ const auth = getAuth(app);
 export const useSignUp = () => useContext(SignUpContext);
 
 export const SignUpProvider = ({ children }) => {
+    const { setUser } = useUser();
     const [licenceValidationMessage, setLicenceValidationMessage] = useState('');
 
     const [userDetails, setUserDetails] = useState({
@@ -42,13 +44,6 @@ export const SignUpProvider = ({ children }) => {
         return `${day}/${month}/${year}`;
     };
 
-    // const handleChange = (name, value) => {
-    //     setUserDetails((prevDetails) => ({
-    //         ...prevDetails,
-    //         [name]: value,
-    //     }));
-    // };
-
     const handleChange = (name, value) => {
         setUserDetails((prevDetails) => {
             let updatedDetails = { ...prevDetails, [name]: value };
@@ -73,7 +68,6 @@ export const SignUpProvider = ({ children }) => {
                     fieldsToValidate = ['accountType', 'licenceNumber', 'playerName', 'playerNumber'];
                 }
             }
-    
             return updatedDetails;
         });
     };
@@ -133,34 +127,33 @@ export const SignUpProvider = ({ children }) => {
         return true;
     };
 
-    const handleSignUp = (onSuccess) => {
+    const handleSignUp = (onSuccess, onFail) => {
         createUserWithEmailAndPassword(auth, userDetails.email, userDetails.password)
             .then(userCredentials => {
                 const user = userCredentials.user;
-
                 const userData = {
                     ...userDetails,
                     birthday: userDetails.birthday || new Date().toISOString().split('T')[0],
                 };
                 delete userData.password;
                 delete userData.passwordConfirm;
-
+    
                 const userRef = doc(db, 'utilisateurs', user.uid);
-                setDoc(userRef, userData)
-                    .then(() => {
-                        console.log('Utilisateur ajouté à Firestore avec succès');
-                        if(onSuccess) onSuccess();
-                    })
-                    .catch((error) => {
-                        console.error('Erreur lors de l\'ajout de l\'utilisateur à Firestore: ', error);
-                    });
+                return setDoc(userRef, userData); 
+            })
+            .then(() => {
+                console.log('Utilisateur ajouté à Firestore et Firebase avec succès');
+                setUser(userDetails); 
+                if(onSuccess) onSuccess();
             })
             .catch((error) => {
+                console.error('Erreur lors de la création de l\'utilisateur dans Firestore et dans Firebase : ', error);
                 const errorMessage = getErrorMessage(error.code);
                 Alert.alert('Erreur d\'inscription', errorMessage);
+                if(onFail) onFail();
             });
-
     };
+    
 
     const getErrorMessage = (errorCode) => {
         switch (errorCode) {
@@ -172,7 +165,7 @@ export const SignUpProvider = ({ children }) => {
     };
 
     return (
-        <SignUpContext.Provider value={{ userDetails, handleChange, validateFields, handleSignUp, calculateAge, formatDateToDDMMYYYY, licenceValidationMessage, setLicenceValidationMessage }}>
+        <SignUpContext.Provider setUser={setUser} value={{ userDetails, handleChange, validateFields, handleSignUp, calculateAge, formatDateToDDMMYYYY, licenceValidationMessage, setLicenceValidationMessage }}>
             {children}
         </SignUpContext.Provider>
     );
