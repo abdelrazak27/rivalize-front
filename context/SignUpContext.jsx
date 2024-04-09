@@ -134,8 +134,8 @@ export const SignUpProvider = ({ children }) => {
                 const userData = {
                     ...userDetails,
                     birthday: userDetails.birthday || new Date().toISOString().split('T')[0],
-                    teams: (userDetails.accountType === ("player" || "coach")) && [''],
-                };
+                    ...(userDetails.accountType === "player" || userDetails.accountType === "coach") && { teams: [''] },
+                };                  
                 delete userData.password;
                 delete userData.passwordConfirm;
     

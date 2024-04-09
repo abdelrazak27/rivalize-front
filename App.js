@@ -7,6 +7,7 @@ import SignUpComplete from './screens/SignUpScreen/SignUpComplete';
 import HomeScreen from './screens/HomeScreen/HomeScreen';
 import ConnexionScreen from './screens/ConnexionScreen/ConnexionScreen';
 import { UserProvider } from './context/UserContext';
+import CreateTeamScreen from './screens/CreateTeamScreen/CreateTeamScreen';
 
 const Stack = createStackNavigator();
 
@@ -15,12 +16,13 @@ export default function App() {
     <UserProvider>
       <NavigationContainer>
         <View style={styles.container}>
-          <Stack.Navigator initialRouteName="ConnexionScreen">
+          <Stack.Navigator initialRouteName="CreateTeamScreen">
             <Stack.Screen name="ConnexionScreen" component={ConnexionScreen} />
             <Stack.Screen name="HomeScreen" component={HomeScreen} />
             <Stack.Screen name="SignUpScreen" component={SignUpScreen} />
             <Stack.Screen name="SignInScreen" component={SignInScreen} />
             <Stack.Screen name="SignUpComplete" component={SignUpComplete} />
+            <Stack.Screen name="CreateTeamScreen" component={CreateTeamScreen} />
           </Stack.Navigator>
         </View>
       </NavigationContainer>
