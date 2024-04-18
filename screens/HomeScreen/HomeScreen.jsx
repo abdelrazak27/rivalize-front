@@ -1,8 +1,11 @@
 import { useEffect } from "react";
-import { BackHandler, Text, View } from "react-native";
+import { BackHandler, Text, TouchableOpacity, View } from "react-native";
 import { useUser } from "../../context/UserContext";
+import { useNavigation } from "@react-navigation/native";
 
 function HomeScreen() {
+    const navigation = useNavigation();
+
     useEffect(() => {
         const backHandler = BackHandler.addEventListener(
             'hardwareBackPress',
@@ -17,7 +20,19 @@ function HomeScreen() {
     return (
         <View>
             {user ? (
-                <Text>Bienvenue, {user.firstname}</Text> 
+                <>
+                    <Text>Bienvenue, {user.firstname}</Text> 
+                    {user.accountType === 'coach' && (
+                        <TouchableOpacity
+                            onPress={() => {
+                                navigation.navigate('CreateTeamScreen');
+                            }}
+                        >
+                            <Text>Créer mon équipe</Text>
+                        </TouchableOpacity>
+                    )}
+                    
+                </>
             ) : (
                 <Text>Chargement...</Text>
             )}

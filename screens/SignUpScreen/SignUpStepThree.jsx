@@ -67,7 +67,7 @@ const SignUpStepThree = ({ onPrevious, onSignUpSuccess }) => {
                     return;
                 }
 
-                if (!userDetails.accountType || licenceValidationMessage.includes('non enregistrée')) {
+                if (!userDetails.accountType || (userDetails.accountType === ('player' || 'coach') && licenceValidationMessage.includes('non enregistrée'))) {
                     Alert.alert('Erreur', 'Veuillez saisir un numéro de licence valide.');
                     return;
                 }

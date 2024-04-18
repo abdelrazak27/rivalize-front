@@ -35,7 +35,6 @@ const SignInScreen = () => {
                 }
             })
             .catch((error) => {
-                // Gestion des erreurs
                 const errorCode = error.code;
                 const errorMessage = getErrorMessage(errorCode);
                 Alert.alert('Erreur de connexion', errorMessage);

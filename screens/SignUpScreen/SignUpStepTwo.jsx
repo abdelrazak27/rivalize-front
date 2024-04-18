@@ -21,11 +21,6 @@ const SignUpStepTwo = ({ onPrevious, onNext }) => {
         setDatePickerVisibility(false);
     };
 
-    const handleConfirm = (date) => {
-        hideDatePicker();
-        handleChange('birthday', date.toISOString().split('T')[0]);
-    };
-
     const filterCities = (query) => {
         setSearchQuery(query);
         if (!query.trim()) {
@@ -69,19 +64,20 @@ const SignUpStepTwo = ({ onPrevious, onNext }) => {
 
                 {filteredCities.length > 0 && (
                     <View style={styles.citiesList}>
-                        {filteredCities.map((city, index) => (
-                            <Text
-                                key={index}
-                                onPress={() => {
-                                    handleChange('city', city.Nom_commune);
-                                    setFilteredCities([]);
-                                    setSearchQuery(city.Nom_commune);
-                                }}
-                                style={{ padding: 10 }}
-                            >
-                                {city.Nom_commune}
-                            </Text>
-                        ))}
+                        {Array.from(new Set(filteredCities.map(city => city.Nom_commune)))
+                            .map((nomCommune, index) => (
+                                <Text
+                                    key={index}
+                                    onPress={() => {
+                                        handleChange('city', nomCommune);
+                                        setFilteredCities([]);
+                                        setSearchQuery(nomCommune);
+                                    }}
+                                    style={{ padding: 10 }}
+                                >
+                                    {nomCommune}
+                                </Text>
+                            ))}
                     </View>
                 )}
             </View>
@@ -94,8 +90,12 @@ const SignUpStepTwo = ({ onPrevious, onNext }) => {
                             <ModalDateTimePicker
                                 isVisible={isDatePickerVisible}
                                 mode="date"
-                                onConfirm={handleConfirm}
+                                onConfirm={(selectedDate) => {
+                                    handleChange('birthday', selectedDate.toISOString().split('T')[0]);
+                                    hideDatePicker();
+                                }}
                                 onCancel={hideDatePicker}
+                                maximumDate={new Date()}
                             />
                         </>
                     )}

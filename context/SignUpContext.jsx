@@ -49,22 +49,16 @@ export const SignUpProvider = ({ children }) => {
             let updatedDetails = { ...prevDetails, [name]: value };
     
             if (name === 'accountType') {
-                // Logique pour ajuster les valeurs en fonction du type de compte
                 if (value === 'coach') {
-                    // Pour un coach, on réinitialise les champs spécifiques aux joueurs
                     updatedDetails.playerName = '';
                     updatedDetails.playerNumber = '';
-                    // Mise à jour de fieldsToValidate pour un coach
                     fieldsToValidate = ['accountType', 'licenceNumber'];
                 } else if (value === 'visitor') {
-                    // Pour un visiteur, on réinitialise les champs de licence et de joueur
                     updatedDetails.playerName = '';
                     updatedDetails.playerNumber = '';
                     updatedDetails.licenceNumber = '';
-                    // Ajustez selon ce qui est nécessaire pour un visiteur
                     fieldsToValidate = ['accountType'];
                 } else if (value === 'player') {
-                    // Pour un joueur, assurez-vous que les champs requis sont inclus
                     fieldsToValidate = ['accountType', 'licenceNumber', 'playerName', 'playerNumber'];
                 }
             }
@@ -134,10 +128,16 @@ export const SignUpProvider = ({ children }) => {
                 const userData = {
                     ...userDetails,
                     birthday: userDetails.birthday || new Date().toISOString().split('T')[0],
-                    ...(userDetails.accountType === "player" || userDetails.accountType === "coach") && { teams: [''] },
-                };                  
+                };
                 delete userData.password;
                 delete userData.passwordConfirm;
+                if(userDetails.accountType === "coach" || userDetails.accountType === "visitor") {
+                    delete userData.playerName;
+                    delete userData.playerNumber;
+                }
+                if(userDetails.accountType === "visitor") {
+                    delete userData.licenceNumber;
+                }
     
                 const userRef = doc(db, 'utilisateurs', user.uid);
                 return setDoc(userRef, userData); 
