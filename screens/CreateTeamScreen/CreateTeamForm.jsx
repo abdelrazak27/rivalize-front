@@ -181,7 +181,12 @@ function CreateTeamForm({ user }) {
                 navigation.dispatch(
                     CommonActions.reset({
                         index: 0,
-                        routes: [{ name: 'InviteFirstPlayer' }],
+                        routes: [{ 
+                            name: 'InviteFirstPlayer',
+                            params: { 
+                                teamId: team_id
+                            },
+                        }],
                     })
                 );
             }

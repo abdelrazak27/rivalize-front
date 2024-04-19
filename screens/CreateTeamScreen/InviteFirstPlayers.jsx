@@ -1,16 +1,17 @@
-// InviteFirstPlayers.js
-
 import { BackHandler, Text, View, TextInput, StyleSheet, TouchableOpacity } from "react-native";
 import { useEffect, useState } from "react";
 import { db } from '../../firebaseConfig';
-import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { collection, query, where, onSnapshot, Timestamp, setDoc, doc } from "firebase/firestore";
 import SelectedPlayersList from "./SelectedPlayersList"; // Importer le nouveau composant
+import { useRoute } from "@react-navigation/native";
 
 function InviteFirstPlayers() {
     const [players, setPlayers] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [filteredPlayers, setFilteredPlayers] = useState([]);
     const [selectedPlayerUids, setSelectedPlayerUids] = useState([]);
+    const route = useRoute();
+    const { teamId } = route.params;
 
     useEffect(() => {
         const backHandler = BackHandler.addEventListener(
@@ -58,6 +59,21 @@ function InviteFirstPlayers() {
 
     const finishSelection = () => {
         console.log('Selected Player UIDs:', selectedPlayerUids);
+        if (selectedPlayerUids.length > 0) {
+            selectedPlayerUids.forEach(async (uid) => {
+                const invitationRef = doc(db, 'invitations', `${teamId}_${uid}`);
+                const invitationDetails = {
+                    invitedUid: uid,
+                    timestamp: Timestamp.now(),
+                    clubId: teamId,
+                    state: 'pending',
+                };
+                await setDoc(invitationRef, invitationDetails);
+                console.log(`Invitation créée pour l'utilisateur avec l'UID ${uid} dans le club ${teamId}`);
+            });
+        } else {
+            console.log("Aucun joueur sélectionné pour envoyer une invitation.");
+        }
     };
 
     return (
