@@ -2,7 +2,7 @@ import { BackHandler, Text, View, TextInput, StyleSheet, TouchableOpacity } from
 import { useEffect, useState } from "react";
 import { db } from '../../firebaseConfig';
 import { collection, query, where, onSnapshot, Timestamp, setDoc, doc } from "firebase/firestore";
-import SelectedPlayersList from "./SelectedPlayersList"; // Importer le nouveau composant
+import SelectedPlayersList from "./SelectedPlayersList";
 import { useRoute } from "@react-navigation/native";
 
 function InviteFirstPlayers() {
@@ -12,6 +12,7 @@ function InviteFirstPlayers() {
     const [selectedPlayerUids, setSelectedPlayerUids] = useState([]);
     const route = useRoute();
     const { teamId } = route.params;
+
 
     useEffect(() => {
         const backHandler = BackHandler.addEventListener(
@@ -70,6 +71,7 @@ function InviteFirstPlayers() {
                 };
                 await setDoc(invitationRef, invitationDetails);
                 console.log(`Invitation créée pour l'utilisateur avec l'UID ${uid} dans le club ${teamId}`);
+                
             });
         } else {
             console.log("Aucun joueur sélectionné pour envoyer une invitation.");
