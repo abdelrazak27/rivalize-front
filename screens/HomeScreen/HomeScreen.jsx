@@ -2,6 +2,8 @@ import { useEffect } from "react";
 import { BackHandler, Text, TouchableOpacity, View } from "react-native";
 import { useUser } from "../../context/UserContext";
 import { useNavigation } from "@react-navigation/native";
+import { usePolling } from "../../hooks/usePolling";
+
 
 function HomeScreen() {
     const navigation = useNavigation();
@@ -16,12 +18,13 @@ function HomeScreen() {
     }, []);
 
     const { user } = useUser();
+    usePolling(user.uid);
 
     return (
         <View>
             {user ? (
                 <>
-                    <Text>Bienvenue, {user.firstname}</Text> 
+                    <Text>Bienvenue, {user.firstname}</Text>
                     {user.accountType === 'coach' && (
                         <TouchableOpacity
                             onPress={() => {
@@ -31,7 +34,7 @@ function HomeScreen() {
                             <Text>Créer mon équipe</Text>
                         </TouchableOpacity>
                     )}
-                    
+
                 </>
             ) : (
                 <Text>Chargement...</Text>
