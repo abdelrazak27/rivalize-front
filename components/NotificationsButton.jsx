@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { db } from '../firebaseConfig';
 import { collection, query, where, getDocs, updateDoc, doc } from 'firebase/firestore';
+import { useNavigation } from '@react-navigation/native';
 
 const NotificationsButton = ({ userId }) => {
     const [visible, setVisible] = useState(false);
     const [invitations, setInvitations] = useState([]);
+    const navigation = useNavigation();
 
     useEffect(() => {
         const fetchInvitations = async () => {
@@ -26,10 +28,14 @@ const NotificationsButton = ({ userId }) => {
         return () => clearInterval(interval);
     }, [userId]);
 
-
-
     const toggleModal = () => {
         setVisible(!visible);
+    };
+
+    const handleInvitationClick = async (invitationId) => {
+        markAsRead(invitationId);
+        toggleModal();
+        navigation.navigate('InvitationDetailScreen', { invitationId: invitationId });
     };
 
     const markAsRead = async (invitationId) => {
@@ -57,7 +63,7 @@ const NotificationsButton = ({ userId }) => {
             >
                 <View style={styles.modalView}>
                     {invitations.map((invitation) => (
-                        <TouchableOpacity key={invitation.id} onPress={() => markAsRead(invitation.id)}>
+                        <TouchableOpacity key={invitation.id} onPress={() => handleInvitationClick(invitation.id)}>
                             <Text style={invitation.hasBeenRead ? styles.readText : styles.unreadText}>
                                 Invitation de reçu de {invitation.clubId}.
                             </Text>

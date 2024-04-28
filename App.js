@@ -10,6 +10,7 @@ import { UserProvider } from './context/UserContext';
 import CreateTeamScreen from './screens/CreateTeamScreen/CreateTeamScreen';
 import InviteFirstPlayers from './screens/CreateTeamScreen/InviteFirstPlayers';
 import TeamScreen from './screens/TeamScreen/TeamScreen';
+import InvitationDetailScreen from './screens/InvitationDetailScreen/InvitationDetailScreen';
 
 const Stack = createStackNavigator();
 
@@ -28,6 +29,7 @@ export default function App() {
             <Stack.Screen name="CreateTeamScreen" component={CreateTeamScreen} />
             <Stack.Screen name="InviteFirstPlayer" component={InviteFirstPlayers} />
             <Stack.Screen name="TeamScreen" component={TeamScreen} />
+            <Stack.Screen name="InvitationDetailScreen" component={InvitationDetailScreen} />
           </Stack.Navigator>
         </View>
       </NavigationContainer>
