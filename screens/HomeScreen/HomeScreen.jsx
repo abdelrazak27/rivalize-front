@@ -3,6 +3,7 @@ import { BackHandler, Text, TouchableOpacity, View } from "react-native";
 import { useUser } from "../../context/UserContext";
 import { useNavigation } from "@react-navigation/native";
 import { usePolling } from "../../hooks/usePolling";
+import NotificationsButton from "../../components/NotificationsButton";
 
 
 function HomeScreen() {
@@ -24,6 +25,7 @@ function HomeScreen() {
         <View>
             {user ? (
                 <>
+                    <NotificationsButton userId={user.uid} />
                     <Text>Bienvenue, {user.firstname}</Text>
                     {user.accountType === 'coach' && (
                         <TouchableOpacity
@@ -34,7 +36,17 @@ function HomeScreen() {
                             <Text>Créer mon équipe</Text>
                         </TouchableOpacity>
                     )}
-
+                    {user.teams && user.teams.length > 0 && (
+                        user.teams.map((team, index) => (
+                            <View key={index}>
+                                <TouchableOpacity onPress={() => {
+                                    navigation.navigate('TeamScreen', { teamId: team });
+                                }}>
+                                    <Text>{team}</Text>
+                                </TouchableOpacity>
+                            </View>
+                        ))
+                    )}
                 </>
             ) : (
                 <Text>Chargement...</Text>

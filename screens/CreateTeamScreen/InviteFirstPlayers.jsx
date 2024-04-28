@@ -3,15 +3,19 @@ import { useEffect, useState } from "react";
 import { db } from '../../firebaseConfig';
 import { collection, query, where, onSnapshot, Timestamp, setDoc, doc } from "firebase/firestore";
 import SelectedPlayersList from "./SelectedPlayersList";
-import { useRoute } from "@react-navigation/native";
+import { CommonActions, useNavigation, useRoute } from "@react-navigation/native";
+import { useUser } from "../../context/UserContext";
 
 function InviteFirstPlayers() {
     const [players, setPlayers] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [filteredPlayers, setFilteredPlayers] = useState([]);
     const [selectedPlayerUids, setSelectedPlayerUids] = useState([]);
+    const navigation = useNavigation();
     const route = useRoute();
     const { teamId } = route.params;
+    const { setUser } = useUser();
+
 
 
     useEffect(() => {
@@ -58,10 +62,19 @@ function InviteFirstPlayers() {
         setSelectedPlayerUids(selectedPlayerUids.filter(id => id !== uid));
     };
 
-    const finishSelection = () => {
+    const addTeamToCoach = (newTeam) => {
+        setUser(prevUser => ({
+            ...prevUser,
+            teams: [...(prevUser.teams || []), newTeam]
+        }));
+    };
+
+    const finishSelection = async () => {
         console.log('Selected Player UIDs:', selectedPlayerUids);
+        addTeamToCoach(teamId);
+    
         if (selectedPlayerUids.length > 0) {
-            selectedPlayerUids.forEach(async (uid) => {
+            const invitationsPromises = selectedPlayerUids.map(uid => {
                 const invitationRef = doc(db, 'invitations', `${teamId}_${uid}`);
                 const invitationDetails = {
                     invitedUid: uid,
@@ -69,14 +82,35 @@ function InviteFirstPlayers() {
                     clubId: teamId,
                     state: 'pending',
                 };
-                await setDoc(invitationRef, invitationDetails);
-                console.log(`Invitation créée pour l'utilisateur avec l'UID ${uid} dans le club ${teamId}`);
-                
+                return setDoc(invitationRef, invitationDetails);
             });
+    
+            try {
+                await Promise.all(invitationsPromises);
+                console.log("Toutes les invitations ont été créées.");
+            } catch (error) {
+                console.error("Erreur lors de la création des invitations : ", error);
+                return;
+            }
         } else {
             console.log("Aucun joueur sélectionné pour envoyer une invitation.");
         }
+    
+        navigateHome();
     };
+    
+    const navigateHome = () => {
+        navigation.dispatch(
+            CommonActions.reset({
+                index: 0,
+                routes: [{ 
+                    name: 'HomeScreen'
+                }],
+            })
+        );
+    };
+    
+
 
     return (
         <View style={styles.container}>

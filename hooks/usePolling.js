@@ -12,7 +12,8 @@ const fetchInvitations = async (userId) => {
         querySnapshot.forEach((doc) => {
             invitations.push(doc.data());
         });
-        console.log('Invitations:', invitations);
+        // A activé si besoin d'infos sur la structure d'une invitation
+        // console.log('Invitations:', invitations);
     } catch (error) {
         console.error('Error fetching invitations:', error);
     }

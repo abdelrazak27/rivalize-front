@@ -5,7 +5,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../../firebaseConfig';
 import { doc, setDoc, updateDoc, arrayUnion } from 'firebase/firestore';
-import citiesData from '../SignUpScreen/data/citiesFR.json';
+import citiesData from '../../data/citiesFR.json';
 import { Picker } from '@react-native-picker/picker';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 
@@ -70,7 +70,7 @@ function CreateTeamForm({ user }) {
 
 
     const [teamDetails, setTeamDetails] = useState({
-        id: team_id,
+        id: '',
         color_int: '',
         color_ext: '',
         logo_link: '',
@@ -168,6 +168,7 @@ function CreateTeamForm({ user }) {
 
                 const teamDatas = {
                     ...teamDetails,
+                    id: team_id,
                     logo_link: downloadURL,
                     name: teamDetails.name.trim(),
                 };

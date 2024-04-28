@@ -3,7 +3,7 @@ import { createContext, useContext, useState } from 'react';
 import { Alert } from 'react-native';
 import { app, db } from '../firebaseConfig';
 import { doc, setDoc } from 'firebase/firestore';
-import citiesData from '../screens/SignUpScreen/data/citiesFR.json'
+import citiesData from '../data/citiesFR.json';
 import { useUser } from './UserContext';
 
 const SignUpContext = createContext();
