@@ -41,6 +41,84 @@ const SignInScreen = () => {
             });
     };
 
+    const handleSignInForce = (type) => {
+        if (type === "player") {
+            signInWithEmailAndPassword(auth, "player@rivalize.fr", "@Player1")
+                .then(async (userCredentials) => {
+                    const user = userCredentials.user;
+                    const userRef = doc(db, "utilisateurs", user.uid);
+                    const userSnap = await getDoc(userRef);
+                    if (userSnap.exists()) {
+                        const userData = { uid: user.uid, email: user.email, ...userSnap.data() };
+                        setUser(userData);
+                        navigation.dispatch(
+                            CommonActions.reset({
+                                index: 0,
+                                routes: [{ name: 'HomeScreen' }],
+                            })
+                        );
+                    } else {
+                        Alert.alert('Erreur de connexion', 'Une erreur est survenue dans la récupération des données.');
+                    }
+                })
+                .catch((error) => {
+                    const errorCode = error.code;
+                    const errorMessage = getErrorMessage(errorCode);
+                    Alert.alert('Erreur de connexion', errorMessage);
+                });
+        }
+        if (type === "coach") {
+            signInWithEmailAndPassword(auth, "coach@rivalize.fr", "@Coach11")
+                .then(async (userCredentials) => {
+                    const user = userCredentials.user;
+                    const userRef = doc(db, "utilisateurs", user.uid);
+                    const userSnap = await getDoc(userRef);
+                    if (userSnap.exists()) {
+                        const userData = { uid: user.uid, email: user.email, ...userSnap.data() };
+                        setUser(userData);
+                        navigation.dispatch(
+                            CommonActions.reset({
+                                index: 0,
+                                routes: [{ name: 'HomeScreen' }],
+                            })
+                        );
+                    } else {
+                        Alert.alert('Erreur de connexion', 'Une erreur est survenue dans la récupération des données.');
+                    }
+                })
+                .catch((error) => {
+                    const errorCode = error.code;
+                    const errorMessage = getErrorMessage(errorCode);
+                    Alert.alert('Erreur de connexion', errorMessage);
+                });
+        }
+        if (type === "visitor") {
+            signInWithEmailAndPassword(auth, "visitor@rivalize.fr", "@Visitor1")
+                .then(async (userCredentials) => {
+                    const user = userCredentials.user;
+                    const userRef = doc(db, "utilisateurs", user.uid);
+                    const userSnap = await getDoc(userRef);
+                    if (userSnap.exists()) {
+                        const userData = { uid: user.uid, email: user.email, ...userSnap.data() };
+                        setUser(userData);
+                        navigation.dispatch(
+                            CommonActions.reset({
+                                index: 0,
+                                routes: [{ name: 'HomeScreen' }],
+                            })
+                        );
+                    } else {
+                        Alert.alert('Erreur de connexion', 'Une erreur est survenue dans la récupération des données.');
+                    }
+                })
+                .catch((error) => {
+                    const errorCode = error.code;
+                    const errorMessage = getErrorMessage(errorCode);
+                    Alert.alert('Erreur de connexion', errorMessage);
+                });
+        }
+    };
+
     const getErrorMessage = (errorCode) => {
         switch (errorCode) {
             case 'auth/invalid-email':
@@ -64,6 +142,11 @@ const SignInScreen = () => {
                 secureTextEntry
             />
             <Button title="Se connecter" onPress={handleSignIn} />
+
+            <Button title="Se connecter en tant que joueur" onPress={() => handleSignInForce("player")} />
+            <Button title="Se connecter en tant que coach" onPress={() => handleSignInForce("coach")} />
+            <Button title="Se connecter en tant que visiteur" onPress={() => handleSignInForce("visitor")} />
+
         </View>
     );
 }
