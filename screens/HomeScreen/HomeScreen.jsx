@@ -1,10 +1,12 @@
 import { useEffect } from "react";
-import { BackHandler, Text, TouchableOpacity, View } from "react-native";
+import { Alert, BackHandler, Text, TouchableOpacity, View } from "react-native";
 import { useUser } from "../../context/UserContext";
-import { useNavigation } from "@react-navigation/native";
+import { CommonActions, useNavigation } from "@react-navigation/native";
 import { usePolling } from "../../hooks/usePolling";
 import NotificationsButton from "../../components/NotificationsButton";
 import RedirectLinkButton from "../../components/RedirectLinkButton";
+import { getAuth, signOut } from "firebase/auth";
+import FunctionButton from "../../components/FunctionsButton";
 
 
 function HomeScreen() {
@@ -20,12 +22,27 @@ function HomeScreen() {
     }, []);
 
     const { user } = useUser();
+    const auth = getAuth();
+
     // usePolling(user.uid);
 
     return (
         <View>
             {user ? (
                 <>
+                    <FunctionButton title="Déconnexion" onPress={() => {
+                        signOut(auth).then(() => {
+                            Alert.alert("Déconnexion", "vous avez été déconnecté avec succès.")
+                            navigation.dispatch(
+                                CommonActions.reset({
+                                    index: 0,
+                                    routes: [{ name: 'ConnexionScreen' }],
+                                })
+                            );
+                        }).catch((error) => {
+                            console.log(error);
+                        });
+                    }} />
                     <NotificationsButton userId={user.uid} />
                     <RedirectLinkButton
                         routeName="ProfileScreen"

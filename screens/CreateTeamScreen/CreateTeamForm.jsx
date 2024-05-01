@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import uuid from 'react-native-uuid';
 import * as ImagePicker from 'expo-image-picker';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -178,13 +178,13 @@ function CreateTeamForm({ user }) {
                 await addTeamToUser(user.uid, team_id);
 
                 Alert.alert("Succès", "L'équipe a été enregistrée avec succès.");
-                
+
                 navigation.dispatch(
                     CommonActions.reset({
                         index: 0,
-                        routes: [{ 
+                        routes: [{
                             name: 'InviteFirstPlayer',
-                            params: { 
+                            params: {
                                 teamId: team_id
                             },
                         }],
@@ -230,6 +230,11 @@ function CreateTeamForm({ user }) {
             <TouchableOpacity onPress={pickImage}>
                 <Text>Sélectionner le logo</Text>
             </TouchableOpacity>
+            {imageUri ? (
+                <Image source={{ uri: imageUri }} style={styles.logo} />
+            ) : (
+                <Text>Aucun logo sélectionné</Text>
+            )}
 
             <TextInput
                 placeholder="Nom du club *"
@@ -300,6 +305,12 @@ const styles = StyleSheet.create({
         borderWidth: 2,
         borderColor: 'black',
     },
+    logo: {
+        width: 200,
+        height: 200,
+        resizeMode: 'contain',
+    }
+    
 });
 
 export default CreateTeamForm;
