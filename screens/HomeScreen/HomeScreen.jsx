@@ -4,6 +4,7 @@ import { useUser } from "../../context/UserContext";
 import { useNavigation } from "@react-navigation/native";
 import { usePolling } from "../../hooks/usePolling";
 import NotificationsButton from "../../components/NotificationsButton";
+import RedirectLinkButton from "../../components/RedirectLinkButton";
 
 
 function HomeScreen() {
@@ -26,6 +27,13 @@ function HomeScreen() {
             {user ? (
                 <>
                     <NotificationsButton userId={user.uid} />
+                    <RedirectLinkButton
+                        routeName="ProfileScreen"
+                        title="Profile"
+                        params={{ userId: user.uid }}
+                        buttonStyle={{ backgroundColor: 'green' }}
+                        textStyle={{ fontSize: 18 }}
+                    />
                     <Text>Bienvenue, {user.firstname}</Text>
                     {user.accountType === 'coach' && (
                         <TouchableOpacity

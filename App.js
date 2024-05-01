@@ -11,6 +11,7 @@ import CreateTeamScreen from './screens/CreateTeamScreen/CreateTeamScreen';
 import InviteFirstPlayers from './screens/CreateTeamScreen/InviteFirstPlayers';
 import TeamScreen from './screens/TeamScreen/TeamScreen';
 import InvitationDetailScreen from './screens/InvitationDetailScreen/InvitationDetailScreen';
+import ProfileScreen from './screens/ProfileScreen/ProfileScreen';
 
 const Stack = createStackNavigator();
 
@@ -30,6 +31,7 @@ export default function App() {
             <Stack.Screen name="InviteFirstPlayer" component={InviteFirstPlayers} />
             <Stack.Screen name="TeamScreen" component={TeamScreen} />
             <Stack.Screen name="InvitationDetailScreen" component={InvitationDetailScreen} />
+            <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
           </Stack.Navigator>
         </View>
       </NavigationContainer>
