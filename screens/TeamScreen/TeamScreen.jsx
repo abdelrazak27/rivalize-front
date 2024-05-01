@@ -1,12 +1,13 @@
-import { useFocusEffect, useNavigation, useRoute } from "@react-navigation/native";
-import { doc, getDoc } from "firebase/firestore";
-import React, { useEffect, useState } from "react";
+import { CommonActions, useFocusEffect, useNavigation, useRoute } from "@react-navigation/native";
+import { collection, deleteDoc, doc, getDoc, getDocs, updateDoc } from "firebase/firestore";
+import React, { useState } from "react";
 import { Text, View, ActivityIndicator, Image, StyleSheet } from "react-native";
 import { db } from "../../firebaseConfig";
 import { useUser } from "../../context/UserContext";
 import FunctionButton from "../../components/FunctionsButton";
 
 function TeamScreen() {
+    const { setUser } = useUser();
     const route = useRoute();
     const { teamId } = route.params;
     const { user } = useUser();
@@ -41,9 +42,87 @@ function TeamScreen() {
     useFocusEffect(
         React.useCallback(() => {
             fetchTeamDetails();
-            return () => {};
+            return () => { };
         }, [teamId])
     );
+
+    const deleteTeam = async () => {
+        try {
+            // Invitations expirent
+            const invitationsSnapshot = await getDocs(collection(db, 'invitations'));
+            const invitationsToUpdate = [];
+            invitationsSnapshot.forEach((doc) => {
+                const invitationData = doc.data();
+                if (invitationData.clubId === teamId && invitationData.state === 'pending') {
+                    invitationsToUpdate.push({ ref: doc.ref, data: { state: 'expired' } });
+                }
+            });
+
+            await Promise.all(invitationsToUpdate.map(async (invitation) => {
+                await updateDoc(invitation.ref, invitation.data);
+            }));
+
+            // Les joueurs perdent l'équipe
+            if (teamData.players && teamData.players.length > 0) {
+                await Promise.all(teamData.players.map(async (playerId) => {
+                    const userRef = doc(db, 'utilisateurs', playerId);
+                    const userDoc = await getDoc(userRef);
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+                        if (userData.accountType === 'player') {
+                            await updateDoc(userRef, {
+                                team: null,
+                            });
+                        }
+                    }
+                }));
+            }
+
+            // Le coach perd son équipe KO
+            if (teamData.coach_id) {
+                const coachRef = doc(db, 'utilisateurs', teamData.coach_id);
+                const coachDoc = await getDoc(coachRef);
+                if (coachDoc.exists()) {
+                    const coachData = coachDoc.data();
+                    const teamIndex = coachData.teams.indexOf(teamId);
+                    if (teamIndex !== -1) {
+                        const updatedTeams = [...coachData.teams]; 
+                        updatedTeams.splice(teamIndex, 1);
+                        await updateDoc(coachRef, {
+                            teams: updatedTeams,
+                        });
+                    }
+                }
+            }
+
+            // Désactive l'équipe OK
+            const teamRef = doc(db, 'equipes', teamId);
+            await updateDoc(teamRef, {
+                active: false,
+            });
+
+            // Suppression de l'équipe localement
+            const newTeams = user.teams.filter(team => team !== teamId);
+            const updatedUserData = { 
+                ...user, 
+                teams: newTeams, 
+            };
+            await setUser(updatedUserData);
+
+            // Redirection, quand tout est ok
+            navigation.dispatch(
+                CommonActions.reset({
+                    index: 0,
+                    routes: [{ name: 'HomeScreen', params: { teamDeleted: true } }],
+                })
+            );
+
+        } catch (error) {
+            console.error("Une erreur s'est produite lors de la suppression de l'équipe :", error);
+        }
+    };
+
+
 
     if (isLoading) {
         return (
@@ -76,10 +155,16 @@ function TeamScreen() {
                         </View>
                     )}
                     {user.uid === teamData.coach_id && (
-                        <FunctionButton
-                            title="Modifier les informations de l'équipe"
-                            onPress={() => navigation.navigate('EditTeamScreen', { teamData: teamData })}
-                        />
+                        <>
+                            <FunctionButton
+                                title="Modifier les informations de l'équipe"
+                                onPress={() => navigation.navigate('EditTeamScreen', { teamData: teamData })}
+                            />
+                            <FunctionButton
+                                title="Supprimer l'équipe"
+                                onPress={deleteTeam}
+                            />
+                        </>
                     )}
                 </>
             ) : (

@@ -171,6 +171,7 @@ function CreateTeamForm({ user }) {
                     id: team_id,
                     logo_link: downloadURL,
                     name: teamDetails.name.trim(),
+                    active: true,
                 };
 
                 const teamRef = doc(db, 'equipes', team_id);
