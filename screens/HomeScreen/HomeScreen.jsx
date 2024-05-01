@@ -19,7 +19,7 @@ function HomeScreen() {
     }, []);
 
     const { user } = useUser();
-    usePolling(user.uid);
+    // usePolling(user.uid);
 
     return (
         <View>

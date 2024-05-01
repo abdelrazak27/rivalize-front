@@ -9,24 +9,24 @@ const NotificationsButton = ({ userId }) => {
     const [invitations, setInvitations] = useState([]);
     const navigation = useNavigation();
 
-    useEffect(() => {
-        const fetchInvitations = async () => {
-            const invitationsRef = collection(db, 'invitations');
-            const q = query(invitationsRef, where('invitedUid', '==', userId));
+    // useEffect(() => {
+    //     const fetchInvitations = async () => {
+    //         const invitationsRef = collection(db, 'invitations');
+    //         const q = query(invitationsRef, where('invitedUid', '==', userId));
 
-            const querySnapshot = await getDocs(q);
-            const loadedInvitations = [];
-            querySnapshot.forEach((doc) => {
-                loadedInvitations.push({ ...doc.data(), id: doc.id });
-            });
-            setInvitations(loadedInvitations);
-        };
+    //         const querySnapshot = await getDocs(q);
+    //         const loadedInvitations = [];
+    //         querySnapshot.forEach((doc) => {
+    //             loadedInvitations.push({ ...doc.data(), id: doc.id });
+    //         });
+    //         setInvitations(loadedInvitations);
+    //     };
 
-        const interval = setInterval(fetchInvitations, 10000);
-        fetchInvitations();
+    //     const interval = setInterval(fetchInvitations, 10000);
+    //     fetchInvitations();
 
-        return () => clearInterval(interval);
-    }, [userId]);
+    //     return () => clearInterval(interval);
+    // }, [userId]);
 
     const toggleModal = () => {
         setVisible(!visible);
