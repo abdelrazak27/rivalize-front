@@ -56,7 +56,13 @@ function InvitationDetailScreen() {
                 </View>
             ) : (
                 <View>
-                    <Text>Il semble que cette invitation a été {invitationState === "rejected" ? "rejeté" : "accepté"}.</Text>
+                    {invitationState === "rejected" ? (
+                        <Text>Il semble que cette invitation a déjà été refusée.</Text>
+                    ) : invitationState === "accepted" ? (
+                        <Text>Il semble que cette invitation a déjà été acceptée.</Text>
+                    ) : invitationState === "expired" && (
+                        <Text>Il semble que cette invitation est expirée.</Text>
+                    )}
                 </View>
             )}
         </View>

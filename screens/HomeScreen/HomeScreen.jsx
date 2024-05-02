@@ -2,7 +2,6 @@ import React, { useEffect } from "react";
 import { Alert, BackHandler, Text, TouchableOpacity, View } from "react-native";
 import { useUser } from "../../context/UserContext";
 import { CommonActions, useFocusEffect, useNavigation } from "@react-navigation/native";
-import { usePolling } from "../../hooks/usePolling";
 import NotificationsButton from "../../components/NotificationsButton";
 import RedirectLinkButton from "../../components/RedirectLinkButton";
 import { getAuth, signOut } from "firebase/auth";
@@ -59,8 +58,6 @@ function HomeScreen({ route }) {
 
     const { user } = useUser();
     const auth = getAuth();
-
-    // usePolling(user.uid);
 
     return (
         <View>

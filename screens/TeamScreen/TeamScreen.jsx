@@ -5,6 +5,7 @@ import { Text, View, ActivityIndicator, Image, StyleSheet } from "react-native";
 import { db } from "../../firebaseConfig";
 import { useUser } from "../../context/UserContext";
 import FunctionButton from "../../components/FunctionsButton";
+import ListUsers from "../../components/ListUsers";
 
 function TeamScreen() {
     const { setUser } = useUser();
@@ -139,13 +140,6 @@ function TeamScreen() {
             </Text>
             {teamData ? (
                 <>
-                    <Text>Nom : {teamData.name}</Text>
-                    <Text>Catégorie : {teamData.category}</Text>
-                    <Text>Ville : {teamData.city}</Text>
-                    <Text>Coach : {coachData ? `${coachData.firstname} ${coachData.lastname}` : "Inconnu"}</Text>
-                    <Text>Color int : {teamData.color_int}</Text>
-                    <Text>Color ext : {teamData.color_ext}</Text>
-                    <Text>Nombre de joueur(s) : {teamData.players.length > 0 ? teamData.players.length : "0"}</Text>
                     {teamData.logo_link && (
                         <View style={styles.imageContainer}>
                             <Image
@@ -154,6 +148,14 @@ function TeamScreen() {
                             />
                         </View>
                     )}
+                    <Text>Nom : {teamData.name}</Text>
+                    <Text>Catégorie : {teamData.category}</Text>
+                    <Text>Ville : {teamData.city}</Text>
+                    <Text>Coach : {coachData ? `${coachData.firstname} ${coachData.lastname}` : "Inconnu"}</Text>
+                    <Text>Color int : {teamData.color_int}</Text>
+                    <Text>Color ext : {teamData.color_ext}</Text>
+                    <Text>Nombre de joueur(s) : {teamData.players.length > 0 ? teamData.players.length : "0"}</Text>
+                    <ListUsers arrayList={teamData.players} navigation={navigation} setTeamData={setTeamData}/>
                     {user.uid === teamData.coach_id && (
                         <>
                             <FunctionButton

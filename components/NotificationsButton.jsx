@@ -7,26 +7,32 @@ import { useNavigation } from '@react-navigation/native';
 const NotificationsButton = ({ userId }) => {
     const [visible, setVisible] = useState(false);
     const [invitations, setInvitations] = useState([]);
+    // Booléen pour activer ou désactiver les notifications
+    const activateNotification = false;
     const navigation = useNavigation();
 
-    // useEffect(() => {
-    //     const fetchInvitations = async () => {
-    //         const invitationsRef = collection(db, 'invitations');
-    //         const q = query(invitationsRef, where('invitedUid', '==', userId));
-
-    //         const querySnapshot = await getDocs(q);
-    //         const loadedInvitations = [];
-    //         querySnapshot.forEach((doc) => {
-    //             loadedInvitations.push({ ...doc.data(), id: doc.id });
-    //         });
-    //         setInvitations(loadedInvitations);
-    //     };
-
-    //     const interval = setInterval(fetchInvitations, 10000);
-    //     fetchInvitations();
-
-    //     return () => clearInterval(interval);
-    // }, [userId]);
+    useEffect(() => {
+        if(activateNotification) {
+            const fetchInvitations = async () => {
+                const invitationsRef = collection(db, 'invitations');
+                const q = query(invitationsRef, where('invitedUid', '==', userId));
+    
+                const querySnapshot = await getDocs(q);
+                const loadedInvitations = [];
+                querySnapshot.forEach((doc) => {
+                    loadedInvitations.push({ ...doc.data(), id: doc.id });
+                });
+                // A décommenter pour voir les logs d'invitations
+                console.log(loadedInvitations);
+                setInvitations(loadedInvitations);
+            };
+    
+            const interval = setInterval(fetchInvitations, 10000);
+            fetchInvitations();
+    
+            return () => clearInterval(interval);
+        }
+    }, [userId]);
 
     const toggleModal = () => {
         setVisible(!visible);
