@@ -6,6 +6,7 @@ import { db } from "../../firebaseConfig";
 import { useUser } from "../../context/UserContext";
 import FunctionButton from "../../components/FunctionsButton";
 import ListUsers from "../../components/ListUsers";
+import InvitePlayers from "../../components/InvitePlayers";
 
 function TeamScreen() {
     const { setUser } = useUser();
@@ -114,7 +115,7 @@ function TeamScreen() {
             navigation.dispatch(
                 CommonActions.reset({
                     index: 0,
-                    routes: [{ name: 'HomeScreen', params: { teamDeleted: true } }],
+                    routes: [{ name: 'HomeScreen', params: { teamRefresh: true } }],
                 })
             );
 
@@ -155,7 +156,8 @@ function TeamScreen() {
                     <Text>Color int : {teamData.color_int}</Text>
                     <Text>Color ext : {teamData.color_ext}</Text>
                     <Text>Nombre de joueur(s) : {teamData.players.length > 0 ? teamData.players.length : "0"}</Text>
-                    <ListUsers arrayList={teamData.players} navigation={navigation} setTeamData={setTeamData}/>
+                    <ListUsers arrayList={teamData.players} navigation={navigation} setTeamData={setTeamData} teamId={teamId}/>
+                    <InvitePlayers arrayList={teamData.players} setTeamData={setTeamData} />
                     {user.uid === teamData.coach_id && (
                         <>
                             <FunctionButton

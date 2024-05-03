@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { Text, View, ActivityIndicator, TouchableOpacity, Button, Alert } from "react-native";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { arrayRemove, doc, getDoc, setDoc, Timestamp, updateDoc } from "firebase/firestore";
 import { db } from "../firebaseConfig";
+import uuid from 'react-native-uuid';
 
-function ListUsers({ arrayList, navigation, setTeamData }) {
+function ListUsers({ arrayList, navigation, setTeamData, teamId }) {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -39,9 +40,27 @@ function ListUsers({ arrayList, navigation, setTeamData }) {
                     {
                         text: "Exclure",
                         onPress: async () => {
+                            const notificationId = uuid.v4();
                             const userRef = doc(db, "utilisateurs", userId);
+                            const teamRef = doc(db, "equipes", teamId);
+                            const notificationRef = doc(db, 'notifications', notificationId);
+
+                            const notificationDetails = {
+                                userId: userId,
+                                message: "Vous avez été exclu de votre club",
+                                hasBeenRead: false,
+                                timestamp: Timestamp.now(),
+                                type: "info",
+                            };
+
+                            await setDoc(notificationRef, notificationDetails);
+
                             await updateDoc(userRef, {
                                 team: null
+                            });
+
+                            await updateDoc(teamRef, {
+                                players: arrayRemove(userId)
                             });
 
                             setUsers(users.filter(user => user.userId !== userId));

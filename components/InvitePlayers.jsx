@@ -1,32 +1,34 @@
-import { BackHandler, Text, View, TextInput, StyleSheet, TouchableOpacity } from "react-native";
+import { Text, View, TextInput, StyleSheet, TouchableOpacity } from "react-native";
 import { useEffect, useState } from "react";
-import { db } from '../../firebaseConfig';
-import { collection, query, where, onSnapshot, Timestamp, setDoc, doc } from "firebase/firestore";
-import SelectedPlayersList from "./SelectedPlayersList";
+import { collection, query, where, onSnapshot, Timestamp, setDoc, doc, getDocs } from "firebase/firestore";
 import { CommonActions, useNavigation, useRoute } from "@react-navigation/native";
-import { useUser } from "../../context/UserContext";
+import { db } from "../firebaseConfig";
+import SelectedPlayersList from "../screens/CreateTeamScreen/SelectedPlayersList";
 import uuid from 'react-native-uuid';
 
-function InviteFirstPlayers() {
+function InvitePlayers({ arrayList }) {
     const [players, setPlayers] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [filteredPlayers, setFilteredPlayers] = useState([]);
     const [selectedPlayerUids, setSelectedPlayerUids] = useState([]);
+    const [invitedPlayerUids, setInvitedPlayerUids] = useState([]);
     const navigation = useNavigation();
     const route = useRoute();
     const { teamId } = route.params;
-    const { setUser } = useUser();
-
-
 
     useEffect(() => {
-        const backHandler = BackHandler.addEventListener(
-            'hardwareBackPress',
-            () => true
-        );
+        const fetchInvitations = async () => {
+            const invitationsQuery = query(collection(db, "invitations"), where("clubId", "==", teamId), where("state", "==", "pending"));
+            const querySnapshot = await getDocs(invitationsQuery);
+            const invitedUids = [];
+            querySnapshot.forEach((doc) => {
+                invitedUids.push(doc.data().invitedUid);
+            });
+            setInvitedPlayerUids(invitedUids);
+        };
 
-        return () => backHandler.remove();
-    }, []);
+        fetchInvitations();
+    }, [teamId]);
 
     useEffect(() => {
         const q = query(collection(db, "utilisateurs"), where("accountType", "==", "player"));
@@ -45,13 +47,15 @@ function InviteFirstPlayers() {
         if (searchQuery.length >= 2) {
             const filtered = players.filter(player =>
                 (`${player.firstname} ${player.lastname}`).toLowerCase().includes(searchQuery.toLowerCase()) &&
-                !selectedPlayerUids.includes(player.uid)
+                !selectedPlayerUids.includes(player.uid) &&
+                !invitedPlayerUids.includes(player.uid) &&
+                !arrayList.includes(player.uid)
             );
             setFilteredPlayers(filtered.slice(0, 20));
         } else {
             setFilteredPlayers([]);
         }
-    }, [searchQuery, players, selectedPlayerUids]);
+    }, [searchQuery, players, selectedPlayerUids, invitedPlayerUids]);
 
     const selectPlayer = (uid) => {
         if (!selectedPlayerUids.includes(uid)) {
@@ -63,17 +67,8 @@ function InviteFirstPlayers() {
         setSelectedPlayerUids(selectedPlayerUids.filter(id => id !== uid));
     };
 
-    const addTeamToCoach = (newTeam) => {
-        setUser(prevUser => ({
-            ...prevUser,
-            teams: [...(prevUser.teams || []), newTeam]
-        }));
-    };
-
-
     const finishSelection = async () => {
         console.log('Selected Player UIDs:', selectedPlayerUids);
-        addTeamToCoach(teamId);
     
         if (selectedPlayerUids.length > 0) {
             const operationsPromises = selectedPlayerUids.flatMap(uid => {
@@ -114,8 +109,6 @@ function InviteFirstPlayers() {
         } else {
             console.log("Aucun joueur sélectionné pour envoyer une invitation.");
         }
-    
-        navigateHome();
     };
     
     const navigateHome = () => {
@@ -145,8 +138,11 @@ function InviteFirstPlayers() {
                 </TouchableOpacity>
             ))}
             <SelectedPlayersList selectedPlayers={players.filter(player => selectedPlayerUids.includes(player.uid))} onRemovePlayer={removePlayer} />
-            <TouchableOpacity onPress={finishSelection}>
-                <Text>Terminer (direction page club)</Text>
+            <TouchableOpacity onPress={() => {
+                finishSelection();
+                navigateHome();
+            }}>
+                <Text>Inviter la sélection</Text>
             </TouchableOpacity>
         </View>
     );
@@ -169,4 +165,4 @@ const styles = StyleSheet.create({
     }
 });
 
-export default InviteFirstPlayers;
+export default InvitePlayers;

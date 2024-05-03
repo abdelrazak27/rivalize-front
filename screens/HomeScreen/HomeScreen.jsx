@@ -10,7 +10,7 @@ import FunctionButton from "../../components/FunctionsButton";
 
 function HomeScreen({ route }) {
     const navigation = useNavigation();
-    const { teamDeleted } = route.params || {};
+    const { teamRefresh } = route.params || {};
 
     useEffect(() => {
         const backHandler = BackHandler.addEventListener(
@@ -25,7 +25,7 @@ function HomeScreen({ route }) {
         React.useCallback(() => {
             fetchTeamList();
             return () => { };
-        }, [teamDeleted])
+        }, [teamRefresh])
     );
 
     const fetchTeamList = () => {

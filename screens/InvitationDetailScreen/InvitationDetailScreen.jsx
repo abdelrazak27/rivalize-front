@@ -1,5 +1,5 @@
 import { View, Text, Button, Alert } from 'react-native';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import { useRoute, useNavigation, CommonActions } from '@react-navigation/native';
 import { arrayUnion, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
 import { useUser } from '../../context/UserContext';
@@ -9,9 +9,9 @@ function InvitationDetailScreen() {
     const route = useRoute();
     const { invitationId } = route.params;
     const navigation = useNavigation();
-    const { user } = useUser();
+    const { user, setUser } = useUser();
 
-    const [invitationState, setInvitationState] = useState('');
+    const [invitationDetails, setInvitationDetails] = useState('');
 
     const invitationRef = doc(db, 'invitations', invitationId);
 
@@ -19,7 +19,7 @@ function InvitationDetailScreen() {
         const fetchInvitation = async () => {
             const invitationDoc = await getDoc(invitationRef);
             if (invitationDoc.exists()) {
-                setInvitationState(invitationDoc.data().state);
+                setInvitationDetails(invitationDoc.data());
             }
         };
 
@@ -38,29 +38,49 @@ function InvitationDetailScreen() {
             await updateDoc(userRef, { team: clubId });
             const teamRef = doc(db, 'equipes', clubId);
             await updateDoc(teamRef, { players: arrayUnion(user.uid) });
+            
+            const updatedUserData = { 
+                ...user,
+                team: clubId, 
+            };
+            await setUser(updatedUserData);
+
             Alert.alert("Invitation acceptée !");
+
+            navigation.dispatch(
+                CommonActions.reset({
+                    index: 0,
+                    routes: [{ name: 'HomeScreen', params: { teamRefresh: true } }],
+                })
+            );
+
         } else {
             Alert.alert("Invitation refusée.");
-        }
 
-        navigation.goBack();
+            navigation.dispatch(
+                CommonActions.reset({
+                    index: 0,
+                    routes: [{ name: 'HomeScreen'}],
+                })
+            );
+        }
     };
 
     return (
         <View>
-            <Text>Invitation de {invitationId}</Text>
-            {invitationState === 'pending' ? (
+            <Text>Invitation de {invitationDetails.clubId}</Text>
+            {invitationDetails.state === 'pending' ? (
                 <View>
                     <Button title="Accepter" onPress={() => handleInvitationResponse('accepted')} />
                     <Button title="Refuser" onPress={() => handleInvitationResponse('rejected')} />
                 </View>
             ) : (
                 <View>
-                    {invitationState === "rejected" ? (
+                    {invitationDetails.state === "rejected" ? (
                         <Text>Il semble que cette invitation a déjà été refusée.</Text>
-                    ) : invitationState === "accepted" ? (
+                    ) : invitationDetails.state === "accepted" ? (
                         <Text>Il semble que cette invitation a déjà été acceptée.</Text>
-                    ) : invitationState === "expired" && (
+                    ) : invitationDetails.state === "expired" && (
                         <Text>Il semble que cette invitation est expirée.</Text>
                     )}
                 </View>

@@ -6,29 +6,29 @@ import { useNavigation } from '@react-navigation/native';
 
 const NotificationsButton = ({ userId }) => {
     const [visible, setVisible] = useState(false);
-    const [invitations, setInvitations] = useState([]);
+    const [notifications, setNotifications] = useState([]);
     // Booléen pour activer ou désactiver les notifications
-    const activateNotification = false;
+    const activateNotification = true;
     const navigation = useNavigation();
 
     useEffect(() => {
         if(activateNotification) {
-            const fetchInvitations = async () => {
-                const invitationsRef = collection(db, 'invitations');
-                const q = query(invitationsRef, where('invitedUid', '==', userId));
+            const fetchNotifications = async () => {
+                const notificationsRef = collection(db, 'notifications');
+                const q = query(notificationsRef, where('userId', '==', userId));
     
                 const querySnapshot = await getDocs(q);
-                const loadedInvitations = [];
+                const loadedNotifications = [];
                 querySnapshot.forEach((doc) => {
-                    loadedInvitations.push({ ...doc.data(), id: doc.id });
+                    loadedNotifications.push({ ...doc.data(), id: doc.id });
                 });
-                // A décommenter pour voir les logs d'invitations
-                console.log(loadedInvitations);
-                setInvitations(loadedInvitations);
+                // A décommenter pour voir les logs des notifications
+                console.log(loadedNotifications);
+                setNotifications(loadedNotifications);
             };
     
-            const interval = setInterval(fetchInvitations, 10000);
-            fetchInvitations();
+            const interval = setInterval(fetchNotifications, 10000);
+            fetchNotifications();
     
             return () => clearInterval(interval);
         }
@@ -38,18 +38,20 @@ const NotificationsButton = ({ userId }) => {
         setVisible(!visible);
     };
 
-    const handleInvitationClick = async (invitationId) => {
-        markAsRead(invitationId);
-        toggleModal();
-        navigation.navigate('InvitationDetailScreen', { invitationId: invitationId });
+    const handleNotificationClick = async (notificationId, type, invitationId) => {
+        markAsRead(notificationId);
+        if(type === 'invitation' && invitationId) {
+            toggleModal();
+            navigation.navigate('InvitationDetailScreen', { invitationId: invitationId });
+        }
     };
 
-    const markAsRead = async (invitationId) => {
-        const invitationRef = doc(db, 'invitations', invitationId);
-        await updateDoc(invitationRef, {
+    const markAsRead = async (notificationId) => {
+        const notificationRef = doc(db, 'notifications', notificationId);
+        await updateDoc(notificationRef, {
             hasBeenRead: true
         });
-        setInvitations(invitations.map(inv => inv.id === invitationId ? { ...inv, hasBeenRead: true } : inv));
+        setNotifications(notifications.map(inv => inv.id === notificationId ? { ...inv, hasBeenRead: true } : inv));
     };
 
     return (
@@ -57,7 +59,7 @@ const NotificationsButton = ({ userId }) => {
             <TouchableOpacity onPress={toggleModal}>
                 <Text>
                     Voir les notifications
-                    {invitations.filter(inv => !inv.hasBeenRead).length > 0 && ` (${invitations.filter(inv => !inv.hasBeenRead).length})`}
+                    {notifications.filter(inv => !inv.hasBeenRead).length > 0 && ` (${notifications.filter(inv => !inv.hasBeenRead).length})`}
                 </Text>
             </TouchableOpacity>
 
@@ -68,10 +70,10 @@ const NotificationsButton = ({ userId }) => {
                 onRequestClose={toggleModal}
             >
                 <View style={styles.modalView}>
-                    {invitations.map((invitation) => (
-                        <TouchableOpacity key={invitation.id} onPress={() => handleInvitationClick(invitation.id)}>
-                            <Text style={invitation.hasBeenRead ? styles.readText : styles.unreadText}>
-                                Invitation de reçu de {invitation.clubId}.
+                    {notifications.map((notification) => (
+                        <TouchableOpacity key={notification.id} onPress={() => handleNotificationClick(notification.id, 'invitation', notification.invitationId)}>
+                            <Text style={notification.hasBeenRead ? styles.readText : styles.unreadText}>
+                                {notification.message}
                             </Text>
                         </TouchableOpacity>
                     ))}
