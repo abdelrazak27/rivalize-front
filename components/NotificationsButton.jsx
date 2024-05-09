@@ -3,6 +3,7 @@ import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { db } from '../firebaseConfig';
 import { collection, query, where, getDocs, updateDoc, doc } from 'firebase/firestore';
 import { useNavigation } from '@react-navigation/native';
+import { formatTimestamp } from '../utils/date';
 
 const NotificationsButton = ({ userId }) => {
     const [visible, setVisible] = useState(false);
@@ -22,8 +23,11 @@ const NotificationsButton = ({ userId }) => {
                 querySnapshot.forEach((doc) => {
                     loadedNotifications.push({ ...doc.data(), id: doc.id });
                 });
-                // A décommenter pour voir les logs des notifications
-                console.log(loadedNotifications);
+
+                loadedNotifications.sort((a, b) => b.timestamp.toMillis() - a.timestamp.toMillis());
+
+                // A (dé)commenter pour cacher/voir les logs des notifications
+                // console.log(loadedNotifications);
                 setNotifications(loadedNotifications);
             };
     
@@ -73,7 +77,7 @@ const NotificationsButton = ({ userId }) => {
                     {notifications.map((notification) => (
                         <TouchableOpacity key={notification.id} onPress={() => handleNotificationClick(notification.id, 'invitation', notification.invitationId)}>
                             <Text style={notification.hasBeenRead ? styles.readText : styles.unreadText}>
-                                {notification.message}
+                                {formatTimestamp(notification.timestamp, { showSecond: false, showYear: false })} - {notification.message}
                             </Text>
                         </TouchableOpacity>
                     ))}

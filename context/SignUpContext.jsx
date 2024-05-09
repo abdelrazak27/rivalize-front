@@ -12,7 +12,7 @@ const auth = getAuth(app);
 export const useSignUp = () => useContext(SignUpContext);
 
 export const SignUpProvider = ({ children }) => {
-    const { setUser } = useUser();
+    const { user, setUser } = useUser();
     const [licenceValidationMessage, setLicenceValidationMessage] = useState('');
 
     const [userDetails, setUserDetails] = useState({
@@ -124,7 +124,7 @@ export const SignUpProvider = ({ children }) => {
     const handleSignUp = (onSuccess, onFail) => {
         createUserWithEmailAndPassword(auth, userDetails.email, userDetails.password)
             .then(userCredentials => {
-                const user = userCredentials.user;
+                const userFirebase = userCredentials.user;
                 const userData = {
                     ...userDetails,
                     birthday: userDetails.birthday || new Date().toISOString().split('T')[0],
@@ -139,12 +139,12 @@ export const SignUpProvider = ({ children }) => {
                     delete userData.licenceNumber;
                 }
     
-                const userRef = doc(db, 'utilisateurs', user.uid);
-                return setDoc(userRef, userData); 
+                const userRef = doc(db, 'utilisateurs', userFirebase.uid);
+                return setDoc(userRef, userData).then(() => userFirebase); 
             })
-            .then(() => {
+            .then((userFirebase) => {
                 console.log('Utilisateur ajouté à Firestore et Firebase avec succès');
-                setUser(userDetails); 
+                setUser({ ...userDetails, uid: userFirebase.uid });
                 if(onSuccess) onSuccess();
             })
             .catch((error) => {

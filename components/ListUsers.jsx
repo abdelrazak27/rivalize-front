@@ -3,10 +3,12 @@ import { Text, View, ActivityIndicator, TouchableOpacity, Button, Alert } from "
 import { arrayRemove, doc, getDoc, setDoc, Timestamp, updateDoc } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 import uuid from 'react-native-uuid';
+import { useUser } from "../context/UserContext";
 
 function ListUsers({ arrayList, navigation, setTeamData, teamId }) {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
+    const { user } = useUser();
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -85,12 +87,14 @@ function ListUsers({ arrayList, navigation, setTeamData, teamId }) {
 
     return (
         <View>
-            {users.length > 0 ? users.map((user, index) => (
+            {users.length > 0 ? users.map((userOfList, index) => (
                 <View key={index}>
-                    <TouchableOpacity onPress={() => navigation.navigate('ProfileScreen', { userId: user.userId })}>
-                        <Text>{user.firstname} {user.lastname}</Text>
+                    <TouchableOpacity onPress={() => navigation.navigate('ProfileScreen', { userId: userOfList.userId })}>
+                        <Text>{userOfList.firstname} {userOfList.lastname}</Text>
                     </TouchableOpacity>
-                    <Button title="Exclure de l'équipe" onPress={() => excludePlayer(user.userId)} />
+                    {user.accountType === "coach" && user.teams.includes(teamId) && (
+                        <Button title="Exclure de l'équipe" onPress={() => excludePlayer(userOfList.userId)} />
+                    )}
                 </View>
             )) : (
                 <Text>Aucun joueur dans ce club</Text>

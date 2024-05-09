@@ -157,9 +157,9 @@ function TeamScreen() {
                     <Text>Color ext : {teamData.color_ext}</Text>
                     <Text>Nombre de joueur(s) : {teamData.players.length > 0 ? teamData.players.length : "0"}</Text>
                     <ListUsers arrayList={teamData.players} navigation={navigation} setTeamData={setTeamData} teamId={teamId}/>
-                    <InvitePlayers arrayList={teamData.players} setTeamData={setTeamData} />
                     {user.uid === teamData.coach_id && (
                         <>
+                            <InvitePlayers arrayList={teamData.players} setTeamData={setTeamData} />
                             <FunctionButton
                                 title="Modifier les informations de l'équipe"
                                 onPress={() => navigation.navigate('EditTeamScreen', { teamData: teamData })}

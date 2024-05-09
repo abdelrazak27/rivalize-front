@@ -11,6 +11,8 @@ import FunctionButton from "../../components/FunctionsButton";
 function HomeScreen({ route }) {
     const navigation = useNavigation();
     const { teamRefresh } = route.params || {};
+    const { user, setUser } = useUser();
+    const auth = getAuth();
 
     useEffect(() => {
         const backHandler = BackHandler.addEventListener(
@@ -56,15 +58,13 @@ function HomeScreen({ route }) {
         )
     }
 
-    const { user } = useUser();
-    const auth = getAuth();
-
     return (
         <View>
             {user ? (
                 <>
                     <FunctionButton title="Déconnexion" onPress={() => {
                         signOut(auth).then(() => {
+                            setUser({});
                             Alert.alert("Déconnexion", "vous avez été déconnecté avec succès.")
                             navigation.dispatch(
                                 CommonActions.reset({
