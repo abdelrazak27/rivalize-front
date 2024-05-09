@@ -12,6 +12,7 @@ function InvitationDetailScreen() {
     const { user, setUser } = useUser();
 
     const [invitationDetails, setInvitationDetails] = useState('');
+    const [hasTeam, setHasTeam] = useState(false);
 
     const invitationRef = doc(db, 'invitations', invitationId);
 
@@ -23,44 +24,89 @@ function InvitationDetailScreen() {
             }
         };
 
+        const checkUserTeam = async () => {
+            const userRef = doc(db, 'utilisateurs', user.uid);
+            const userDoc = await getDoc(userRef);
+            if (userDoc.exists() && userDoc.data().team) {
+                setHasTeam(true);
+            }
+        };
+
         fetchInvitation();
-    }, [invitationId]);
+        checkUserTeam();
+    }, [invitationId, user.uid]);
 
     const handleInvitationResponse = async (newState) => {
-        const invitationRef = doc(db, 'invitations', invitationId);
-        await updateDoc(invitationRef, {
-            state: newState
-        });
-
         if (newState === 'accepted') {
-            const { clubId } = (await getDoc(invitationRef)).data();
             const userRef = doc(db, 'utilisateurs', user.uid);
-            await updateDoc(userRef, { team: clubId });
-            const teamRef = doc(db, 'equipes', clubId);
-            await updateDoc(teamRef, { players: arrayUnion(user.uid) });
-            
-            const updatedUserData = { 
-                ...user,
-                team: clubId, 
-            };
-            await setUser(updatedUserData);
+            const userDoc = await getDoc(userRef);
 
-            Alert.alert("Invitation acceptée !");
+            if (userDoc.data().team) {
+                Alert.alert(
+                    "Changement d'équipe",
+                    "Accepter cette invitation vous fera quitter votre équipe actuelle. Voulez-vous continuer ?",
+                    [
+                        {
+                            text: "Annuler",
+                            style: "cancel"
+                        },
+                        {
+                            text: "Continuer",
+                            onPress: async () => {
+                                const { clubId } = (await getDoc(invitationRef)).data();
+                                await updateDoc(userRef, { team: clubId });
+                                const teamRef = doc(db, 'equipes', clubId);
+                                await updateDoc(teamRef, { players: arrayUnion(user.uid) });
+                                await updateDoc(invitationRef, { state: newState });
 
-            navigation.dispatch(
-                CommonActions.reset({
-                    index: 0,
-                    routes: [{ name: 'HomeScreen', params: { teamRefresh: true } }],
-                })
-            );
+                                const updatedUserData = {
+                                    ...user,
+                                    team: clubId,
+                                };
+                                await setUser(updatedUserData);
 
+                                Alert.alert("Invitation acceptée !");
+
+                                navigation.dispatch(
+                                    CommonActions.reset({
+                                        index: 0,
+                                        routes: [{ name: 'HomeScreen', params: { teamRefresh: true } }],
+                                    })
+                                );
+                            }
+                        }
+                    ]
+                );
+            } else {
+                const { clubId } = (await getDoc(invitationRef)).data();
+                await updateDoc(userRef, { team: clubId });
+                const teamRef = doc(db, 'equipes', clubId);
+                await updateDoc(teamRef, { players: arrayUnion(user.uid) });
+                await updateDoc(invitationRef, { state: newState });
+
+                const updatedUserData = {
+                    ...user,
+                    team: clubId,
+                };
+                await setUser(updatedUserData);
+
+                Alert.alert("Invitation acceptée !");
+
+                navigation.dispatch(
+                    CommonActions.reset({
+                        index: 0,
+                        routes: [{ name: 'HomeScreen', params: { teamRefresh: true } }],
+                    })
+                );
+            }
         } else {
+            await updateDoc(invitationRef, { state: newState });
             Alert.alert("Invitation refusée.");
 
             navigation.dispatch(
                 CommonActions.reset({
                     index: 0,
-                    routes: [{ name: 'HomeScreen'}],
+                    routes: [{ name: 'HomeScreen' }],
                 })
             );
         }
@@ -69,6 +115,11 @@ function InvitationDetailScreen() {
     return (
         <View>
             <Text>Invitation de {invitationDetails.clubId}</Text>
+            {hasTeam && (
+                <Text style={{ color: 'red', fontWeight: 'bold' }}>
+                    Attention : Vous faites déjà partie d'une équipe. Accepter cette invitation vous fera quitter votre équipe actuelle.
+                </Text>
+            )}
             {invitationDetails.state === 'pending' ? (
                 <View>
                     <Button title="Accepter" onPress={() => handleInvitationResponse('accepted')} />
