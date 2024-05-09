@@ -13,11 +13,10 @@ const NotificationsButton = ({ userId }) => {
     const navigation = useNavigation();
 
     useEffect(() => {
-        if(activateNotification) {
+        if(activateNotification && userId) {
             const fetchNotifications = async () => {
                 const notificationsRef = collection(db, 'notifications');
                 const q = query(notificationsRef, where('userId', '==', userId));
-    
                 const querySnapshot = await getDocs(q);
                 const loadedNotifications = [];
                 querySnapshot.forEach((doc) => {
