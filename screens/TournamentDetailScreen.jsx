@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { doc, getDoc } from 'firebase/firestore';
+import { View, Text, StyleSheet, Alert } from 'react-native';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
-import RedirectLinkButton from '../components/RedirectLinkButton';
 import { useUser } from '../context/UserContext';
+import FunctionButton from '../components/FunctionsButton';
 
-const TournamentDetailScreen = ({ route }) => {
+const TournamentDetailScreen = ({ route, navigation }) => {
     const { user } = useUser();
     const { tournamentId, refresh } = route.params;
     const [tournament, setTournament] = useState(null);
@@ -30,6 +30,22 @@ const TournamentDetailScreen = ({ route }) => {
             fetchTournament();
         }
     }, [refresh]);
+
+    const deleteTournament = async () => {
+        try {
+            const docRef = doc(db, 'tournois', tournamentId);
+            await updateDoc(docRef, { isDisabled: true });
+            Alert.alert('Succès', 'Le tournoi a été annulé avec succès.', [
+                {
+                    text: 'OK',
+                    onPress: () => navigation.goBack()
+                }
+            ]);
+        } catch (error) {
+            console.error('Erreur lors de l\'annulation du tournoi :', error);
+            Alert.alert('Erreur', 'Une erreur est survenue lors de l\'annulation du tournoi.');
+        }
+    };
 
     if (!tournament) {
         return (
@@ -61,13 +77,12 @@ const TournamentDetailScreen = ({ route }) => {
                     ))}
                 </View>
             ))}
-            {/* {user.uid === tournament.createdBy && (
-                <RedirectLinkButton
-                    routeName="EditTournamentFormScreen"
-                    title="Modifier un tournoi"
-                    params={{ tournamentId: tournamentId }}
+            {user.uid === tournament.createdBy && (
+                <FunctionButton
+                    title="Annuler le tournoi"
+                    onPress={deleteTournament}
                 />
-            )} */}
+            )}
         </View>
     );
 };

@@ -63,7 +63,8 @@ function CreateTournamentFormScreen({ route }) {
         availableSlots: '4',
         gameDuration: '30 minutes',
         returnMatches: false,
-        matches: initializeMatches('4', false)
+        matches: initializeMatches('4', false),
+        isDisabled: false,
     });
 
     const handleChange = (name, value) => {

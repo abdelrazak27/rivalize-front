@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { useNavigation } from '@react-navigation/native';
 
@@ -9,7 +9,8 @@ const TournamentList = ({ refresh }) => {
     const navigation = useNavigation();
 
     const fetchTournaments = async () => {
-        const querySnapshot = await getDocs(collection(db, 'tournois'));
+        const q = query(collection(db, 'tournois'), where('isDisabled', '==', false));
+        const querySnapshot = await getDocs(q);
         const loadedTournaments = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setTournaments(loadedTournaments);
     };
