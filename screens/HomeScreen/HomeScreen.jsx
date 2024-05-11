@@ -97,6 +97,25 @@ function HomeScreen({ route }) {
                     <View>
                         {fetchTeamList()}
                     </View>
+                    <RedirectLinkButton
+                        routeName="TournamentsScreen"
+                        title="Tournois"
+                        params={{ user: user }}
+                        buttonStyle={{ backgroundColor: 'green' }}
+                        textStyle={{ fontSize: 18 }}
+                    />
+                    <RedirectLinkButton
+                        routeName="TeamsScreen"
+                        title="Équipes"
+                        buttonStyle={{ backgroundColor: 'green' }}
+                        textStyle={{ fontSize: 18 }}
+                    />
+                    <RedirectLinkButton
+                        routeName="UsersScreen"
+                        title="Utilisateurs"
+                        buttonStyle={{ backgroundColor: 'green' }}
+                        textStyle={{ fontSize: 18 }}
+                    />
                 </>
             ) : (
                 <Text>Chargement...</Text>

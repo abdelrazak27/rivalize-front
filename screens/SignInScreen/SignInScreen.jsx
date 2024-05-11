@@ -67,6 +67,31 @@ const SignInScreen = () => {
                     Alert.alert('Erreur de connexion', errorMessage);
                 });
         }
+        if (type === "player2") {
+            signInWithEmailAndPassword(auth, "player2@rivalize.fr", "@Player2")
+                .then(async (userCredentials) => {
+                    const user = userCredentials.user;
+                    const userRef = doc(db, "utilisateurs", user.uid);
+                    const userSnap = await getDoc(userRef);
+                    if (userSnap.exists()) {
+                        const userData = { uid: user.uid, email: user.email, ...userSnap.data() };
+                        setUser(userData);
+                        navigation.dispatch(
+                            CommonActions.reset({
+                                index: 0,
+                                routes: [{ name: 'HomeScreen' }],
+                            })
+                        );
+                    } else {
+                        Alert.alert('Erreur de connexion', 'Une erreur est survenue dans la récupération des données.');
+                    }
+                })
+                .catch((error) => {
+                    const errorCode = error.code;
+                    const errorMessage = getErrorMessage(errorCode);
+                    Alert.alert('Erreur de connexion', errorMessage);
+                });
+        }
         if (type === "coach") {
             signInWithEmailAndPassword(auth, "coach@rivalize.fr", "@Coach11")
                 .then(async (userCredentials) => {
@@ -169,6 +194,7 @@ const SignInScreen = () => {
             <Button title="Se connecter" onPress={handleSignIn} />
 
             <Button title="Se connecter en tant que joueur" onPress={() => handleSignInForce("player")} />
+            <Button title="Se connecter en tant que joueurBis" onPress={() => handleSignInForce("player2")} />
             <Button title="Se connecter en tant que coach" onPress={() => handleSignInForce("coach")} />
             <Button title="Se connecter en tant que coachBis" onPress={() => handleSignInForce("coach2")} />
             <Button title="Se connecter en tant que visiteur" onPress={() => handleSignInForce("visitor")} />

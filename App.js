@@ -13,6 +13,12 @@ import TeamScreen from './screens/TeamScreen/TeamScreen';
 import InvitationDetailScreen from './screens/InvitationDetailScreen/InvitationDetailScreen';
 import ProfileScreen from './screens/ProfileScreen/ProfileScreen';
 import EditTeamScreen from './screens/TeamScreen/EditTeamScreen';
+import TournamentsScreen from './screens/TournamentsScreen';
+import TeamsScreen from './screens/TeamsScreen';
+import UsersScreen from './screens/UsersScreen';
+import CreateTournamentFormScreen from './screens/CreateTournamentFormScreen';
+import EditTournamentFormScreen from './screens/EditTournamentFormScreen';
+import TournamentDetailScreen from './screens/TournamentDetailScreen';
 
 const Stack = createStackNavigator();
 
@@ -50,6 +56,12 @@ export default function App() {
             <Stack.Screen name="EditTeamScreen" component={EditTeamScreen} />
             <Stack.Screen name="InvitationDetailScreen" component={InvitationDetailScreen} />
             <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
+            <Stack.Screen name="TournamentsScreen" component={TournamentsScreen} />
+            <Stack.Screen name="TournamentDetailScreen" component={TournamentDetailScreen} />
+            <Stack.Screen name="CreateTournamentFormScreen" component={CreateTournamentFormScreen} />
+            {/* <Stack.Screen name="EditTournamentFormScreen" component={EditTournamentFormScreen} /> */}
+            <Stack.Screen name="TeamsScreen" component={TeamsScreen} />
+            <Stack.Screen name="UsersScreen" component={UsersScreen} />
           </Stack.Navigator>
         </SafeAreaView>
       </NavigationContainer>

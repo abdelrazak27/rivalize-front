@@ -1,12 +1,13 @@
 import { CommonActions, useFocusEffect, useNavigation, useRoute } from "@react-navigation/native";
-import { collection, deleteDoc, doc, getDoc, getDocs, updateDoc } from "firebase/firestore";
+import { collection, getDoc, getDocs, updateDoc, doc, setDoc, Timestamp } from "firebase/firestore";
 import React, { useState } from "react";
-import { Text, View, ActivityIndicator, Image, StyleSheet } from "react-native";
+import { Text, View, ActivityIndicator, Image, StyleSheet, Alert } from "react-native";
 import { db } from "../../firebaseConfig";
 import { useUser } from "../../context/UserContext";
 import FunctionButton from "../../components/FunctionsButton";
 import ListUsers from "../../components/ListUsers";
 import InvitePlayers from "../../components/InvitePlayers";
+import uuid from 'react-native-uuid';
 
 function TeamScreen() {
     const { setUser } = useUser();
@@ -50,7 +51,6 @@ function TeamScreen() {
 
     const deleteTeam = async () => {
         try {
-            // Invitations expirent
             const invitationsSnapshot = await getDocs(collection(db, 'invitations'));
             const invitationsToUpdate = [];
             invitationsSnapshot.forEach((doc) => {
@@ -64,7 +64,6 @@ function TeamScreen() {
                 await updateDoc(invitation.ref, invitation.data);
             }));
 
-            // Les joueurs perdent l'équipe
             if (teamData.players && teamData.players.length > 0) {
                 await Promise.all(teamData.players.map(async (playerId) => {
                     const userRef = doc(db, 'utilisateurs', playerId);
@@ -80,7 +79,6 @@ function TeamScreen() {
                 }));
             }
 
-            // Le coach perd son équipe KO
             if (teamData.coach_id) {
                 const coachRef = doc(db, 'utilisateurs', teamData.coach_id);
                 const coachDoc = await getDoc(coachRef);
@@ -97,13 +95,11 @@ function TeamScreen() {
                 }
             }
 
-            // Désactive l'équipe OK
             const teamRef = doc(db, 'equipes', teamId);
             await updateDoc(teamRef, {
                 active: false,
             });
 
-            // Suppression de l'équipe localement
             const newTeams = user.teams.filter(team => team !== teamId);
             const updatedUserData = { 
                 ...user, 
@@ -111,7 +107,6 @@ function TeamScreen() {
             };
             await setUser(updatedUserData);
 
-            // Redirection, quand tout est ok
             navigation.dispatch(
                 CommonActions.reset({
                     index: 0,
@@ -124,7 +119,64 @@ function TeamScreen() {
         }
     };
 
+    const leaveTeam = async () => {
+        try {
+            Alert.alert(
+                "Quitter l'équipe",
+                "Êtes-vous sûr de vouloir quitter cette équipe ?",
+                [
+                    {
+                        text: "Annuler",
+                        style: "cancel"
+                    },
+                    {
+                        text: "Quitter",
+                        onPress: async () => {
+                            const userRef = doc(db, 'utilisateurs', user.uid);
+                            await updateDoc(userRef, {
+                                team: null,
+                            });
 
+                            const teamRef = doc(db, 'equipes', teamId);
+                            await updateDoc(teamRef, {
+                                players: teamData.players.filter(playerId => playerId !== user.uid)
+                            });
+
+                            const notificationId = uuid.v4();
+                            const notificationRef = doc(db, 'notifications', notificationId);
+
+                            const notificationDetails = {
+                                userId: teamData.coach_id,
+                                message: `${user.firstname} ${user.lastname} a quitté ${teamData.name}.`,
+                                hasBeenRead: false,
+                                timestamp: Timestamp.now(),
+                                type: "info",
+                            };
+
+                            await setDoc(notificationRef, notificationDetails);
+
+                            const updatedUserData = {
+                                ...user,
+                                team: null,
+                            };
+                            await setUser(updatedUserData);
+
+                            Alert.alert("Vous avez quitté l'équipe.");
+
+                            navigation.dispatch(
+                                CommonActions.reset({
+                                    index: 0,
+                                    routes: [{ name: 'HomeScreen', params: { teamRefresh: true } }],
+                                })
+                            );
+                        }
+                    }
+                ]
+            );
+        } catch (error) {
+            console.error("Une erreur s'est produite lors de la sortie de l'équipe :", error);
+        }
+    };
 
     if (isLoading) {
         return (
@@ -169,6 +221,12 @@ function TeamScreen() {
                                 onPress={deleteTeam}
                             />
                         </>
+                    )}
+                    {teamData.players.includes(user.uid) && user.uid !== teamData.coach_id && (
+                        <FunctionButton
+                            title="Quitter l'équipe"
+                            onPress={leaveTeam}
+                        />
                     )}
                 </>
             ) : (
