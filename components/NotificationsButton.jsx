@@ -9,7 +9,7 @@ const NotificationsButton = ({ userId }) => {
     const [visible, setVisible] = useState(false);
     const [notifications, setNotifications] = useState([]);
     // Booléen pour activer ou désactiver les notifications
-    const activateNotification = true;
+    const activateNotification = false;
     const navigation = useNavigation();
 
     useEffect(() => {

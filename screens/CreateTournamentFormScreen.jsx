@@ -65,6 +65,8 @@ function CreateTournamentFormScreen({ route }) {
         returnMatches: false,
         matches: initializeMatches('4', false),
         isDisabled: false,
+        startDate: new Date(),
+        endDate: new Date(),
     });
 
     const handleChange = (name, value) => {
@@ -78,6 +80,7 @@ function CreateTournamentFormScreen({ route }) {
                     name === 'availableSlots' ? value : updatedDetails.availableSlots,
                     name === 'returnMatches' ? value : updatedDetails.returnMatches
                 );
+                updateTournamentDates(updatedDetails.matches); 
             }
             return updatedDetails;
         });
@@ -87,12 +90,30 @@ function CreateTournamentFormScreen({ route }) {
         const newMatches = [...tournamentDetails.matches];
         newMatches[roundIndex].matches[matchIndex].date = selectedDate || newMatches[roundIndex].matches[matchIndex].date;
         handleChange('matches', newMatches);
+        updateTournamentDates(newMatches);
     };
 
     const handleMatchTimeChange = (roundIndex, matchIndex, selectedTime) => {
         const newMatches = [...tournamentDetails.matches];
         newMatches[roundIndex].matches[matchIndex].time = selectedTime || newMatches[roundIndex].matches[matchIndex].time;
         handleChange('matches', newMatches);
+        updateTournamentDates(newMatches);
+    };
+
+    const updateTournamentDates = (matches) => {
+        const allMatchDates = matches.flatMap(round => round.matches.map(match => match.date));
+        const allMatchTimes = matches.flatMap(round => round.matches.map(match => match.time));
+
+        const startDate = new Date(Math.min(...allMatchDates));
+        
+        const combinedEndDateTimes = matches.flatMap(round => 
+            round.matches.map(match => new Date(match.date.getFullYear(), match.date.getMonth(), match.date.getDate(), match.time.getHours(), match.time.getMinutes()))
+        );
+
+        const endDate = new Date(Math.max(...combinedEndDateTimes));
+
+        handleChange('startDate', startDate);
+        handleChange('endDate', endDate);
     };
 
     const validateFields = () => {
@@ -117,6 +138,8 @@ function CreateTournamentFormScreen({ route }) {
             ...tournamentDetails,
             id: tournamentId,
             createdBy: user.uid,
+            startDate: tournamentDetails.startDate.toISOString(),
+            endDate: tournamentDetails.endDate.toISOString(),
             matches: tournamentDetails.matches.map(round => ({
                 phase: round.phase,
                 matches: round.matches.map(match => ({
@@ -129,12 +152,13 @@ function CreateTournamentFormScreen({ route }) {
 
         try {
             await setDoc(doc(db, 'tournois', tournamentId), tournamentData);
+            const today = new Date();
+            const initialSection = tournamentDetails.startDate.toDateString() === today.toDateString() ? 'current' : 'upcoming';
             Alert.alert('Succès', 'Le tournoi a été créé avec succès.', [
                 {
                     text: 'OK',
                     onPress: () => {
-                        navigation.goBack();
-                        navigation.navigate('TournamentsScreen', { refresh: true });
+                        navigation.navigate('TournamentsScreen', { refresh: true, initialSection: initialSection });
                     }
                 }
             ]);

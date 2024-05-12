@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Alert } from 'react-native';
+import { View, Text, StyleSheet, Alert, ScrollView } from 'react-native';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { useUser } from '../context/UserContext';
@@ -15,7 +15,8 @@ const TournamentDetailScreen = ({ route, navigation }) => {
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
-            setTournament(docSnap.data());
+            const data = docSnap.data();
+            setTournament(data);
         } else {
             console.log('No such document!');
         }
@@ -31,6 +32,13 @@ const TournamentDetailScreen = ({ route, navigation }) => {
         }
     }, [refresh]);
 
+    const updateTournamentState = (newState) => {
+        setTournament(prevTournament => ({
+            ...prevTournament,
+            state: newState
+        }));
+    };
+
     const deleteTournament = async () => {
         try {
             const docRef = doc(db, 'tournois', tournamentId);
@@ -38,7 +46,10 @@ const TournamentDetailScreen = ({ route, navigation }) => {
             Alert.alert('Succès', 'Le tournoi a été annulé avec succès.', [
                 {
                     text: 'OK',
-                    onPress: () => navigation.goBack()
+                    onPress: () => {
+                        updateTournamentState('disabled');
+                        navigation.goBack();
+                    }
                 }
             ]);
         } catch (error) {
@@ -56,7 +67,7 @@ const TournamentDetailScreen = ({ route, navigation }) => {
     }
 
     return (
-        <View style={styles.container}>
+        <ScrollView style={styles.container}>
             <Text style={styles.title}>{tournament.name}</Text>
             <Text>Lieu : {tournament.place}</Text>
             <Text>Nombre de joueurs par équipe : {tournament.playersPerTeam}</Text>
@@ -65,6 +76,8 @@ const TournamentDetailScreen = ({ route, navigation }) => {
             <Text>Places disponibles : {tournament.availableSlots}</Text>
             <Text>Durée des jeux : {tournament.gameDuration}</Text>
             <Text>Matchs retours : {tournament.returnMatches ? 'Oui' : 'Non'}</Text>
+            <Text>Début du tournoi : {new Date(tournament.startDate).toLocaleDateString()}</Text>
+            <Text>Fin du tournoi : {new Date(tournament.endDate).toLocaleDateString()}</Text>
             {tournament.matches.map((round, roundIndex) => (
                 <View key={roundIndex} style={styles.roundContainer}>
                     <Text style={styles.roundTitle}>{round.phase}</Text>
@@ -78,12 +91,16 @@ const TournamentDetailScreen = ({ route, navigation }) => {
                 </View>
             ))}
             {user.uid === tournament.createdBy && (
-                <FunctionButton
-                    title="Annuler le tournoi"
-                    onPress={deleteTournament}
-                />
+                <>
+                    {tournament.state === "upcoming" && (
+                        <FunctionButton
+                            title="Annuler le tournoi"
+                            onPress={deleteTournament}
+                        />
+                    )}
+                </>
             )}
-        </View>
+        </ScrollView>
     );
 };
 
