@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Alert, ScrollView, Modal, Button } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { useUser } from '../context/UserContext';
@@ -9,6 +10,8 @@ const TournamentDetailScreen = ({ route, navigation }) => {
     const { user } = useUser();
     const { tournamentId, refresh } = route.params;
     const [tournament, setTournament] = useState(null);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [selectedTeam, setSelectedTeam] = useState(null);
 
     const fetchTournament = async () => {
         const docRef = doc(db, 'tournois', tournamentId);
@@ -40,22 +43,26 @@ const TournamentDetailScreen = ({ route, navigation }) => {
     };
 
     const deleteTournament = async () => {
-        try {
-            const docRef = doc(db, 'tournois', tournamentId);
-            await updateDoc(docRef, { isDisabled: true });
-            Alert.alert('Succès', 'Le tournoi a été annulé avec succès.', [
-                {
-                    text: 'OK',
-                    onPress: () => {
-                        updateTournamentState('disabled');
-                        navigation.goBack();
-                    }
+        const docRef = doc(db, 'tournois', tournamentId);
+        await updateDoc(docRef, { isDisabled: true });
+        Alert.alert('Succès', 'Le tournoi a été annulé avec succès.', [
+            {
+                text: 'OK',
+                onPress: () => {
+                    updateTournamentState('disabled');
+                    navigation.goBack();
                 }
-            ]);
-        } catch (error) {
-            console.error('Erreur lors de l\'annulation du tournoi :', error);
-            Alert.alert('Erreur', 'Une erreur est survenue lors de l\'annulation du tournoi.');
-        }
+            }
+        ]);
+    };
+
+    const joinTournament = () => {
+        setModalVisible(true);
+    };
+
+    const confirmJoin = () => {
+        console.log('Joining tournament with team ID:', selectedTeam);
+        setModalVisible(false);
     };
 
     if (!tournament) {
@@ -100,6 +107,31 @@ const TournamentDetailScreen = ({ route, navigation }) => {
                     )}
                 </>
             )}
+            <FunctionButton
+                title="Rejoindre le tournoi"
+                onPress={joinTournament}
+            />
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={modalVisible}
+                onRequestClose={() => {
+                    setModalVisible(!modalVisible);
+                }}
+            >
+                <View style={styles.modalView}>
+                    <Picker
+                        selectedValue={selectedTeam}
+                        onValueChange={(itemValue, itemIndex) => setSelectedTeam(itemValue)}
+                        style={styles.picker}
+                    >
+                        {user.teams.map((teamId, index) => (
+                            <Picker.Item key={index} label={`Team ${teamId}`} value={teamId} />
+                        ))}
+                    </Picker>
+                    <Button title="Valider" onPress={confirmJoin} />
+                </View>
+            </Modal>
         </ScrollView>
     );
 };
@@ -130,6 +162,30 @@ const styles = StyleSheet.create({
     matchContainer: {
         paddingLeft: 10,
         marginTop: 5,
+    },
+    modalView: {
+        margin: 20,
+        backgroundColor: "white",
+        borderRadius: 20,
+        padding: 35,
+        alignItems: "center",
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 2
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5
+    },
+    picker: {
+        width: 200,
+        height: 44,
+    },
+    modalButton: {
+        marginBottom: 10,
+        padding: 10,
+        backgroundColor: "#2196F3"
     },
 });
 
