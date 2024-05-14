@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Switch } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Switch, TextInput } from 'react-native';
 import RedirectLinkButton from '../components/RedirectLinkButton';
 import { useFocusEffect, useRoute } from '@react-navigation/native';
 import TournamentList from './TournamentList';
@@ -11,6 +11,7 @@ function TournamentsScreen() {
     const [refresh, setRefresh] = useState(false);
     const [activeSection, setActiveSection] = useState('current');
     const [showMyTournaments, setShowMyTournaments] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
         if (route.params?.initialSection) {
@@ -25,7 +26,7 @@ function TournamentsScreen() {
     );
 
     const renderSection = () => {
-        return <TournamentList refresh={refresh} state={activeSection} showMyTournaments={showMyTournaments} userId={user.uid} />;
+        return <TournamentList refresh={refresh} state={activeSection} showMyTournaments={showMyTournaments} userId={user.uid} searchQuery={searchQuery} />;
     };
 
     return (
@@ -39,6 +40,12 @@ function TournamentsScreen() {
                     />
                 </>
             )}
+            <TextInput
+                style={styles.searchInput}
+                placeholder="Rechercher un tournoi"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+            />
             <View style={styles.navbar}>
                 <TouchableOpacity
                     style={[styles.navButton, activeSection === 'past' && styles.activeButton]}

@@ -4,45 +4,48 @@ import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { useNavigation } from '@react-navigation/native';
 
-const TournamentList = ({ refresh, state, showMyTournaments, userId }) => {
+const TournamentList = ({ refresh, state, showMyTournaments, userId, searchQuery }) => {
     const [tournaments, setTournaments] = useState([]);
     const [loading, setLoading] = useState(true);
     const navigation = useNavigation();
 
-    const filterTournamentsByState = (loadedTournaments) => {
+    const filterTournamentsByStateAndName = (loadedTournaments) => {
         const now = new Date();
+        let filteredByState = [];
 
         switch (state) {
             case 'upcoming':
-                return loadedTournaments.filter(tournament => {
-                    const startDate = new Date(tournament.startDate);
-                    return startDate > now;
-                });
+                filteredByState = loadedTournaments.filter(tournament => new Date(tournament.startDate) > now);
+                break;
             case 'current':
-                return loadedTournaments.filter(tournament => {
+                filteredByState = loadedTournaments.filter(tournament => {
                     const startDate = new Date(tournament.startDate);
                     const endDate = new Date(tournament.endDate);
                     return startDate <= now && now <= endDate;
                 });
+                break;
             case 'past':
-                return loadedTournaments.filter(tournament => {
-                    const endDate = new Date(tournament.endDate);
-                    return endDate < now;
-                });
+                filteredByState = loadedTournaments.filter(tournament => new Date(tournament.endDate) < now);
+                break;
             default:
-                return loadedTournaments;
+                filteredByState = loadedTournaments;
         }
+
+        if (searchQuery && searchQuery.length > 0) {
+            return filteredByState.filter(tournament => 
+                tournament.name.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+        }
+        return filteredByState;
     };
 
     const fetchTournaments = async () => {
         setLoading(true);
         try {
             let q = query(collection(db, 'tournois'), where('isDisabled', '==', false));
-
             if (showMyTournaments) {
                 q = query(q, where('createdBy', '==', userId));
             }
-
             const querySnapshot = await getDocs(q);
             const loadedTournaments = querySnapshot.docs.map(doc => ({
                 id: doc.id,
@@ -50,11 +53,8 @@ const TournamentList = ({ refresh, state, showMyTournaments, userId }) => {
                 startDate: new Date(doc.data().startDate),
                 endDate: new Date(doc.data().endDate)
             }));
-
-            const filteredTournaments = filterTournamentsByState(loadedTournaments);
-
+            const filteredTournaments = filterTournamentsByStateAndName(loadedTournaments);
             filteredTournaments.sort((a, b) => b.startDate - a.startDate);
-
             setTournaments(filteredTournaments);
         } catch (error) {
             console.error("Error fetching tournaments: ", error);
@@ -65,7 +65,7 @@ const TournamentList = ({ refresh, state, showMyTournaments, userId }) => {
 
     useEffect(() => {
         fetchTournaments();
-    }, [refresh]);
+    }, [refresh, searchQuery]);  // Ajouter searchQuery dans le tableau de dépendances
 
     const handlePress = (tournamentId) => {
         navigation.navigate('TournamentDetailScreen', { tournamentId });
