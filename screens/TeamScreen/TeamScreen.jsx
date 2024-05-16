@@ -1,10 +1,10 @@
 import { CommonActions, useFocusEffect, useNavigation, useRoute } from "@react-navigation/native";
 import { collection, getDoc, getDocs, updateDoc, doc, setDoc, Timestamp } from "firebase/firestore";
-import React, { useState } from "react";
-import { Text, View, ActivityIndicator, Image, StyleSheet, Alert } from "react-native";
+import React, { useEffect, useState } from "react";
+import { Text, View, ActivityIndicator, Image, StyleSheet, Alert, TouchableOpacity } from "react-native";
 import { db } from "../../firebaseConfig";
 import { useUser } from "../../context/UserContext";
-import FunctionButton from "../../components/FunctionsButton";
+import FunctionButton from "../../components/FunctionButton";
 import ListUsers from "../../components/ListUsers";
 import InvitePlayers from "../../components/InvitePlayers";
 import uuid from 'react-native-uuid';
@@ -19,6 +19,7 @@ function TeamScreen() {
     const [teamData, setTeamData] = useState(null);
     const [coachData, setCoachData] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [requestedClubName, setRequestedClubName] = useState('');
 
     const fetchTeamDetails = async () => {
         const teamRef = doc(db, 'equipes', teamId);
@@ -42,12 +43,95 @@ function TeamScreen() {
         setIsLoading(false);
     };
 
+    useEffect(() => {
+        const fetchClubName = async () => {
+            if (user.requestedJoinClubId) {
+                const clubRef = doc(db, 'equipes', user.requestedJoinClubId);
+                const clubDoc = await getDoc(clubRef);
+                if (clubDoc.exists()) {
+                    setRequestedClubName(clubDoc.data().name);
+                }
+            }
+        };
+    
+        fetchClubName();
+    }, [user.requestedJoinClubId]);
+    
+
     useFocusEffect(
         React.useCallback(() => {
             fetchTeamDetails();
             return () => { };
         }, [teamId])
     );
+
+    const requestJoinTeam = async () => {
+        if (user.team) {
+            Alert.alert("Rejoindre l'équipe", "Vous appartenez déjà à une équipe. Veuillez d'abord quitter votre équipe actuelle.");
+            return;
+        }
+
+        if (user.requestedJoinClubId) {
+            Alert.alert("Demande en cours", "Vous avez déjà une demande en cours pour rejoindre une équipe. Veuillez annuler cette demande avant d'en soumettre une nouvelle.");
+            return;
+        }
+
+        Alert.alert(
+            "Demande de rejoindre l'équipe",
+            "Voulez-vous vraiment envoyer une demande pour rejoindre cette équipe ?",
+            [
+                {
+                    text: "Annuler",
+                    style: "cancel"
+                },
+                {
+                    text: "Envoyer la demande",
+                    onPress: async () => {
+                        const requestJoinClubId = uuid.v4();
+                        const notificationId = uuid.v4();
+
+                        const requestJoinClubRef = doc(db, 'requests_join_club', requestJoinClubId);
+                        const requestJoinClubDetails = {
+                            coachId: teamData.coach_id,
+                            clubId: teamId,
+                            userId: user.uid,
+                            timestamp: Timestamp.now(),
+                            state: "pending",
+                        };
+
+                        try {
+                            await setDoc(requestJoinClubRef, requestJoinClubDetails);
+
+                            const notificationRef = doc(db, 'notifications', notificationId);
+                            const notificationDetails = {
+                                userId: teamData.coach_id,
+                                message: `${user.firstname} ${user.lastname} souhaite rejoindre votre équipe : ${teamData.name}`,
+                                hasBeenRead: false,
+                                timestamp: Timestamp.now(),
+                                type: "request_join_club",
+                                requestJoinClubId: requestJoinClubId
+                            };
+
+                            await setDoc(notificationRef, notificationDetails);
+
+                            await updateDoc(doc(db, 'utilisateurs', user.uid), {
+                                requestedJoinClubId: requestJoinClubId,
+                            });
+
+                            setUser({ ...user, requestedJoinClubId: requestJoinClubId });
+
+                            Alert.alert("Demande envoyée", "Votre demande pour rejoindre l'équipe a été envoyée.");
+                        } catch (error) {
+                            console.error("Erreur lors de l'envoi de la demande :", error);
+                            Alert.alert("Erreur", "Une erreur est survenue lors de l'envoi de la demande.");
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
+
 
     const deleteTeam = async () => {
         try {
@@ -86,7 +170,7 @@ function TeamScreen() {
                     const coachData = coachDoc.data();
                     const teamIndex = coachData.teams.indexOf(teamId);
                     if (teamIndex !== -1) {
-                        const updatedTeams = [...coachData.teams]; 
+                        const updatedTeams = [...coachData.teams];
                         updatedTeams.splice(teamIndex, 1);
                         await updateDoc(coachRef, {
                             teams: updatedTeams,
@@ -101,9 +185,9 @@ function TeamScreen() {
             });
 
             const newTeams = user.teams.filter(team => team !== teamId);
-            const updatedUserData = { 
-                ...user, 
-                teams: newTeams, 
+            const updatedUserData = {
+                ...user,
+                teams: newTeams,
             };
             await setUser(updatedUserData);
 
@@ -208,7 +292,24 @@ function TeamScreen() {
                     <Text>Color int : {teamData.color_int}</Text>
                     <Text>Color ext : {teamData.color_ext}</Text>
                     <Text>Nombre de joueur(s) : {teamData.players.length > 0 ? teamData.players.length : "0"}</Text>
-                    <ListUsers arrayList={teamData.players} navigation={navigation} setTeamData={setTeamData} teamId={teamId}/>
+                    <ListUsers arrayList={teamData.players} navigation={navigation} setTeamData={setTeamData} teamId={teamId} />
+                    {user.accountType === 'player' && !teamData.players.includes(user.uid) && !user.requestedJoinClubId && (
+                        <FunctionButton
+                            title="Demander à rejoindre l'équipe"
+                            onPress={requestJoinTeam}
+                        />
+                    )}
+                    {user.requestedJoinClubId && (
+                        <>
+                            <FunctionButton
+                                disabled
+                                title="Demander à rejoindre l'équipe"
+                                onPress={requestJoinTeam}
+                            />
+                            <Text>Vous avez déjà demandé à rejoindre l'équipe {requestedClubName}, annulez votre demande depuis la page d'accueil pour pouvoir rejoindre une autre équipe.</Text>
+                        </>
+                    )}
+
                     {user.uid === teamData.coach_id && (
                         <>
                             <InvitePlayers arrayList={teamData.players} setTeamData={setTeamData} />

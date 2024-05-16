@@ -60,7 +60,7 @@ function CreateTournamentFormScreen({ route }) {
         playersPerTeam: '5v5',
         category: 'U6',
         gender: 'M',
-        availableSlots: '4',
+        availableSlots: 4,
         gameDuration: '30 minutes',
         returnMatches: false,
         matches: initializeMatches('4', false),

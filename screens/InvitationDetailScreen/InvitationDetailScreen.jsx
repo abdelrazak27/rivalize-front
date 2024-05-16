@@ -1,6 +1,6 @@
 import { View, Text, Button, Alert } from 'react-native';
 import { useRoute, useNavigation, CommonActions } from '@react-navigation/native';
-import { arrayUnion, doc, getDoc, updateDoc } from 'firebase/firestore';
+import { arrayUnion, collection, doc, getDoc, getDocs, query, updateDoc, where } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
 import { useUser } from '../../context/UserContext';
 import { useEffect, useState } from 'react';
@@ -53,51 +53,13 @@ function InvitationDetailScreen() {
                         {
                             text: "Continuer",
                             onPress: async () => {
-                                const { clubId } = (await getDoc(invitationRef)).data();
-                                await updateDoc(userRef, { team: clubId });
-                                const teamRef = doc(db, 'equipes', clubId);
-                                await updateDoc(teamRef, { players: arrayUnion(user.uid) });
-                                await updateDoc(invitationRef, { state: newState });
-
-                                const updatedUserData = {
-                                    ...user,
-                                    team: clubId,
-                                };
-                                await setUser(updatedUserData);
-
-                                Alert.alert("Invitation acceptée !");
-
-                                navigation.dispatch(
-                                    CommonActions.reset({
-                                        index: 0,
-                                        routes: [{ name: 'HomeScreen', params: { teamRefresh: true } }],
-                                    })
-                                );
+                                await updateInvitationAndUser(userRef, invitationRef);
                             }
                         }
                     ]
                 );
             } else {
-                const { clubId } = (await getDoc(invitationRef)).data();
-                await updateDoc(userRef, { team: clubId });
-                const teamRef = doc(db, 'equipes', clubId);
-                await updateDoc(teamRef, { players: arrayUnion(user.uid) });
-                await updateDoc(invitationRef, { state: newState });
-
-                const updatedUserData = {
-                    ...user,
-                    team: clubId,
-                };
-                await setUser(updatedUserData);
-
-                Alert.alert("Invitation acceptée !");
-
-                navigation.dispatch(
-                    CommonActions.reset({
-                        index: 0,
-                        routes: [{ name: 'HomeScreen', params: { teamRefresh: true } }],
-                    })
-                );
+                await updateInvitationAndUser(userRef, invitationRef);
             }
         } else {
             await updateDoc(invitationRef, { state: newState });
@@ -112,16 +74,50 @@ function InvitationDetailScreen() {
         }
     };
 
+    const updateInvitationAndUser = async (userRef, invitationRef) => {
+        const { clubId } = (await getDoc(invitationRef)).data();
+        await updateDoc(userRef, { team: clubId, requestedJoinClubId: null });
+        const teamRef = doc(db, 'equipes', clubId);
+        await updateDoc(teamRef, { players: arrayUnion(user.uid) });
+        await updateDoc(invitationRef, { state: 'accepted' });
+
+        if (user.requestedJoinClubId) {
+            const requestRef = doc(db, 'requests_join_club', user.requestedJoinClubId);
+            await updateDoc(requestRef, { state: 'canceled' });
+        }
+        const invitationsQuery = query(collection(db, 'invitations'), where('invitedUid', '==', user.uid), where('state', '==', 'pending'));
+        const invitationsSnapshot = await getDocs(invitationsQuery);
+        invitationsSnapshot.forEach(async (doc) => {
+            await updateDoc(doc.ref, { state: 'expired' });
+        });
+
+        const updatedUserData = {
+            ...user,
+            team: clubId,
+            requestedJoinClubId: null
+        };
+        await setUser(updatedUserData);
+
+        Alert.alert("Invitation acceptée !");
+        navigation.dispatch(
+            CommonActions.reset({
+                index: 0,
+                routes: [{ name: 'HomeScreen', params: { teamRefresh: true } }],
+            })
+        );
+    };
+
+
     return (
         <View>
             <Text>Invitation de {invitationDetails.clubId}</Text>
-            {hasTeam && (
-                <Text style={{ color: 'red', fontWeight: 'bold' }}>
-                    Attention : Vous faites déjà partie d'une équipe. Accepter cette invitation vous fera quitter votre équipe actuelle.
-                </Text>
-            )}
             {invitationDetails.state === 'pending' ? (
                 <View>
+                    {hasTeam && (
+                        <Text style={{ color: 'red', fontWeight: 'bold' }}>
+                            Attention : Vous faites déjà partie d'une équipe. Accepter cette invitation vous fera quitter votre équipe actuelle.
+                        </Text>
+                    )}
                     <Button title="Accepter" onPress={() => handleInvitationResponse('accepted')} />
                     <Button title="Refuser" onPress={() => handleInvitationResponse('rejected')} />
                 </View>

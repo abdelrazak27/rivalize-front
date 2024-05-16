@@ -9,11 +9,11 @@ const NotificationsButton = ({ userId }) => {
     const [visible, setVisible] = useState(false);
     const [notifications, setNotifications] = useState([]);
     // Booléen pour activer ou désactiver les notifications
-    const activateNotification = false;
+    const activateNotification = true;
     const navigation = useNavigation();
 
     useEffect(() => {
-        if(activateNotification && userId) {
+        if (activateNotification && userId) {
             const fetchNotifications = async () => {
                 const notificationsRef = collection(db, 'notifications');
                 const q = query(notificationsRef, where('userId', '==', userId));
@@ -29,10 +29,10 @@ const NotificationsButton = ({ userId }) => {
                 // console.log(loadedNotifications);
                 setNotifications(loadedNotifications);
             };
-    
+
             const interval = setInterval(fetchNotifications, 10000);
             fetchNotifications();
-    
+
             return () => clearInterval(interval);
         }
     }, [userId]);
@@ -41,13 +41,17 @@ const NotificationsButton = ({ userId }) => {
         setVisible(!visible);
     };
 
-    const handleNotificationClick = async (notificationId, type, invitationId) => {
+    const handleNotificationClick = async (notificationId, type, relatedId) => {
         markAsRead(notificationId);
-        if(type === 'invitation' && invitationId) {
+        if (type === 'invitation' && relatedId) {
             toggleModal();
-            navigation.navigate('InvitationDetailScreen', { invitationId: invitationId });
+            navigation.navigate('InvitationDetailScreen', { invitationId: relatedId });
+        } else if (type === 'request_join_club' && relatedId) {
+            toggleModal();
+            navigation.navigate('RequestJoinTeamDetailScreen', { requestJoinClubId: relatedId });
         }
     };
+
 
     const markAsRead = async (notificationId) => {
         const notificationRef = doc(db, 'notifications', notificationId);
@@ -74,7 +78,7 @@ const NotificationsButton = ({ userId }) => {
             >
                 <View style={styles.modalView}>
                     {notifications.map((notification) => (
-                        <TouchableOpacity key={notification.id} onPress={() => handleNotificationClick(notification.id, 'invitation', notification.invitationId)}>
+                        <TouchableOpacity key={notification.id} onPress={() => handleNotificationClick(notification.id, notification.type, notification.requestJoinClubId || notification.invitationId)}>
                             <Text style={notification.hasBeenRead ? styles.readText : styles.unreadText}>
                                 {formatTimestamp(notification.timestamp, { showSecond: false, showYear: false })} - {notification.message}
                             </Text>

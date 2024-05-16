@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Alert, ScrollView, Modal, Button } from 'react-native';
+import { View, Text, StyleSheet, Alert, ScrollView, Modal, Button, TouchableWithoutFeedback, TouchableOpacity } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { arrayUnion, doc, getDoc, increment, updateDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { useUser } from '../context/UserContext';
-import FunctionButton from '../components/FunctionsButton';
+import FunctionButton from '../components/FunctionButton';
 
 const TournamentDetailScreen = ({ route, navigation }) => {
     const { user } = useUser();
@@ -19,7 +19,8 @@ const TournamentDetailScreen = ({ route, navigation }) => {
 
         if (docSnap.exists()) {
             const data = docSnap.data();
-            setTournament(data);
+            const clubDetails = await fetchClubsDetails(data.participatingClubs || []);
+            setTournament({ ...data, clubDetails });
         } else {
             console.log('No such document!');
         }
@@ -56,14 +57,89 @@ const TournamentDetailScreen = ({ route, navigation }) => {
         ]);
     };
 
-    const joinTournament = () => {
-        setModalVisible(true);
+    const isTournamentStarted = () => {
+        const startDate = new Date(tournament.startDate);
+        const currentDate = new Date();
+        return currentDate > startDate;
     };
 
-    const confirmJoin = () => {
-        console.log('Joining tournament with team ID:', selectedTeam);
-        setModalVisible(false);
+    const fetchClubsDetails = async (clubIds) => {
+        const clubDetails = [];
+        for (const id of clubIds) {
+            const docRef = doc(db, 'equipes', id);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+                clubDetails.push({ id: docSnap.id, ...docSnap.data() });
+            } else {
+                console.log('Aucun club trouvé avec l\'id :', id);
+            }
+        }
+        return clubDetails;
     };
+
+    const confirmJoin = async () => {
+        if (!selectedTeam) {
+            Alert.alert('Erreur', 'Aucune équipe sélectionnée');
+            return;
+        }
+
+        try {
+            const teamRef = doc(db, 'equipes', selectedTeam);
+            const teamSnap = await getDoc(teamRef);
+
+            if (!teamSnap.exists()) {
+                Alert.alert('Erreur', 'Équipe non trouvée');
+                return;
+            }
+
+            const teamData = teamSnap.data();
+
+            // Assez de joueurs ?
+            if (teamData.players.length < tournament.playersPerTeam) {
+                Alert.alert('Erreur', `L'équipe doit avoir au moins ${tournament.playersPerTeam} joueurs.`);
+                return;
+            }
+
+            // Catégorie ?
+            const teamCategory = teamData.category;
+
+            if (teamCategory !== tournament.category) {
+                Alert.alert('Erreur', 'La catégorie ou le genre de l\'équipe ne correspond pas à celui du tournoi.');
+                return;
+            }
+
+            // Place disponible ?
+            if (tournament.availableSlots <= 0) {
+                Alert.alert('Erreur', 'Aucune place disponible pour le tournoi.');
+                return;
+            }
+
+            // Déjà participant ?
+            if (tournament.participatingClubs?.includes(selectedTeam)) {
+                Alert.alert('Erreur', 'Cette équipe participe déjà au tournoi.');
+                return;
+            }
+
+            const tournamentRef = doc(db, 'tournois', tournamentId);
+            await updateDoc(tournamentRef, {
+                participatingClubs: arrayUnion(selectedTeam),
+                availableSlots: increment(-1),
+            });
+
+
+            Alert.alert('Succès', 'Votre équipe a rejoint le tournoi!');
+            console.log('Joining tournament with team ID:', selectedTeam);
+            setModalVisible(false);
+            fetchTournament();
+        } catch (error) {
+            console.error('Erreur lors de la tentative de rejoindre le tournoi:', error);
+            Alert.alert('Erreur', 'Une erreur est survenue lors de la tentative de rejoindre le tournoi.');
+        }
+    };
+
+    const handleClubPress = (clubId) => {
+        navigation.navigate('TeamScreen', { teamId: clubId });
+    };    
 
     if (!tournament) {
         return (
@@ -97,6 +173,14 @@ const TournamentDetailScreen = ({ route, navigation }) => {
                     ))}
                 </View>
             ))}
+            <Text style={styles.title}>Clubs participants :</Text>
+            {tournament.clubDetails ? tournament.clubDetails.map(club => (
+                <TouchableOpacity key={club.id} style={styles.clubItem} onPress={() => handleClubPress(club.id)}>
+                    <Text>{club.name}</Text>
+                </TouchableOpacity>
+            )) : (
+                <Text>Aucun club ne participent actuellement au tournoi</Text>
+            )}
             {user.uid === tournament.createdBy && (
                 <>
                     {tournament.state === "upcoming" && (
@@ -107,31 +191,50 @@ const TournamentDetailScreen = ({ route, navigation }) => {
                     )}
                 </>
             )}
-            <FunctionButton
-                title="Rejoindre le tournoi"
-                onPress={joinTournament}
-            />
-            <Modal
-                animationType="slide"
-                transparent={true}
-                visible={modalVisible}
-                onRequestClose={() => {
-                    setModalVisible(!modalVisible);
-                }}
-            >
-                <View style={styles.modalView}>
-                    <Picker
-                        selectedValue={selectedTeam}
-                        onValueChange={(itemValue, itemIndex) => setSelectedTeam(itemValue)}
-                        style={styles.picker}
-                    >
-                        {user.teams.map((teamId, index) => (
-                            <Picker.Item key={index} label={`Team ${teamId}`} value={teamId} />
-                        ))}
-                    </Picker>
-                    <Button title="Valider" onPress={confirmJoin} />
-                </View>
-            </Modal>
+            {user.accountType === 'coach' && !isTournamentStarted() && tournament.availableSlots > 0 && (
+                <>
+                    {user.teams.length > 0 ? (
+                        <>
+                            <FunctionButton
+                                title="Rejoindre le tournoi"
+                                onPress={() => setModalVisible(true)}
+                            />
+                            <Modal
+                                animationType="slide"
+                                transparent={true}
+                                visible={modalVisible}
+                                onRequestClose={() => {
+                                    setModalVisible(!modalVisible);
+                                }}
+                            >
+                                <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
+                                    <View style={styles.modalOverlay}>
+                                        <TouchableWithoutFeedback onPress={() => { }}>
+                                            <View style={styles.modalView}>
+                                                <Picker
+                                                    selectedValue={selectedTeam}
+                                                    onValueChange={(itemValue) => setSelectedTeam(itemValue)}
+                                                    style={styles.picker}
+                                                >
+                                                    <Picker.Item label="Sélectionner un club" value="nullKey" />
+                                                    {user.teams.filter(teamId => !tournament.participatingClubs?.includes(teamId)).map((teamId, index) => (
+                                                        <Picker.Item key={index} label={`Team ${teamId}`} value={teamId} />
+                                                    ))}
+                                                </Picker>
+                                                <Text>Si votre équipe n'apparaît pas c'est qu'elle participe déjà au tournoi !</Text>
+                                                <Button title="Valider" onPress={confirmJoin} />
+                                                <Button title="Fermer" onPress={() => setModalVisible(false)} />
+                                            </View>
+                                        </TouchableWithoutFeedback>
+                                    </View>
+                                </TouchableWithoutFeedback>
+                            </Modal>
+                        </>
+                    ) : (
+                        <Text>Vous n'avez pas d'équipe.</Text>
+                    )}
+                </>
+            )}
         </ScrollView>
     );
 };
@@ -187,6 +290,11 @@ const styles = StyleSheet.create({
         padding: 10,
         backgroundColor: "#2196F3"
     },
+    clubItem: {
+        padding: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: '#ddd',
+    }
 });
 
 export default TournamentDetailScreen;

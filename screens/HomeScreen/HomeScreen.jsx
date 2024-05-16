@@ -1,11 +1,13 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Alert, BackHandler, Text, TouchableOpacity, View } from "react-native";
 import { useUser } from "../../context/UserContext";
 import { CommonActions, useFocusEffect, useNavigation } from "@react-navigation/native";
 import NotificationsButton from "../../components/NotificationsButton";
 import RedirectLinkButton from "../../components/RedirectLinkButton";
 import { getAuth, signOut } from "firebase/auth";
-import FunctionButton from "../../components/FunctionsButton";
+import FunctionButton from "../../components/FunctionButton";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { db } from "../../firebaseConfig";
 
 
 function HomeScreen({ route }) {
@@ -13,6 +15,27 @@ function HomeScreen({ route }) {
     const { teamRefresh } = route.params || {};
     const { user, setUser } = useUser();
     const auth = getAuth();
+    const [requestedClubName, setRequestedClubName] = useState('');
+
+    useEffect(() => {
+        const fetchRequestedClubName = async () => {
+            if (user && user.requestedJoinClubId) {
+                const requestRef = doc(db, 'requests_join_club', user.requestedJoinClubId);
+                const requestDoc = await getDoc(requestRef);
+                if (requestDoc.exists()) {
+                    const clubId = requestDoc.data().clubId; 
+                    const clubRef = doc(db, 'equipes', clubId);
+                    const clubDoc = await getDoc(clubRef);
+                    if (clubDoc.exists()) {
+                        setRequestedClubName(clubDoc.data().name);
+                    }
+                }
+            }
+        };
+    
+        fetchRequestedClubName();
+    }, [user.requestedJoinClubId]);
+    
 
     useEffect(() => {
         const backHandler = BackHandler.addEventListener(
@@ -29,6 +52,29 @@ function HomeScreen({ route }) {
             return () => { };
         }, [teamRefresh])
     );
+
+    const handleCancelRequest = async () => {
+        if (!user.requestedJoinClubId) {
+            Alert.alert("Aucune demande active", "Vous n'avez pas de demande active à annuler.");
+            return;
+        }
+    
+        try {
+            const requestRef = doc(db, 'requests_join_club', user.requestedJoinClubId);
+            await updateDoc(requestRef, { state: "canceled" });
+    
+            const userRef = doc(db, 'utilisateurs', user.uid);
+            await updateDoc(userRef, { requestedJoinClubId: null });
+    
+            setUser(prevState => ({ ...prevState, requestedJoinClubId: null }));
+    
+            Alert.alert("Demande annulée", "Votre demande pour rejoindre l'équipe a été annulée avec succès.");
+        } catch (error) {
+            console.error("Erreur lors de l'annulation de la demande :", error);
+            Alert.alert("Erreur", "Une erreur est survenue lors de l'annulation de la demande.");
+        }
+    };
+    
 
     const fetchTeamList = () => {
         return (
@@ -84,6 +130,12 @@ function HomeScreen({ route }) {
                         buttonStyle={{ backgroundColor: 'green' }}
                         textStyle={{ fontSize: 18 }}
                     />
+                    {user.requestedJoinClubId && requestedClubName && (
+                        <View>
+                            <Text>Votre demande concernant le club {requestedClubName} est en attente.</Text>
+                            <FunctionButton title="Annuler ma demande" onPress={handleCancelRequest} />
+                        </View>
+                    )}
                     <Text>Bienvenue, {user.firstname}</Text>
                     {user.accountType === 'coach' && (
                         <TouchableOpacity

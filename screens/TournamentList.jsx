@@ -3,8 +3,10 @@ import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator }
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { useNavigation } from '@react-navigation/native';
+import { useUser } from '../context/UserContext';
 
 const TournamentList = ({ refresh, state, showMyTournaments, userId, searchQuery }) => {
+    const { user } = useUser();
     const [tournaments, setTournaments] = useState([]);
     const [loading, setLoading] = useState(true);
     const navigation = useNavigation();
@@ -32,27 +34,54 @@ const TournamentList = ({ refresh, state, showMyTournaments, userId, searchQuery
         }
 
         if (searchQuery && searchQuery.length > 0) {
-            return filteredByState.filter(tournament => 
+            return filteredByState.filter(tournament =>
                 tournament.name.toLowerCase().includes(searchQuery.toLowerCase())
             );
         }
         return filteredByState;
     };
 
+    const getUserTeamIds = () => {
+        if (user.teams) {
+            console.log('user.teams : ', user.teams);
+            return user.teams;
+        } else if (user.team) {
+            console.log('user.team : ', [user.team]);
+            return [user.team];
+        }
+        return [];
+    };
+
+
     const fetchTournaments = async () => {
         setLoading(true);
         try {
-            let q = query(collection(db, 'tournois'), where('isDisabled', '==', false));
+            const userTeamIds = getUserTeamIds();
+            let queries = [];
+
             if (showMyTournaments) {
-                q = query(q, where('createdBy', '==', userId));
+                queries.push(query(collection(db, 'tournois'), where('createdBy', '==', userId)));
+                if (userTeamIds.length > 0) {
+                    queries.push(query(collection(db, 'tournois'), where('participatingClubs', 'array-contains-any', userTeamIds)));
+                }
+            } else {
+                queries.push(query(collection(db, 'tournois'), where('isDisabled', '==', false)));
             }
-            const querySnapshot = await getDocs(q);
-            const loadedTournaments = querySnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data(),
-                startDate: new Date(doc.data().startDate),
-                endDate: new Date(doc.data().endDate)
-            }));
+
+            let loadedTournaments = [];
+
+            for (let q of queries) {
+                const querySnapshot = await getDocs(q);
+                loadedTournaments = loadedTournaments.concat(querySnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                    startDate: new Date(doc.data().startDate),
+                    endDate: new Date(doc.data().endDate)
+                })));
+            }
+
+            loadedTournaments = loadedTournaments.filter((v, i, a) => a.findIndex(t => (t.id === v.id)) === i);
+
             const filteredTournaments = filterTournamentsByStateAndName(loadedTournaments);
             filteredTournaments.sort((a, b) => b.startDate - a.startDate);
             setTournaments(filteredTournaments);
@@ -62,6 +91,8 @@ const TournamentList = ({ refresh, state, showMyTournaments, userId, searchQuery
             setLoading(false);
         }
     };
+
+
 
     useEffect(() => {
         fetchTournaments();
@@ -83,7 +114,7 @@ const TournamentList = ({ refresh, state, showMyTournaments, userId, searchQuery
     if (tournaments.length === 0) {
         return (
             <View style={styles.loadingContainer}>
-                <Text>Aucun tournoi disponible</Text>
+                <Text>Aucun tournoi correspondant aux critères n'est disponible</Text>
             </View>
         );
     }
@@ -95,7 +126,7 @@ const TournamentList = ({ refresh, state, showMyTournaments, userId, searchQuery
             renderItem={({ item }) => (
                 <TouchableOpacity style={styles.item} onPress={() => handlePress(item.id)}>
                     <Text>{item.name}</Text>
-                    <Text>Places restantes : {item.maxSlots - (item.teams ? item.teams.length : 0)}</Text>
+                    <Text>Places restantes : {item.availableSlots}</Text>
                     <Text>Début du tournoi : {item.startDate.toLocaleDateString()}</Text>
                     <Text>Fin du tournoi : {item.endDate.toLocaleDateString()}</Text>
                 </TouchableOpacity>
