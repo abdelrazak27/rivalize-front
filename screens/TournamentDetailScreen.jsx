@@ -137,6 +137,42 @@ const TournamentDetailScreen = ({ route, navigation }) => {
         }
     };
 
+    // FOR TESTS
+    // TODO : à retirer pour version finale
+    const confirmJoinForce = async () => {
+        if (!selectedTeam) {
+            Alert.alert('Erreur', 'Aucune équipe sélectionnée');
+            return;
+        }
+
+        try {
+            const teamRef = doc(db, 'equipes', selectedTeam);
+            const teamSnap = await getDoc(teamRef);
+
+            if (!teamSnap.exists()) {
+                Alert.alert('Erreur', 'Équipe non trouvée');
+                return;
+            }
+
+            const teamData = teamSnap.data();
+
+            const tournamentRef = doc(db, 'tournois', tournamentId);
+            await updateDoc(tournamentRef, {
+                participatingClubs: arrayUnion(selectedTeam),
+                availableSlots: increment(-1),
+            });
+
+
+            Alert.alert('Succès', 'Votre équipe a rejoint le tournoi!');
+            console.log('Joining tournament with team ID:', selectedTeam);
+            setModalVisible(false);
+            fetchTournament();
+        } catch (error) {
+            console.error('Erreur lors de la tentative de rejoindre le tournoi:', error);
+            Alert.alert('Erreur', 'Une erreur est survenue lors de la tentative de rejoindre le tournoi.');
+        }
+    };
+
     const handleClubPress = (clubId) => {
         navigation.navigate('TeamScreen', { teamId: clubId });
     };    
@@ -148,6 +184,17 @@ const TournamentDetailScreen = ({ route, navigation }) => {
             </View>
         );
     }
+
+    const handleMatchPress = (roundIndex, matchIndex, match) => {
+        navigation.navigate('MatchDetailsScreen', {
+            roundIndex: roundIndex,
+            matchIndex: matchIndex,
+            matchId: match.matchId,
+            matchDate: match.date,
+            matchTime: match.time,
+            tournamentId: tournamentId
+        });
+    };
 
     return (
         <ScrollView style={styles.container}>
@@ -165,11 +212,11 @@ const TournamentDetailScreen = ({ route, navigation }) => {
                 <View key={roundIndex} style={styles.roundContainer}>
                     <Text style={styles.roundTitle}>{round.phase}</Text>
                     {round.matches.map((match, matchIndex) => (
-                        <View key={matchIndex} style={styles.matchContainer}>
+                        <TouchableOpacity key={matchIndex} style={styles.matchContainer} onPress={() => handleMatchPress(roundIndex, matchIndex, match)}>
                             <Text>Match {matchIndex + 1}</Text>
                             <Text>Date : {new Date(match.date).toLocaleDateString()}</Text>
                             <Text>Heure : {new Date(match.time).toLocaleTimeString()}</Text>
-                        </View>
+                        </TouchableOpacity>
                     ))}
                 </View>
             ))}
@@ -223,6 +270,7 @@ const TournamentDetailScreen = ({ route, navigation }) => {
                                                 </Picker>
                                                 <Text>Si votre équipe n'apparaît pas c'est qu'elle participe déjà au tournoi !</Text>
                                                 <Button title="Valider" onPress={confirmJoin} />
+                                                <Button title="Valider Force" onPress={confirmJoinForce} />
                                                 <Button title="Fermer" onPress={() => setModalVisible(false)} />
                                             </View>
                                         </TouchableWithoutFeedback>

@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Text, TextInput, View, Button, StyleSheet, ScrollView, Switch, Alert } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { collection, doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 import { useNavigation } from '@react-navigation/native';
 import { db } from '../firebaseConfig';
 import uuid from 'uuid';
@@ -30,6 +30,7 @@ const initializeMatches = (slots, returnMatches) => {
     const totalMatches = Array.from({ length: numberOfRounds }, (_, round) => ({
         phase: getPhaseName(round, numberOfRounds),
         matches: Array.from({ length: Math.pow(2, numberOfRounds - round - 1) }, () => ({
+            matchId: uuid.v4(),
             date: new Date(),
             time: new Date()
         }))
@@ -39,7 +40,7 @@ const initializeMatches = (slots, returnMatches) => {
         totalMatches.forEach(round => {
             round.matches = round.matches.flatMap(match => [
                 { ...match },
-                { ...match }
+                { ...match, matchId: uuid.v4() }
             ]);
         });
     }
@@ -143,6 +144,7 @@ function CreateTournamentFormScreen({ route }) {
             matches: tournamentDetails.matches.map(round => ({
                 phase: round.phase,
                 matches: round.matches.map(match => ({
+                    matchId: match.matchId,
                     date: match.date.toISOString(),
                     time: match.time.toISOString()
                 }))
@@ -178,6 +180,11 @@ function CreateTournamentFormScreen({ route }) {
             .filter((city) => city.Nom_commune.toUpperCase().startsWith(query.toUpperCase()))
             .slice(0, 10);
         setFilteredCities(filtered);
+    };
+
+    const isToday = (someDate) => {
+        const today = new Date();
+        return someDate.getDate() === today.getDate() && someDate.getMonth() === today.getMonth() && someDate.getFullYear() === today.getFullYear();
     };
 
     return (
@@ -272,7 +279,7 @@ function CreateTournamentFormScreen({ route }) {
                                 mode="time"
                                 display="default"
                                 onChange={(event, selectedTime) => handleMatchTimeChange(roundIndex, matchIndex, selectedTime)}
-                                minimumDate={new Date()}
+                                minimumDate={isToday(match.date) ? new Date() : undefined}
                             />
                         </View>
                     ))}
