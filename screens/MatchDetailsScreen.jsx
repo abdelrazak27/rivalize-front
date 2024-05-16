@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, View, Text, StyleSheet, Button, Modal, TouchableOpacity } from 'react-native';
+import { Alert, View, Text, StyleSheet, Button, Modal, TouchableOpacity, TextInput } from 'react-native';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { useUser } from '../context/UserContext';
@@ -18,38 +18,68 @@ const MatchDetailsScreen = ({ route }) => {
     const [scoreA, setScoreA] = useState(0);
     const [scoreB, setScoreB] = useState(0);
     const [winner, setWinner] = useState('');
+    const [showPenaltyModal, setShowPenaltyModal] = useState(false);
+    const [inputPenaltyScoreA, setInputPenaltyScoreA] = useState('');
+    const [inputPenaltyScoreB, setInputPenaltyScoreB] = useState('');
 
     const { user } = useUser();
+
+    const requestPenaltyScores = () => {
+        setInputPenaltyScoreA('');
+        setInputPenaltyScoreB('');
+        setShowPenaltyModal(true);
+    };
+
+    const handlePenaltySubmission = () => {
+        const penScoreA = parseInt(inputPenaltyScoreA);
+        const penScoreB = parseInt(inputPenaltyScoreB);
+    
+        if (isNaN(penScoreA) || isNaN(penScoreB)) {
+            Alert.alert("Entrée invalide", "Veuillez entrer des scores valides pour les pénalités.");
+            return;
+        }
+    
+        const winnerClub = penScoreA > penScoreB ? clubA : clubB;
+        setWinner(winnerClub);
+        updateMatchWinner(winnerClub, scoreA, scoreB, penScoreA, penScoreB);
+        setShowPenaltyModal(false);
+    };
+
 
     const handleEndMatch = async () => {
         if (scoreA > scoreB) {
             setWinner(clubA);
-            await updateMatchWinner(clubA);
+            await updateMatchWinner(clubA, scoreA, scoreB);
         } else if (scoreB > scoreA) {
             setWinner(clubB);
-            await updateMatchWinner(clubB);
+            await updateMatchWinner(clubB, scoreA, scoreB);
         } else {
-            console.log("Le match est terminé avec une égalité. Des actions supplémentaires peuvent être nécessaires.");
+            requestPenaltyScores();
         }
     };
 
-    const updateMatchWinner = async (winnerClub) => {
+    const updateMatchWinner = async (winnerClub, finalScoreA, finalScoreB, penScoreA = 0, penScoreB = 0) => {
         const tournamentRef = doc(db, 'tournois', tournamentId);
         try {
             const tournamentData = (await getDoc(tournamentRef)).data();
-            tournamentData.matches[roundIndex].matches[matchIndex].winner = winnerClub;
+            tournamentData.matches[roundIndex].matches[matchIndex] = {
+                ...tournamentData.matches[roundIndex].matches[matchIndex],
+                winner: winnerClub,
+                scoreA: finalScoreA,
+                scoreB: finalScoreB,
+                penaltyScoreA: penScoreA,
+                penaltyScoreB: penScoreB
+            };
     
             await updateDoc(tournamentRef, {
                 matches: tournamentData.matches
             });
-            console.log(`Le vainqueur ${winnerClub} a été enregistré avec succès.`);
-            Alert.alert("Match terminé", `Le vainqueur est ${winnerClub}.`, [{ text: "OK" }]);
+            Alert.alert("Match terminé", `Le vainqueur est ${winnerClub} avec un score final de ${finalScoreA}-${finalScoreB} et un score de pénalité de ${penScoreA}-${penScoreB}.`, [{ text: "OK" }]);
         } catch (error) {
             console.error("Failed to update match details:", error);
             Alert.alert("Erreur", "Échec de la mise à jour des détails du match.", [{ text: "Réessayer" }]);
         }
     };
-    
 
     const incrementScoreA = async () => {
         const newScore = scoreA + 1;
@@ -111,6 +141,7 @@ const MatchDetailsScreen = ({ route }) => {
                 setTournamentDetails(tournamentData);
                 setIsOwner(tournamentData.createdBy === user.uid);
 
+                setWinner(match.winner || '');
                 setClubA(match.clubA || '');
                 setClubB(match.clubB || '');
                 setScoreA(match.scoreA || 0);
@@ -173,9 +204,12 @@ const MatchDetailsScreen = ({ route }) => {
                     <Text>Équipes A : {matchDetails.clubA}</Text>
                     <Text>Équipes B : {matchDetails.clubB}</Text>
                     {winner && (
-                        <Text>Vainqueur : {winner}</Text>
+                        <View>
+                            <Text>Vainqueur : {winner}</Text>
+                            <Text>Pour éviter toute tricherie, le match n'est plus modifiable. Contactez un administrateur en cas d'erreur.</Text>
+                        </View>
                     )}
-                    {isOwner && (
+                    {isOwner && !winner && (
                         <>
                             <Button title="Ajouter Club A" onPress={() => openModal('A')} />
                             <Button title="Ajouter Club B" onPress={() => openModal('B')} />
@@ -225,6 +259,35 @@ const MatchDetailsScreen = ({ route }) => {
                                     </View>
                                 </View>
                             </Modal>
+                            <Modal
+                                visible={showPenaltyModal}
+                                animationType="slide"
+                                transparent={true}
+                                onRequestClose={() => setShowPenaltyModal(false)}
+                            >
+                                <View style={styles.modalView}>
+                                    <Text style={styles.modalText}>Entrez les scores de pénalty</Text>
+                                    <TextInput
+                                        style={styles.input}
+                                        onChangeText={setInputPenaltyScoreA}
+                                        value={inputPenaltyScoreA}
+                                        placeholder="Score A"
+                                        keyboardType="numeric"
+                                    />
+                                    <TextInput
+                                        style={styles.input}
+                                        onChangeText={setInputPenaltyScoreB}
+                                        value={inputPenaltyScoreB}
+                                        placeholder="Score B"
+                                        keyboardType="numeric"
+                                    />
+                                    <Button
+                                        title="Soumettre les scores"
+                                        onPress={handlePenaltySubmission}
+                                    />
+                                </View>
+                            </Modal>
+
                         </>
                     )}
                 </>
@@ -280,7 +343,16 @@ const styles = StyleSheet.create({
     picker: {
         width: 150,
         height: 180,
-    }
+    },
+    input: {
+        height: 40,
+        margin: 12,
+        borderWidth: 1,
+        padding: 10,
+        backgroundColor: 'white',
+        borderRadius: 5
+    },
+
 });
 
 export default MatchDetailsScreen;
