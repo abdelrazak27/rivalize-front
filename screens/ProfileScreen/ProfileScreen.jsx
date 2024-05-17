@@ -104,6 +104,28 @@ function ProfileScreen({ route }) {
                 <>
                     <Text>ProfileScreen</Text>
                     <Text>userId: {userId}</Text>
+                    <Text>accountType: {user.accountType}</Text>
+                    <Text>birthday: {user.birthday}</Text>
+                    <Text>Ville : {user.city ? user.city : "Non renseigné"} </Text>
+                    <Text>email: {user.email}</Text>
+                    <Text>firstname: {user.firstname}</Text>
+                    <Text>lastname: {user.lastname}</Text>
+                    {user.accountType === ("player" || "coach") && (
+                        <>
+                            <Text>licenceNumber: {user.licenceNumber}</Text>
+                            {user.accountType === "player" && (
+                                <>
+                                    <Text>playerName: {user.playerName}</Text>
+                                    <Text>playerNumber: {user.playerNumber}</Text>
+                                    <Text>Équipe : {user.team ? user.team : "Non renseigné"} </Text>
+                                    {user.requestedJoinClubId && ( <Text>requestedJoinClubId: {user.requestedJoinClubId}</Text> )}
+                                </>
+                            )}
+                            {user.accountType === "coach" && (
+                                <Text>teams: {user.teams}</Text>
+                            )}
+                        </>
+                    )}
                     {user.accountType === 'coach' && availableTeams.length > 0 && playerDetails.accountType === "player" && (
                         <>
                             <Button
