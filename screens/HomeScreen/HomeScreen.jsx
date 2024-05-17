@@ -108,6 +108,10 @@ function HomeScreen({ route }) {
         <View>
             {user ? (
                 <>
+                    <RedirectLinkButton 
+                        routeName="ChatScreen"
+                        title="Chat"
+                    />
                     <FunctionButton title="Déconnexion" onPress={() => {
                         signOut(auth).then(() => {
                             setUser({});

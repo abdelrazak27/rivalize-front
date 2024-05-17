@@ -14,7 +14,6 @@ function UsersScreen() {
     const [isMoreLoading, setIsMoreLoading] = useState(false);
     const [allLoaded, setAllLoaded] = useState(false);
 
-
     useEffect(() => {
         fetchUsers();
     }, []);
@@ -79,23 +78,6 @@ function UsersScreen() {
         navigation.navigate('ProfileScreen', { userId });
     };
 
-    if (loading) {
-        return (
-            <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#0000ff" />
-                <Text>Chargement des utilisateurs...</Text>
-            </View>
-        );
-    }
-
-    if (filteredUsers.length === 0) {
-        return (
-            <View style={styles.loadingContainer}>
-                <Text>Aucun utilisateur trouvé</Text>
-            </View>
-        );
-    }
-
     return (
         <View style={styles.container}>
             <TextInput
@@ -104,20 +86,29 @@ function UsersScreen() {
                 value={searchQuery}
                 onChangeText={filterUsers}
             />
-            <FlatList
-                data={filteredUsers}
-                keyExtractor={item => item.id}
-                renderItem={({ item }) => (
-                    <TouchableOpacity style={styles.item} onPress={() => handleSelectUser(item.id)}>
-                        <Text>{item.firstname} {item.lastname}</Text>
-                    </TouchableOpacity>
-                )}
-                onEndReached={loadMoreUsers}
-                onEndReachedThreshold={0.5}
-                ListFooterComponent={() => isMoreLoading && !allLoaded ? (
+            {loading ? (
+                <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color="#0000ff" />
-                ) : null}
-            />
+                    <Text>Chargement des utilisateurs...</Text>
+                </View>
+            ) : filteredUsers.length > 0 ? (
+                <FlatList
+                    data={filteredUsers}
+                    keyExtractor={item => item.id}
+                    renderItem={({ item }) => (
+                        <TouchableOpacity style={styles.item} onPress={() => handleSelectUser(item.id)}>
+                            <Text>{item.firstname} {item.lastname}</Text>
+                        </TouchableOpacity>
+                    )}
+                    onEndReached={loadMoreUsers}
+                    onEndReachedThreshold={0.5}
+                    ListFooterComponent={() => isMoreLoading && !allLoaded ? (
+                        <ActivityIndicator size="large" color="#0000ff" />
+                    ) : null}
+                />
+            ) : (
+                <Text style={styles.emptyMessage}>Aucun utilisateur trouvé</Text>
+            )}
         </View>
     );
 }
@@ -142,6 +133,10 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    emptyMessage: {
+        textAlign: 'center',
+        marginTop: 20,
     }
 });
 

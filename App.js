@@ -21,6 +21,7 @@ import EditTournamentFormScreen from './screens/EditTournamentFormScreen';
 import TournamentDetailScreen from './screens/TournamentDetailScreen';
 import RequestJoinTeamDetailScreen from './screens/RequestJoinTeamDetailScreen';
 import MatchDetailsScreen from './screens/MatchDetailsScreen';
+import ChatScreen from './screens/ChatScreen';
 
 const Stack = createStackNavigator();
 
@@ -66,6 +67,7 @@ export default function App() {
             <Stack.Screen name="RequestJoinTeamDetailScreen" component={RequestJoinTeamDetailScreen} />
             <Stack.Screen name="UsersScreen" component={UsersScreen} />
             <Stack.Screen name="MatchDetailsScreen" component={MatchDetailsScreen} />
+            <Stack.Screen name="ChatScreen" component={ChatScreen} />
           </Stack.Navigator>
         </SafeAreaView>
       </NavigationContainer>
