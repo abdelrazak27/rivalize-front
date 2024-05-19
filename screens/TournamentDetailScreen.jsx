@@ -5,6 +5,7 @@ import { arrayUnion, doc, getDoc, increment, updateDoc } from 'firebase/firestor
 import { db } from '../firebaseConfig';
 import { useUser } from '../context/UserContext';
 import FunctionButton from '../components/FunctionButton';
+import RedirectLinkButton from '../components/RedirectLinkButton';
 
 const TournamentDetailScreen = ({ route, navigation }) => {
     const { user } = useUser();
@@ -283,6 +284,11 @@ const TournamentDetailScreen = ({ route, navigation }) => {
                     )}
                 </>
             )}
+            <RedirectLinkButton
+                routeName="ChatScreen"
+                title="Chat"
+                params={{ tournamentId: tournament.id }}
+            />
         </ScrollView>
     );
 };
