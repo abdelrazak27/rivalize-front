@@ -17,13 +17,15 @@ import TournamentsScreen from './screens/TournamentsScreen';
 import TeamsScreen from './screens/TeamsScreen';
 import UsersScreen from './screens/UsersScreen';
 import CreateTournamentFormScreen from './screens/CreateTournamentFormScreen';
-import EditTournamentFormScreen from './screens/EditTournamentFormScreen';
+// import EditTournamentFormScreen from './screens/EditTournamentFormScreen';
 import TournamentDetailScreen from './screens/TournamentDetailScreen';
 import RequestJoinTeamDetailScreen from './screens/RequestJoinTeamDetailScreen';
 import MatchDetailsScreen from './screens/MatchDetailsScreen';
 import ChatScreen from './screens/ChatScreen';
+import LandingScreen from './screens/LandingScreen';
 
 const Stack = createStackNavigator();
+
 
 export default function App() {
 
@@ -32,7 +34,7 @@ export default function App() {
       <NavigationContainer>
         <SafeAreaView style={styles.container}>
           <Stack.Navigator
-            initialRouteName="ConnexionScreen"
+            initialRouteName="LandingScreen"
             screenOptions={{
               headerTitle: '',
               headerStyle: {
@@ -46,9 +48,18 @@ export default function App() {
               },
               headerRightContainerStyle: {
                 paddingRight: 10,
-              }
+              },
+              cardStyle: { backgroundColor: 'white' },
             }}>
-            <Stack.Screen name="ConnexionScreen" component={ConnexionScreen} />
+            <Stack.Screen name="LandingScreen" component={LandingScreen} options={{ headerShown: false }} />
+            <Stack.Screen
+              name="ConnexionScreen"
+              component={ConnexionScreen}
+              options={{
+                headerShown: false,
+                animationEnabled: false,
+              }}
+            />
             <Stack.Screen name="HomeScreen" component={HomeScreen} />
             <Stack.Screen name="SignUpScreen" component={SignUpScreen} />
             <Stack.Screen name="SignInScreen" component={SignInScreen} />
@@ -79,6 +90,5 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "pink"
   },
 });
