@@ -1,11 +1,11 @@
 import React, { useEffect, useRef } from 'react';
-import { Text, View, StyleSheet, Animated } from 'react-native';
+import { Text, View, StyleSheet, Animated, ActivityIndicator } from 'react-native';
 import { useAppFonts, fonts } from '../styles/fonts';
 import colors from '../styles/colors';
 
 function LandingScreen({ navigation }) {
     let [fontsLoaded] = useAppFonts();
-    const fadeAnim = useRef(new Animated.Value(1)).current; // Initial opacity value of 1
+    const fadeAnim = useRef(new Animated.Value(1)).current;
 
     useEffect(() => {
         const displayTimer = setTimeout(() => {
@@ -26,7 +26,11 @@ function LandingScreen({ navigation }) {
     }, [navigation, fadeAnim]);
 
     if (!fontsLoaded) {
-        return <Text>Chargement...</Text>;
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <ActivityIndicator size="large" />
+            </View>
+        );
     }
 
     return (
