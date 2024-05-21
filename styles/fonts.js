@@ -9,7 +9,7 @@ export const useAppFonts = () => {
 };
 
 export const fonts = {
-    regular: 'Outfit_400Regular',
-    semiBold: 'Outfit_600SemiBold',
-    bold: 'Outfit_700Bold',
+    OutfitRegular: 'Outfit_400Regular',
+    OutfitSemiBold: 'Outfit_600SemiBold',
+    OutfitBold: 'Outfit_700Bold',
 };

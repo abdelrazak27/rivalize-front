@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
     },
     text: {
         color: colors.primary,
-        fontFamily: fonts.bold,
+        fontFamily: fonts.OutfitBold,
         fontSize: 50,
     },
 });

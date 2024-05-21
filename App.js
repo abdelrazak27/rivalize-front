@@ -2,7 +2,6 @@ import { SafeAreaView, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import SignUpScreen from './screens/SignUpScreen/SignUpScreen';
-import SignInScreen from './screens/SignInScreen/SignInScreen';
 import SignUpComplete from './screens/SignUpScreen/SignUpComplete';
 import HomeScreen from './screens/HomeScreen/HomeScreen';
 import ConnexionScreen from './screens/ConnexionScreen/ConnexionScreen';
@@ -49,7 +48,7 @@ export default function App() {
               headerRightContainerStyle: {
                 paddingRight: 10,
               },
-              cardStyle: { backgroundColor: 'white' },
+              cardStyle: { backgroundColor: 'white', paddingHorizontal: 30 },
             }}>
             <Stack.Screen name="LandingScreen" component={LandingScreen} options={{ headerShown: false }} />
             <Stack.Screen
@@ -62,7 +61,6 @@ export default function App() {
             />
             <Stack.Screen name="HomeScreen" component={HomeScreen} />
             <Stack.Screen name="SignUpScreen" component={SignUpScreen} />
-            <Stack.Screen name="SignInScreen" component={SignInScreen} />
             <Stack.Screen name="SignUpComplete" component={SignUpComplete} />
             <Stack.Screen name="CreateTeamScreen" component={CreateTeamScreen} />
             <Stack.Screen name="InviteFirstPlayer" component={InviteFirstPlayers} />
