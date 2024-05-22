@@ -110,7 +110,6 @@ function HomeScreen({ route }) {
                 <>
                     <FunctionButton title="Déconnexion" onPress={() => {
                         signOut(auth).then(() => {
-                            setUser({});
                             Alert.alert("Déconnexion", "vous avez été déconnecté avec succès.")
                             navigation.dispatch(
                                 CommonActions.reset({
@@ -118,6 +117,7 @@ function HomeScreen({ route }) {
                                     routes: [{ name: 'ConnexionScreen' }],
                                 })
                             );
+                            setUser(null);
                         }).catch((error) => {
                             console.log(error);
                         });
