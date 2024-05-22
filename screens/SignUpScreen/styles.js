@@ -5,13 +5,16 @@ import colors from '../../styles/colors';
 export default StyleSheet.create({
     container: {
         flex: 1,
-        paddingHorizontal: 30,
+    },
+    headerContainer: {
+        marginHorizontal: 30,
+        paddingBottom: 50,
     },
     scrollContainer: {
         flexGrow: 1,
+        marginHorizontal: 30,
     },
     inputs: {
-        paddingTop: 100,
         gap: 20,
         marginBottom: 35,
     },
@@ -29,16 +32,20 @@ export default StyleSheet.create({
         gap: 20,
     },
     cities: {
-        position: 'relative',
+        marginTop: 10,
     },
     citiesList: {
-        borderColor: 'gray',
         backgroundColor: 'white',
-        borderWidth: 1,
-        position: 'absolute',
-        top: 40,
+        gap: 5,
+        marginTop: 5,
         width: '100%',
     },
+    city: {
+        padding: 11,
+        borderWidth: 2,
+        borderRadius: 8,
+        borderColor: colors.secondary,
+    }
 });
 // export default StyleSheet.create({
 //     container: {
