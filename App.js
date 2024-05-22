@@ -107,11 +107,11 @@ function App() {
               animationEnabled: false,
             }}
           />
-          <Stack.Screen name="HomeScreen" component={HomeScreen} />
+          <Stack.Screen name="HomeScreen" component={HomeScreen} options={{ headerLeft: null }} />
           <Stack.Screen name="SignUpScreen" component={SignUpScreen} />
-          <Stack.Screen name="SignUpComplete" component={SignUpComplete} />
+          <Stack.Screen name="SignUpComplete" component={SignUpComplete} options={{ headerLeft: null }} />
           <Stack.Screen name="CreateTeamScreen" component={CreateTeamScreen} />
-          <Stack.Screen name="InviteFirstPlayer" component={InviteFirstPlayers} />
+          <Stack.Screen name="InviteFirstPlayer" component={InviteFirstPlayers} options={{ headerLeft: null }} />
           <Stack.Screen name="TeamScreen" component={TeamScreen} />
           <Stack.Screen name="EditTeamScreen" component={EditTeamScreen} />
           <Stack.Screen name="InvitationDetailScreen" component={InvitationDetailScreen} />
