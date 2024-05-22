@@ -1,10 +1,11 @@
-import { createUserWithEmailAndPassword, getAuth } from 'firebase/auth';
+import { createUserWithEmailAndPassword, getAuth, fetchSignInMethodsForEmail} from 'firebase/auth';
 import { createContext, useContext, useState } from 'react';
 import { Alert } from 'react-native';
 import { app, db } from '../firebaseConfig';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import citiesData from '../data/citiesFR.json';
 import { useUser } from './UserContext';
+
 
 const SignUpContext = createContext();
 const auth = getAuth(app);
@@ -28,6 +29,12 @@ export const SignUpProvider = ({ children }) => {
         playerName: '',
         playerNumber: '',
     });
+
+    const checkEmailExistsInFirestore = async (email) => {
+        const q = query(collection(db, "utilisateurs"), where("email", "==", email.toLowerCase()));
+        const querySnapshot = await getDocs(q);
+        return !querySnapshot.empty;
+    };    
 
     const calculateAge = (birthday) => {
         const birthdayDate = new Date(birthday);
@@ -67,7 +74,7 @@ export const SignUpProvider = ({ children }) => {
     };
     
 
-    const validateFields = (fieldsToValidate, step) => {
+    const validateFields = async (fieldsToValidate, step) => {
 
         const requiredFields = fieldsToValidate.concat(
             ...(userDetails.accountType === "player" && step === 3 ? ['playerName', 'playerNumber', 'licenceNumber'] : []),
@@ -81,6 +88,12 @@ export const SignUpProvider = ({ children }) => {
         }
 
         if (step === 1) {
+            const emailExists = await checkEmailExistsInFirestore(userDetails.email.toLowerCase());
+            if (emailExists) {
+                Alert.alert('Erreur', 'Cette adresse email est déjà utilisée.');
+                return false;
+            }
+
             const EMAIL_REGEX = /(?:[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+(?:[A-Z]{2,}|[a-zA-Z]{2,}\d{0,2})(?<!-)/;
             if (!EMAIL_REGEX.test(userDetails.email)) {
                 Alert.alert('Erreur', 'Veuillez saisir une adresse mail valide.');
@@ -127,6 +140,7 @@ export const SignUpProvider = ({ children }) => {
                 const userFirebase = userCredentials.user;
                 const userData = {
                     ...userDetails,
+                    email: userDetails.email.toLowerCase(),
                     birthday: userDetails.birthday || new Date().toISOString().split('T')[0],
                 };
                 delete userData.password;

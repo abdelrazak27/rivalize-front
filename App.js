@@ -91,15 +91,17 @@ function App() {
             headerTitle: '',
             headerStyle: {
               backgroundColor: 'white',
-              height: 200,
+              height: 120,
               elevation: 0,
               shadowOpacity: 0,
             },
             headerLeftContainerStyle: {
               paddingLeft: 30,
+              paddingTop: 40,
             },
             headerRightContainerStyle: {
               paddingRight: 30,
+              paddingTop: 40,
             },
             cardStyle: { backgroundColor: 'white' },
           })}
@@ -109,7 +111,7 @@ function App() {
             name="ConnexionScreen"
             component={ConnexionScreen}
             options={{
-              headerShown: false,
+              headerLeft: null,
               animationEnabled: false,
             }}
           />

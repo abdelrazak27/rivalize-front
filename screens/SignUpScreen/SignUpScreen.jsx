@@ -7,9 +7,6 @@ import { SignUpProvider } from '../../context/SignUpContext';
 import { useNavigation } from '@react-navigation/native';
 import { CommonActions } from '@react-navigation/native';
 
-
-
-
 const StepComponents = [SignUpStepOne, SignUpStepTwo, SignUpStepThree, SignUpComplete];
 
 const SignUpScreen = () => {

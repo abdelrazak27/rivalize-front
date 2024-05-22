@@ -239,7 +239,6 @@ export default ConnexionScreen;
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingTop: 130,
         paddingHorizontal: 30
     },
     orText: {
@@ -251,7 +250,6 @@ const styles = StyleSheet.create({
     },
     inputs: {
         paddingTop: 100,
-        display: 'flex',
         gap: 20,
         marginBottom: 35
     }
