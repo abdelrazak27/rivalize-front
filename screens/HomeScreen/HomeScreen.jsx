@@ -108,20 +108,6 @@ function HomeScreen({ route }) {
         <View>
             {user ? (
                 <>
-                    <FunctionButton title="Déconnexion" onPress={() => {
-                        signOut(auth).then(() => {
-                            Alert.alert("Déconnexion", "vous avez été déconnecté avec succès.")
-                            navigation.dispatch(
-                                CommonActions.reset({
-                                    index: 0,
-                                    routes: [{ name: 'ConnexionScreen' }],
-                                })
-                            );
-                            setUser(null);
-                        }).catch((error) => {
-                            console.log(error);
-                        });
-                    }} />
                     {user.requestedJoinClubId && requestedClubName && (
                         <View>
                             <Text>Votre demande concernant le club {requestedClubName} est en attente.</Text>

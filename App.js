@@ -1,5 +1,5 @@
-import { StyleSheet, View } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import { Alert, StyleSheet, View } from 'react-native';
+import { CommonActions, NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import SignUpScreen from './screens/SignUpScreen/SignUpScreen';
 import SignUpComplete from './screens/SignUpScreen/SignUpComplete';
@@ -28,14 +28,15 @@ import SquareButtonIcon from './components/SquareButtonIcon';
 // icônes
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import Feather from 'react-native-vector-icons/Feather';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import NotificationsButton from './components/NotificationsButton';
+import { signOut } from 'firebase/auth';
+import { auth } from './firebaseConfig';
 
 const Stack = createStackNavigator();
 
 function App() {
-  const { user } = useUser();
+  const { user, setUser } = useUser();
 
   return (
     <NavigationContainer>
@@ -58,7 +59,7 @@ function App() {
               user && (
                 <View style={{ flexDirection: 'row', gap: 10 }}>
                   <SquareButtonIcon
-                    onPress={() => navigation.navigate('ProfileScreen', params={ userId: user.uid }) }
+                    onPress={() => navigation.navigate('ProfileScreen', params = { userId: user.uid })}
                     IconComponent={Feather}
                     iconName="user"
                     iconSize={30}
@@ -66,7 +67,20 @@ function App() {
                   />
                   <NotificationsButton userId={user.uid} />
                   <SquareButtonIcon
-                    onPress={() => { console.log('disconnect'); }}
+                    onPress={() => {
+                      signOut(auth).then(() => {
+                        Alert.alert("Déconnexion", "vous avez été déconnecté avec succès.")
+                        navigation.dispatch(
+                          CommonActions.reset({
+                            index: 0,
+                            routes: [{ name: 'ConnexionScreen' }],
+                          })
+                        );
+                        setUser(null);
+                      }).catch((error) => {
+                        console.log(error);
+                      });
+                    }}
                     IconComponent={MaterialCommunityIcons}
                     iconName="login-variant"
                     iconSize={30}
