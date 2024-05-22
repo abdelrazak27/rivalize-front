@@ -18,6 +18,8 @@ const CustomTextInput = ({ label, placeholder, value, onChangeText, secureTextEn
                 value={value}
                 onChangeText={onChangeText}
                 secureTextEntry={secureTextEntry}
+                autoCapitalize='none'
+                clearTextOnFocus={false}
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}
             />

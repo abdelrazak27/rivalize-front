@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Subtitle, Title } from '../../components/TextComponents';
 import colors from '../../styles/colors';
 import { fonts } from '../../styles/fonts';
+import { KeyboardAvoidingView } from 'react-native';
 
 const auth = getAuth(app);
 
@@ -198,38 +199,38 @@ function ConnexionScreen() {
     const isButtonDisabled = email.length === 0 || password.length === 0;
 
     return (
-        <SafeAreaView style={styles.container}>
-            <Title>Bienvenue,</Title>
-            <Subtitle>Connectez-vous pour continuer l'aventure</Subtitle>
+            <SafeAreaView style={styles.container}>
+                <Title>Bienvenue,</Title>
+                <Subtitle>Connectez-vous pour continuer l'aventure</Subtitle>
 
-            <View style={styles.inputs}>
-                <CustomTextInput
-                    label="Email"
-                    placeholder="Votre adresse mail"
-                    value={email}
-                    onChangeText={setEmail}
-                />
-                <CustomTextInput
-                    label="Mot de passe"
-                    placeholder="Votre mot de passe"
-                    value={password}
-                    onChangeText={setPassword}
-                    secureTextEntry
-                />
-            </View>
+                <View style={styles.inputs}>
+                    <CustomTextInput
+                        label="Email"
+                        placeholder="Votre adresse mail"
+                        value={email}
+                        onChangeText={setEmail}
+                    />
+                    <CustomTextInput
+                        label="Mot de passe"
+                        placeholder="Votre mot de passe"
+                        value={password}
+                        onChangeText={setPassword}
+                        secureTextEntry
+                    />
+                </View>
 
 
-            <FunctionButton title="Se connecter" onPress={handleSignIn} variant='primary' disabled={isButtonDisabled} />
-            <Text style={styles.orText}>ou</Text>
-            <RedirectLinkButton routeName="SignUpScreen" title="S'inscrire" variant='primaryOutline' />
+                <FunctionButton title="Se connecter" onPress={handleSignIn} variant='primary' disabled={isButtonDisabled} />
+                <Text style={styles.orText}>ou</Text>
+                <RedirectLinkButton routeName="SignUpScreen" title="S'inscrire" variant='primaryOutline' />
 
-            {/* <Button title="Se connecter en tant que joueur" onPress={() => handleSignInForce("player")} />
-            <Button title="Se connecter en tant que joueurBis" onPress={() => handleSignInForce("player2")} />
-            <Button title="Se connecter en tant que coach" onPress={() => handleSignInForce("coach")} />
-            <Button title="Se connecter en tant que coachBis" onPress={() => handleSignInForce("coach2")} />
-            <Button title="Se connecter en tant que visiteur" onPress={() => handleSignInForce("visitor")} /> */}
+                {/* <Button title="Se connecter en tant que joueur" onPress={() => handleSignInForce("player")} />
+                <Button title="Se connecter en tant que joueurBis" onPress={() => handleSignInForce("player2")} />
+                <Button title="Se connecter en tant que coach" onPress={() => handleSignInForce("coach")} />
+                <Button title="Se connecter en tant que coachBis" onPress={() => handleSignInForce("coach2")} />
+                <Button title="Se connecter en tant que visiteur" onPress={() => handleSignInForce("visitor")} /> */}
 
-        </SafeAreaView>
+            </SafeAreaView>
     );
 }
 
@@ -238,17 +239,18 @@ export default ConnexionScreen;
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        marginTop: 130
+        paddingTop: 130,
+        paddingHorizontal: 30
     },
     orText: {
         fontSize: 15,
         fontFamily: fonts.OutfitBold,
         color: colors.secondary,
         textAlign: 'center',
-        marginVertical: 20
+        paddingVertical: 20
     },
     inputs: {
-        marginTop: 100,
+        paddingTop: 100,
         display: 'flex',
         gap: 20,
         marginBottom: 35
