@@ -63,36 +63,6 @@ const SignUpStepTwo = ({ onPrevious, onNext }) => {
                         value={userDetails.lastname}
                         onChangeText={(text) => handleChange('lastname', text)}
                     />
-                    <View style={styles.birthdayBlock}>
-                        <Label>Date de naissance</Label>
-                        {Platform.OS === 'android' && (
-                            <>
-                                <Button title="Choisir la date" onPress={showDatePicker} />
-                                <ModalDateTimePicker
-                                    isVisible={isDatePickerVisible}
-                                    mode="date"
-                                    onConfirm={(selectedDate) => {
-                                        handleChange('birthday', selectedDate.toISOString().split('T')[0]);
-                                        hideDatePicker();
-                                    }}
-                                    onCancel={hideDatePicker}
-                                    maximumDate={new Date()}
-                                />
-                            </>
-                        )}
-                        {Platform.OS === 'ios' && (
-                            <DateTimePicker
-                                value={new Date(userDetails.birthday)}
-                                mode="date"
-                                display="spinner"
-                                onChange={(event, selectedDate) => {
-                                    handleChange('birthday', selectedDate.toISOString().split('T')[0]);
-                                }}
-                                maximumDate={new Date()}
-                            />
-                        )}
-                        <Text style={[styles.indicationsInput, { textAlign: 'center', color: colors.darkgrey }]}>Âge: {calculateAge(userDetails.birthday)} an{calculateAge(userDetails.birthday) > 1 && "s"}</Text>
-                    </View>
                     <View style={styles.cities}>
                         <CustomTextInput
                             label="Commune"
@@ -123,8 +93,38 @@ const SignUpStepTwo = ({ onPrevious, onNext }) => {
                             </View>
                         )}
                     </View>
+                    <View style={styles.birthdayBlock}>
+                        <Label>Date de naissance</Label>
+                        {Platform.OS === 'android' && (
+                            <>
+                                <Button title="Choisir la date" onPress={showDatePicker} />
+                                <ModalDateTimePicker
+                                    isVisible={isDatePickerVisible}
+                                    mode="date"
+                                    onConfirm={(selectedDate) => {
+                                        handleChange('birthday', selectedDate.toISOString().split('T')[0]);
+                                        hideDatePicker();
+                                    }}
+                                    onCancel={hideDatePicker}
+                                    maximumDate={new Date()}
+                                />
+                            </>
+                        )}
+                        {Platform.OS === 'ios' && (
+                            <DateTimePicker
+                                value={new Date(userDetails.birthday)}
+                                mode="date"
+                                display="spinner"
+                                onChange={(event, selectedDate) => {
+                                    handleChange('birthday', selectedDate.toISOString().split('T')[0]);
+                                }}
+                                maximumDate={new Date()}
+                            />
+                        )}
+                        <Text style={[styles.indicationsInput, { textAlign: 'center', color: colors.darkgrey }]}>Âge: {calculateAge(userDetails.birthday)} an{calculateAge(userDetails.birthday) > 1 && "s"}</Text>
+                    </View>
                 </View>
-
+                </ScrollView>
 
                 <View
                     style={styles.buttons}
@@ -145,7 +145,7 @@ const SignUpStepTwo = ({ onPrevious, onNext }) => {
                         variant='primaryOutline'
                     />
                 </View>
-            </ScrollView>
+            
         </SafeAreaView>
     );
 };

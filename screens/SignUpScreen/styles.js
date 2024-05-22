@@ -25,14 +25,12 @@ export default StyleSheet.create({
         paddingTop: 5,
     },
     buttons: {
+        marginHorizontal: 30,
         paddingVertical: 20,
         backgroundColor: 'white',
         borderTopWidth: 1,
         borderTopColor: colors.lightgrey,
         gap: 20,
-    },
-    cities: {
-        marginTop: 10,
     },
     citiesList: {
         backgroundColor: 'white',

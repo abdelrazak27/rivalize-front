@@ -47,28 +47,28 @@ const SignUpStepOne = ({ onNext }) => {
                         <Text style={styles.indicationsInput}>Votre mot de passe doit contenir au moins une lettre majuscule et minuscule, un chiffre, et un caractère spécial, à savoir : @, $, !, %, *, ?, &.</Text>
                     </View>
                 </View>
-
-
-                <View style={styles.buttons} >
-                    <FunctionButton
-                        title="Suivant"
-                        onPress={async () => {
-                            if (await validateFields(['email', 'password', 'passwordConfirm'], 1)) {
-                                onNext();
-                            }
-                        }}
-                        variant='primary'
-                        disabled={isButtonDisabled}
-                    />
-                    <FunctionButton
-                        title="Annuler l'inscription"
-                        onPress={() => {
-                            navigation.goBack();
-                        }}
-                        variant='primaryOutline'
-                    />
-                </View>
             </ScrollView>
+
+
+            <View style={styles.buttons} >
+                <FunctionButton
+                    title="Suivant"
+                    onPress={async () => {
+                        if (await validateFields(['email', 'password', 'passwordConfirm'], 1)) {
+                            onNext();
+                        }
+                    }}
+                    variant='primary'
+                    disabled={isButtonDisabled}
+                />
+                <FunctionButton
+                    title="Annuler l'inscription"
+                    onPress={() => {
+                        navigation.goBack();
+                    }}
+                    variant='primaryOutline'
+                />
+            </View>
         </SafeAreaView>
     );
 };
