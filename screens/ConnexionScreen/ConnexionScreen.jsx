@@ -1,4 +1,4 @@
-import { BackHandler, Text, Alert, StyleSheet, View } from 'react-native'
+import { BackHandler, Text, Alert, StyleSheet, View, Button } from 'react-native'
 import { useEffect, useState } from 'react';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 import app from '../../firebaseConfig';
@@ -224,11 +224,11 @@ function ConnexionScreen() {
                 <Text style={styles.orText}>ou</Text>
                 <RedirectLinkButton routeName="SignUpScreen" title="S'inscrire" variant='primaryOutline' />
 
-                {/* <Button title="Se connecter en tant que joueur" onPress={() => handleSignInForce("player")} />
+                <Button title="Se connecter en tant que joueur" onPress={() => handleSignInForce("player")} />
                 <Button title="Se connecter en tant que joueurBis" onPress={() => handleSignInForce("player2")} />
                 <Button title="Se connecter en tant que coach" onPress={() => handleSignInForce("coach")} />
                 <Button title="Se connecter en tant que coachBis" onPress={() => handleSignInForce("coach2")} />
-                <Button title="Se connecter en tant que visiteur" onPress={() => handleSignInForce("visitor")} /> */}
+                <Button title="Se connecter en tant que visiteur" onPress={() => handleSignInForce("visitor")} />
 
             </SafeAreaView>
     );

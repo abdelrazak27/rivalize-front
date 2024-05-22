@@ -30,12 +30,12 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import Feather from 'react-native-vector-icons/Feather';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import RedirectLinkButton from './components/RedirectLinkButton';
 
 const Stack = createStackNavigator();
 
 function App() {
   const { user } = useUser();
-  console.log(user);
 
   return (
     <NavigationContainer>
@@ -46,37 +46,35 @@ function App() {
       >
         <Stack.Navigator
           initialRouteName="LandingScreen"
-          screenOptions={({ navigation }) => ({
+          screenOptions={({ navigation, route }) => ({
             headerLeft: () => (
               <SquareButtonIcon
                 onPress={() => navigation.goBack()}
                 IconComponent={AntDesign}
                 iconName="arrowleft"
-                iconColor="#000"
               />
             ),
             headerRight: () => (
               user && (
                 <View style={{ flexDirection: 'row', gap: 10 }}>
                   <SquareButtonIcon
-                    onPress={() => { console.log('Profile'); }}
+                    onPress={() => navigation.navigate('ProfileScreen', params={ userId: user.uid }) }
                     IconComponent={Feather}
                     iconName="user"
-                    iconColor="#000"
                     iconSize={30}
+                    isFocused={route.name === 'ProfileScreen'}
                   />
                   <SquareButtonIcon
                     onPress={() => { console.log('Notifications'); }}
                     IconComponent={Ionicons}
                     iconName="notifications"
-                    iconColor="#000"
                     iconSize={30}
+                    // faire le violet quand le modal est ouvert
                   />
                   <SquareButtonIcon
                     onPress={() => { console.log('disconnect'); }}
                     IconComponent={MaterialCommunityIcons}
                     iconName="login-variant"
-                    iconColor="#000"
                     iconSize={30}
                   />
                 </View>
