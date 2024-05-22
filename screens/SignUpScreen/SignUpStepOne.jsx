@@ -3,7 +3,7 @@ import { Text, View, ScrollView, Dimensions } from 'react-native';
 import styles from './styles';
 import { useSignUp } from '../../context/SignUpContext';
 import { Subtitle, Title } from '../../components/TextComponents';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import CustomTextInput from '../../components/CustomTextInput';
 import FunctionButton from '../../components/FunctionButton';
 import { useNavigation } from '@react-navigation/native';
@@ -13,13 +13,18 @@ const SignUpStepOne = ({ onNext }) => {
     const isButtonDisabled = userDetails.email.length === 0 || userDetails.password.length === 0 || userDetails.passwordConfirm.length === 0;
     const navigation = useNavigation();
     const [contentHeight, setContentHeight] = useState(0);
+    const [buttonsHeight, setButtonsHeight] = useState(0);
     const screenHeight = Dimensions.get('window').height;
+    const insets = useSafeAreaInsets();
+
+    const headerHeight = 90;
+    const availableHeight = screenHeight - insets.top - insets.bottom - headerHeight - buttonsHeight;
 
     return (
         <SafeAreaView style={styles.container}>
             <ScrollView
                 contentContainerStyle={styles.scrollContainer}
-                scrollEnabled={contentHeight > screenHeight}
+                scrollEnabled={contentHeight > availableHeight}
                 onContentSizeChange={(height) => setContentHeight(height)}
             >
                 <Title>Bienvenue sur Rivalize,</Title>
@@ -52,7 +57,13 @@ const SignUpStepOne = ({ onNext }) => {
                 </View>
             </ScrollView>
 
-            <View style={styles.buttons}>
+            <View 
+                style={styles.buttons}
+                onLayout={(event) => {
+                    const { height } = event.nativeEvent.layout;
+                    setButtonsHeight(height);
+                }}
+            >
                 <FunctionButton
                     title="Suivant"
                     onPress={async () => {

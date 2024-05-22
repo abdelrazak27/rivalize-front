@@ -11,6 +11,10 @@ export const Subtitle = ({ children }) => {
     return <Text style={styles.subtitle}>{children}</Text>;
 };
 
+export const Label = ({ children }) => {
+    return <Text style={styles.label}>{children}</Text>;
+};
+
 const styles = StyleSheet.create({
     title: {
         fontFamily: fonts.OutfitBold,
@@ -21,5 +25,11 @@ const styles = StyleSheet.create({
         fontFamily: fonts.OutfitBold,
         fontSize: 16,
         color: colors.secondary
+    },
+    label: {
+        marginBottom: 5,
+        fontFamily: fonts.OutfitSemiBold,
+        fontSize: 15,
+        color: colors.black,
     },
 });

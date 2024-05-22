@@ -27,7 +27,18 @@ export default StyleSheet.create({
         borderTopWidth: 1,
         borderTopColor: colors.lightgrey,
         gap: 20,
-    }
+    },
+    cities: {
+        position: 'relative',
+    },
+    citiesList: {
+        borderColor: 'gray',
+        backgroundColor: 'white',
+        borderWidth: 1,
+        position: 'absolute',
+        top: 40,
+        width: '100%',
+    },
 });
 // export default StyleSheet.create({
 //     container: {
