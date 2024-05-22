@@ -4,6 +4,8 @@ import { db } from '../firebaseConfig';
 import { collection, query, where, getDocs, updateDoc, doc } from 'firebase/firestore';
 import { useNavigation } from '@react-navigation/native';
 import { formatTimestamp } from '../utils/date';
+import SquareButtonIcon from './SquareButtonIcon';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const NotificationsButton = ({ userId }) => {
     const [visible, setVisible] = useState(false);
@@ -63,12 +65,13 @@ const NotificationsButton = ({ userId }) => {
 
     return (
         <>
-            <TouchableOpacity onPress={toggleModal}>
-                <Text>
-                    Voir les notifications
-                    {notifications.filter(inv => !inv.hasBeenRead).length > 0 && ` (${notifications.filter(inv => !inv.hasBeenRead).length})`}
-                </Text>
-            </TouchableOpacity>
+            <SquareButtonIcon
+                onPress={toggleModal}
+                IconComponent={Ionicons}
+                iconName="notifications"
+                iconSize={30}
+                isFocused={visible}
+            />
 
             <Modal
                 animationType="slide"

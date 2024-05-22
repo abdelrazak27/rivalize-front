@@ -30,7 +30,7 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import Feather from 'react-native-vector-icons/Feather';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import RedirectLinkButton from './components/RedirectLinkButton';
+import NotificationsButton from './components/NotificationsButton';
 
 const Stack = createStackNavigator();
 
@@ -64,13 +64,7 @@ function App() {
                     iconSize={30}
                     isFocused={route.name === 'ProfileScreen'}
                   />
-                  <SquareButtonIcon
-                    onPress={() => { console.log('Notifications'); }}
-                    IconComponent={Ionicons}
-                    iconName="notifications"
-                    iconSize={30}
-                    // faire le violet quand le modal est ouvert
-                  />
+                  <NotificationsButton userId={user.uid} />
                   <SquareButtonIcon
                     onPress={() => { console.log('disconnect'); }}
                     IconComponent={MaterialCommunityIcons}

@@ -122,14 +122,6 @@ function HomeScreen({ route }) {
                             console.log(error);
                         });
                     }} />
-                    <NotificationsButton userId={user.uid} />
-                    <RedirectLinkButton
-                        routeName="ProfileScreen"
-                        title="Profile"
-                        params={{ userId: user.uid }}
-                        buttonStyle={{ backgroundColor: 'green' }}
-                        textStyle={{ fontSize: 18 }}
-                    />
                     {user.requestedJoinClubId && requestedClubName && (
                         <View>
                             <Text>Votre demande concernant le club {requestedClubName} est en attente.</Text>
