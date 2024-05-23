@@ -132,7 +132,7 @@ const SignUpStepTwo = ({ onPrevious, onNext }) => {
                     <FunctionButton
                         title="Suivant"
                         onPress={async () => {
-                            if (validateFields(['firstname', 'lastname', 'birthday', 'city'], 1)) {
+                            if (await validateFields(['firstname', 'lastname', 'birthday', 'city'], 2)) {
                                 onNext();
                             }
                         }}

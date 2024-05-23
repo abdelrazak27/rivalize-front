@@ -117,7 +117,7 @@ function App() {
           />
           <Stack.Screen name="HomeScreen" component={HomeScreen} options={{ headerLeft: null }} />
           <Stack.Screen name="SignUpScreen" component={SignUpScreen} />
-          <Stack.Screen name="SignUpComplete" component={SignUpComplete} options={{ headerLeft: null }} />
+          <Stack.Screen name="SignUpComplete" component={SignUpComplete} options={{ headerLeft: null, headerRight: null }} />
           <Stack.Screen name="CreateTeamScreen" component={CreateTeamScreen} />
           <Stack.Screen name="InviteFirstPlayer" component={InviteFirstPlayers} options={{ headerLeft: null }} />
           <Stack.Screen name="TeamScreen" component={TeamScreen} />

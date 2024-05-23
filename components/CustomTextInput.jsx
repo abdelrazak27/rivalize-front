@@ -3,7 +3,7 @@ import { View, Text, TextInput, StyleSheet } from 'react-native';
 import colors from '../styles/colors';
 import { fonts } from '../styles/fonts';
 
-const CustomTextInput = ({ label, placeholder, value, onChangeText, secureTextEntry = false }) => {
+const CustomTextInput = ({ label, placeholder, value, onChangeText, secureTextEntry = false, keyboardType }) => {
     const [isFocused, setIsFocused] = useState(false);
 
     return (
@@ -22,6 +22,7 @@ const CustomTextInput = ({ label, placeholder, value, onChangeText, secureTextEn
                 clearTextOnFocus={false}
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}
+                keyboardType={keyboardType && keyboardType}
             />
         </View>
     );

@@ -15,6 +15,10 @@ export const Label = ({ children }) => {
     return <Text style={styles.label}>{children}</Text>;
 };
 
+export const PrimaryColorText = ({ children }) => {
+    return <Text style={styles.primaryColorText}>{children}</Text>;
+};
+
 const styles = StyleSheet.create({
     title: {
         fontFamily: fonts.OutfitBold,
@@ -32,4 +36,7 @@ const styles = StyleSheet.create({
         fontSize: 15,
         color: colors.black,
     },
+    primaryColorText: {
+        color: colors.primary
+    }
 });

@@ -18,6 +18,11 @@ export default StyleSheet.create({
         gap: 20,
         marginBottom: 35,
     },
+    rowWithButton: {
+        flexDirection: 'row',
+        alignItems: 'flex-end',
+        gap: 10,
+    },
     indicationsInput: {
         fontSize: 14,
         fontFamily: fonts.OutfitSemiBold,
@@ -43,52 +48,17 @@ export default StyleSheet.create({
         borderWidth: 2,
         borderRadius: 8,
         borderColor: colors.secondary,
+    },
+    contentComplete: {
+        flex: 1,
+        justifyContent: 'center',
+        marginHorizontal: 30,
+        gap: 17,
+        paddingBottom: 120, 
+    },
+    contentCompleteText: {
+        fontSize: 15,
+        fontFamily: fonts.OutfitBold,
+        textAlign: 'center',
     }
 });
-// export default StyleSheet.create({
-//     container: {
-//         flex: 1,
-//         paddingTop: 0,
-//         paddingHorizontal: 30,
-//         backgroundColor: "red"
-//     },
-//     inputs: {
-//         paddingTop: 100,
-//         display: 'flex',
-//         gap: 20,
-//         marginBottom: 35
-//     },
-//     title: {
-//         fontSize: 24,
-//         fontWeight: 'bold',
-//         marginBottom: 20,
-//         color: '#333',
-//     },
-//     input: {
-//         borderWidth: 1,
-//         borderColor: '#ccc',
-//         borderRadius: 5,
-//         padding: 10,
-//         marginBottom: 15,
-//         fontSize: 16,
-//     },
-//     birthdayBlock: {
-//         display: 'flex',
-//         gap: 15,
-//         marginBottom: 15,
-//         flexDirection: 'column',
-//         alignItems: 'center',
-//         justifyContent: 'center',
-//     },
-//     cities: {
-//         position: 'relative',
-//     },
-//     citiesList: {
-//         borderColor: 'gray',
-//         backgroundColor: 'white',
-//         borderWidth: 1,
-//         position: 'absolute',
-//         top: 40,
-//         width: '100%',
-//     },
-// });
