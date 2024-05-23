@@ -10,6 +10,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 const NotificationsButton = ({ userId }) => {
     const [visible, setVisible] = useState(false);
     const [notifications, setNotifications] = useState([]);
+    const [hasUnread, setHasUnread] = useState(false);
     // Booléen pour activer ou désactiver les notifications
     const activateNotification = true;
     const navigation = useNavigation();
@@ -30,6 +31,7 @@ const NotificationsButton = ({ userId }) => {
                 // A (dé)commenter pour cacher/voir les logs des notifications
                 // console.log(loadedNotifications);
                 setNotifications(loadedNotifications);
+                checkForUnreadNotifications(loadedNotifications);
             };
 
             const interval = setInterval(fetchNotifications, 10000);
@@ -38,6 +40,11 @@ const NotificationsButton = ({ userId }) => {
             return () => clearInterval(interval);
         }
     }, [userId]);
+
+    const checkForUnreadNotifications = (notifications) => {
+        const hasUnread = notifications.some(notification => !notification.hasBeenRead);
+        setHasUnread(hasUnread);
+    };
 
     const toggleModal = () => {
         setVisible(!visible);
@@ -54,17 +61,18 @@ const NotificationsButton = ({ userId }) => {
         }
     };
 
-
     const markAsRead = async (notificationId) => {
         const notificationRef = doc(db, 'notifications', notificationId);
         await updateDoc(notificationRef, {
             hasBeenRead: true
         });
-        setNotifications(notifications.map(inv => inv.id === notificationId ? { ...inv, hasBeenRead: true } : inv));
+        const updatedNotifications = notifications.map(inv => inv.id === notificationId ? { ...inv, hasBeenRead: true } : inv);
+        setNotifications(updatedNotifications);
+        checkForUnreadNotifications(updatedNotifications);
     };
 
     return (
-        <>
+        <View style={styles.buttonContainer}>
             <SquareButtonIcon
                 onPress={toggleModal}
                 IconComponent={Ionicons}
@@ -72,6 +80,7 @@ const NotificationsButton = ({ userId }) => {
                 iconSize={30}
                 isFocused={visible}
             />
+            {hasUnread && <View style={styles.notificationBadge} />}
 
             <Modal
                 animationType="slide"
@@ -92,11 +101,23 @@ const NotificationsButton = ({ userId }) => {
                     </TouchableOpacity>
                 </View>
             </Modal>
-        </>
+        </View>
     );
 };
 
 const styles = StyleSheet.create({
+    buttonContainer: {
+        position: 'relative',
+    },
+    notificationBadge: {
+        position: 'absolute',
+        top: 13,
+        right: 13,
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+        backgroundColor: 'red',
+    },
     modalView: {
         margin: 20,
         backgroundColor: "white",
