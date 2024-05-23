@@ -67,19 +67,21 @@ function App() {
                   />
                   <NotificationsButton userId={user.uid} />
                   <SquareButtonIcon
-                    onPress={() => {
-                      signOut(auth).then(() => {
-                        Alert.alert("Déconnexion", "vous avez été déconnecté avec succès.")
+                    onPress={async () => {
+                      try {
+                        await setUser(null);
+                        await signOut(auth);
+                        Alert.alert("Déconnexion", "Vous avez été déconnecté avec succès.");
                         navigation.dispatch(
                           CommonActions.reset({
                             index: 0,
                             routes: [{ name: 'ConnexionScreen' }],
                           })
                         );
-                        setUser(null);
-                      }).catch((error) => {
+                      } catch (error) {
                         console.log(error);
-                      });
+                        Alert.alert("Erreur", "Une erreur est survenue lors de la déconnexion.");
+                      }
                     }}
                     IconComponent={MaterialCommunityIcons}
                     iconName="login-variant"

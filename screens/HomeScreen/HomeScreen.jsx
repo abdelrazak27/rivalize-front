@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Alert, BackHandler, Text, TouchableOpacity, View } from "react-native";
 import { useUser } from "../../context/UserContext";
-import { CommonActions, useFocusEffect, useNavigation } from "@react-navigation/native";
-import NotificationsButton from "../../components/NotificationsButton";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import RedirectLinkButton from "../../components/RedirectLinkButton";
-import { getAuth, signOut } from "firebase/auth";
 import FunctionButton from "../../components/FunctionButton";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
@@ -14,7 +12,6 @@ function HomeScreen({ route }) {
     const navigation = useNavigation();
     const { teamRefresh } = route.params || {};
     const { user, setUser } = useUser();
-    const auth = getAuth();
     const [requestedClubName, setRequestedClubName] = useState('');
 
     useEffect(() => {
@@ -34,7 +31,7 @@ function HomeScreen({ route }) {
         };
     
         fetchRequestedClubName();
-    }, [user.requestedJoinClubId]);
+    }, [user?.requestedJoinClubId]);
     
 
     useEffect(() => {

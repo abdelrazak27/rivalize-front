@@ -12,7 +12,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Subtitle, Title } from '../../components/TextComponents';
 import colors from '../../styles/colors';
 import { fonts } from '../../styles/fonts';
-import { KeyboardAvoidingView } from 'react-native';
 
 const auth = getAuth(app);
 
