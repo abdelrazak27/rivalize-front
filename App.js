@@ -69,8 +69,6 @@ function App() {
                   <SquareButtonIcon
                     onPress={async () => {
                       try {
-                        await setUser(null);
-                        await signOut(auth);
                         Alert.alert("Déconnexion", "Vous avez été déconnecté avec succès.");
                         navigation.dispatch(
                           CommonActions.reset({
@@ -78,6 +76,8 @@ function App() {
                             routes: [{ name: 'ConnexionScreen' }],
                           })
                         );
+                        await setUser(null);
+                        await signOut(auth);
                       } catch (error) {
                         console.log(error);
                         Alert.alert("Erreur", "Une erreur est survenue lors de la déconnexion.");

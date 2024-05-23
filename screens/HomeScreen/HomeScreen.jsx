@@ -31,7 +31,7 @@ function HomeScreen({ route }) {
         };
     
         fetchRequestedClubName();
-    }, [user?.requestedJoinClubId]);
+    }, [user.requestedJoinClubId]);
     
 
     useEffect(() => {
