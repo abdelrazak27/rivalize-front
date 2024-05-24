@@ -1,23 +1,27 @@
 import React, { useEffect, useState } from "react";
-import { Alert, BackHandler, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, BackHandler, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useUser } from "../../context/UserContext";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import RedirectLinkButton from "../../components/RedirectLinkButton";
 import FunctionButton from "../../components/FunctionButton";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, updateDoc, getDoc } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 import { SafeAreaView } from "react-native-safe-area-context";
 import globalStyles from "../../styles/globalStyles";
-import { PrimaryColorText, Subtitle, Title } from "../../components/TextComponents";
+import { PrimaryColorText, Title } from "../../components/TextComponents";
 import { fonts } from "../../styles/fonts";
 import colors from "../../styles/colors";
 import Spacer from "../../components/Spacer";
+import ItemList from "../../components/ItemList";
+import CustomList from "../../components/CustomList";
+import { getTeamName } from "../../utils/teams";
 
 function HomeScreen({ route }) {
     const navigation = useNavigation();
     const { teamRefresh } = route.params || {};
     const { user, setUser } = useUser();
     const [requestedClubName, setRequestedClubName] = useState('');
+    const [teamNames, setTeamNames] = useState({});
 
     useEffect(() => {
         const fetchRequestedClubName = async () => {
@@ -38,7 +42,6 @@ function HomeScreen({ route }) {
         fetchRequestedClubName();
     }, [user.requestedJoinClubId]);
 
-
     useEffect(() => {
         const backHandler = BackHandler.addEventListener(
             'hardwareBackPress',
@@ -54,6 +57,24 @@ function HomeScreen({ route }) {
             return () => { };
         }, [teamRefresh])
     );
+
+    useEffect(() => {
+        const fetchTeamNames = async () => {
+            if (user) {
+                const teamsToFetch = user.accountType === 'coach' ? user.teams : [user.team];
+                const names = {};
+                for (const teamId of teamsToFetch) {
+                    if (teamId) {
+                        const name = await getTeamName(teamId);
+                        names[teamId] = name;
+                    }
+                }
+                setTeamNames(names);
+            }
+        };
+
+        fetchTeamNames();
+    }, [user]);
 
     const handleCancelRequest = async () => {
         if (!user.requestedJoinClubId) {
@@ -77,7 +98,6 @@ function HomeScreen({ route }) {
         }
     };
 
-
     const fetchTeamList = () => {
         return (
             <>
@@ -86,21 +106,23 @@ function HomeScreen({ route }) {
                         <View style={styles.section}>
                             <Text style={styles.sectionTitle}>Mes équipes</Text>
                             <Text style={styles.sectionSubtitle}>Retrouvez toutes les informations de vos équipes dont vous avez besoin.</Text>
-                            <FunctionButton
-                                title="Créer une nouvelle équipe"
-                                onPress={() => {
-                                    navigation.navigate('CreateTeamScreen');
-                                }}
-                            />
-                            {user.teams.map((team, index) => (
-                                <View key={index}>
-                                    <TouchableOpacity onPress={() => {
-                                        navigation.navigate('TeamScreen', { teamId: team });
-                                    }}>
-                                        <Text>{team}</Text>
-                                    </TouchableOpacity>
-                                </View>
-                            ))}
+                            <CustomList>
+                                {user.teams.map((team, index) => (
+                                    <View key={index}>
+                                        <ItemList text={teamNames[team] || "..."} onPress={() => {
+                                            navigation.navigate('TeamScreen', { teamId: team });
+                                        }} />
+                                    </View>
+                                ))}
+                            </CustomList>
+                            <View style={{ paddingTop: 3 }}>
+                                <FunctionButton
+                                    title="Créer une nouvelle équipe"
+                                    onPress={() => {
+                                        navigation.navigate('CreateTeamScreen');
+                                    }}
+                                />
+                            </View>
                             <Spacer />
                         </View>
                     ) : (
@@ -123,11 +145,9 @@ function HomeScreen({ route }) {
                         <View style={styles.section}>
                             <Text style={styles.sectionTitle}>Mon équipe</Text>
                             <Text style={styles.sectionSubtitle}>Retrouvez toutes les informations de votre équipe dont vous avez besoin.</Text>
-                            <TouchableOpacity onPress={() => {
-                                        navigation.navigate('TeamScreen', { teamId: user.team });
-                                    }}>
-                                        <Text>{user.team}</Text>
-                                    </TouchableOpacity>
+                            <ItemList text={teamNames[user.team] || "..."} onPress={() => {
+                                navigation.navigate('TeamScreen', { teamId: user.team });
+                            }} />
                             <Spacer />
                         </View>
                     ) : (
@@ -162,25 +182,33 @@ function HomeScreen({ route }) {
                             </View>
                         )}
                         {fetchTeamList()}
-                        <RedirectLinkButton
-                            routeName="TournamentsScreen"
-                            title="Tournois"
-                            params={{ user: user }}
-                            buttonStyle={{ backgroundColor: 'green' }}
-                            textStyle={{ fontSize: 18 }}
-                        />
-                        <RedirectLinkButton
-                            routeName="TeamsScreen"
-                            title="Équipes"
-                            buttonStyle={{ backgroundColor: 'green' }}
-                            textStyle={{ fontSize: 18 }}
-                        />
-                        <RedirectLinkButton
-                            routeName="UsersScreen"
-                            title="Utilisateurs"
-                            buttonStyle={{ backgroundColor: 'green' }}
-                            textStyle={{ fontSize: 18 }}
-                        />
+                        <View style={styles.section}>
+                            <Text style={styles.sectionTitle}>Tournois</Text>
+                            <Text style={styles.sectionSubtitle}>Retrouvez tous les tournois inscrit sur l’application</Text>
+                            <RedirectLinkButton
+                                routeName="TournamentsScreen"
+                                title="Voir les tournois"
+                                params={{ user: user }}
+                            />
+                            <Spacer />
+                        </View>
+                        <View style={styles.section}>
+                            <Text style={styles.sectionTitle}>Équipes</Text>
+                            <Text style={styles.sectionSubtitle}>Retrouvez toutes les équipes et leurs informations</Text>
+                            <RedirectLinkButton
+                                routeName="TeamsScreen"
+                                title="Voir les équipes"
+                            />
+                            <Spacer />
+                        </View>
+                        <View style={styles.section}>
+                            <Text style={styles.sectionTitle}>Utilisateurs</Text>
+                            <Text style={styles.sectionSubtitle}>Retrouvez tous les utilisateurs : coachs, joueurs et même les visiteurs</Text>
+                            <RedirectLinkButton
+                                routeName="UsersScreen"
+                                title="Rechercher un utilisateur"
+                            />
+                        </View>
                     </ScrollView>
                 </>
             ) : (

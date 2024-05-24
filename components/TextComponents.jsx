@@ -11,8 +11,8 @@ export const Subtitle = ({ children }) => {
     return <Text style={styles.subtitle}>{children}</Text>;
 };
 
-export const Label = ({ children }) => {
-    return <Text style={styles.label}>{children}</Text>;
+export const Label = ({ children, color }) => {
+    return <Text style={[styles.label, color ? { color } : {}]}>{children}</Text>;
 };
 
 export const PrimaryColorText = ({ children }) => {

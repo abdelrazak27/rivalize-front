@@ -92,6 +92,7 @@ function UsersScreen() {
                     <Text>Chargement des utilisateurs...</Text>
                 </View>
             ) : filteredUsers.length > 0 ? (
+                // ne pas afficher soi meme
                 <FlatList
                     data={filteredUsers}
                     keyExtractor={item => item.id}

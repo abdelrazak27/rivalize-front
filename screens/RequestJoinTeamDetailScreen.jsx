@@ -25,7 +25,6 @@ function RequestJoinTeamDetailScreen() {
         fetchRequest();
     }, [requestJoinClubId]);
 
-
     const handleRequestResponse = async (newState) => {
         const userRef = doc(db, 'utilisateurs', requestDetails.userId);
         const userDoc = await getDoc(userRef);
@@ -33,7 +32,7 @@ function RequestJoinTeamDetailScreen() {
             Alert.alert("Erreur", "Profil utilisateur non trouvé.");
             return;
         }
-    
+
         const userData = userDoc.data();
         const teamRef = doc(db, 'equipes', requestDetails.clubId);
         const teamDoc = await getDoc(teamRef);
@@ -41,19 +40,19 @@ function RequestJoinTeamDetailScreen() {
             Alert.alert("Erreur", "Détails du club non trouvés.");
             return;
         }
-    
+
         const teamData = teamDoc.data();
-    
+
         if (newState === 'accepted') {
             if (userData.team) {
                 Alert.alert("Erreur", "L'utilisateur appartient déjà à un autre club.");
                 return;
             }
-    
-            await updateDoc(userRef, { team: requestDetails.clubId });
+
+            await updateDoc(userRef, { team: requestDetails.clubId, requestedJoinClubId: null });
             await updateDoc(teamRef, { players: arrayUnion(requestDetails.userId) });
             await updateDoc(requestRef, { state: newState });
-    
+
             const acceptNotificationId = uuid.v4();
             const acceptNotificationRef = doc(db, 'notifications', acceptNotificationId);
             const acceptNotificationDetails = {
@@ -64,11 +63,12 @@ function RequestJoinTeamDetailScreen() {
                 type: "info"
             };
             await setDoc(acceptNotificationRef, acceptNotificationDetails);
-    
+
             Alert.alert("Demande acceptée", `Le joueur a été ajouté au club ${teamData.name}.`);
         } else {
+            await updateDoc(userRef, { requestedJoinClubId: null });
             await updateDoc(requestRef, { state: newState });
-    
+
             const rejectNotificationId = uuid.v4();
             const rejectNotificationRef = doc(db, 'notifications', rejectNotificationId);
             const rejectNotificationDetails = {
@@ -79,10 +79,10 @@ function RequestJoinTeamDetailScreen() {
                 type: "info"
             };
             await setDoc(rejectNotificationRef, rejectNotificationDetails);
-    
+
             Alert.alert("Demande refusée", `Vous avez refusé la demande du joueur pour rejoindre le club ${teamData.name}.`);
         }
-    
+
         navigation.goBack();
     };
 
