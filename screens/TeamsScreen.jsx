@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, TextInput, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
 import { collection, query, getDocs, limit, startAfter, where } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { useUser } from '../context/UserContext';
@@ -7,7 +7,12 @@ import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PrimaryColorText, Subtitle, Title } from '../components/TextComponents';
 import CustomTextInput from '../components/CustomTextInput';
+import CustomList from '../components/CustomList';
+import ItemList from '../components/ItemList';
 import globalStyles from '../styles/globalStyles';
+import { fonts } from '../styles/fonts';
+import colors from '../styles/colors';
+import Spacer from '../components/Spacer';
 
 function TeamsScreen() {
     const [userTeams, setUserTeams] = useState([]);
@@ -19,7 +24,6 @@ function TeamsScreen() {
     const [lastVisible, setLastVisible] = useState(null);
     const [isMoreLoading, setIsMoreLoading] = useState(false);
     const [allLoaded, setAllLoaded] = useState(false);
-
 
     useEffect(() => {
         fetchTeams();
@@ -44,19 +48,19 @@ function TeamsScreen() {
                 setAllLoaded(true);
             }
             setLastVisible(querySnapshot.docs[querySnapshot.docs.length - 1]);
-    
+
             const userTeamIds = user.teams ? user.teams : [user.team];
             setUserTeams(prevTeams => prevTeams.concat(loadedTeams.filter(team => userTeamIds.includes(team.id))));
             setAllTeams(prevTeams => prevTeams.concat(loadedTeams.filter(team => !userTeamIds.includes(team.id))));
             setFilteredTeams(prevTeams => prevTeams.concat(loadedTeams.filter(team => !userTeamIds.includes(team.id))));
-    
+
         } catch (error) {
             console.error("Error fetching teams: ", error);
         } finally {
             setIsMoreLoading(false);
         }
     };
-    
+
 
     const loadMoreTeams = () => {
         if (!allLoaded && !isMoreLoading) {
@@ -89,46 +93,62 @@ function TeamsScreen() {
     return (
         <SafeAreaView style={globalStyles.container}>
             <View style={[globalStyles.headerContainer, { paddingBottom: 25, marginBottom: 25 }]}>
-                <Title>Nos <PrimaryColorText>utilisateurs</PrimaryColorText></Title>
-                <Subtitle>Retrouvez leurs informations en cliquant sur l’un d’eux parmi la liste ci-dessous</Subtitle>
+                <Title>Les <PrimaryColorText>équipes</PrimaryColorText></Title>
+                <Subtitle>Retrouvez leurs informations en cliquant sur l’une d’elles parmi la liste ci-dessous</Subtitle>
                 <View style={{ height: 15 }}></View>
-                <CustomTextInput 
+                <CustomTextInput
                     label="Rechercher une équipe par son nom"
                     placeholder="Recherche par nom de club..."
                     value={searchQuery}
                     onChangeText={filterTeams}
                 />
             </View>
-            <Text style={styles.sectionHeader}>{getTeamSectionTitle()}</Text>
-            <FlatList
-                data={userTeams}
-                keyExtractor={item => item.id}
-                renderItem={({ item }) => (
-                    <TouchableOpacity style={styles.teamItem} onPress={() => handleSelectTeam(item.id)}>
-                        <Text>{item.name}</Text>
-                    </TouchableOpacity>
+            <ScrollView style={{ paddingHorizontal: 30 }}>
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>{getTeamSectionTitle()}</Text>
+                    {userTeams.length === 0 && (
+                        <Text style={styles.sectionSubtitle}>Vous ne possédez pas de club pour le moment.</Text>
+                    )}
+                    <View style={{ paddingTop: 10 }}>
+                        <CustomList>
+                            {userTeams.map((team, index) => (
+                                <ItemList
+                                    key={index}
+                                    text={team.name}
+                                    onPress={() => handleSelectTeam(team.id)}
+                                />
+                            ))}
+                        </CustomList>
+                    </View>
+                </View>
+                <Spacer />
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Toutes les équipes</Text>
+                    <View style={{ paddingTop: 10 }}>
+                        <CustomList>
+                            {filteredTeams.length > 0 ? (
+                                filteredTeams.map((team, index) => (
+                                    <ItemList
+                                        key={index}
+                                        text={team.name}
+                                        onPress={() => handleSelectTeam(team.id)}
+                                    />
+                                ))
+                            ) : (
+                                <Text style={styles.noResultsText}>Aucun club n'existe pour le moment.</Text>
+                            )}
+                            {isMoreLoading && !allLoaded && (
+                                <ActivityIndicator size="large" color="#0000ff" />
+                            )}
+                        </CustomList>
+                    </View>
+                </View>
+                {searchQuery.length > 0 && filteredTeams.length === 0 && (
+                    <Text style={styles.noResultsText}>Aucun club ne correspond à votre recherche.</Text>
                 )}
-            />
-            <Text style={styles.sectionHeader}>Toutes les Équipes</Text>
-            <FlatList
-                data={filteredTeams}
-                keyExtractor={item => item.id}
-                renderItem={({ item }) => (
-                    <TouchableOpacity style={styles.teamItem} onPress={() => handleSelectTeam(item.id)}>
-                        <Text>{item.name}</Text>
-                    </TouchableOpacity>
-                )}
-                ListEmptyComponent={() => 
-                    searchQuery.length > 0 && <Text style={styles.noResultsText}>Aucun club ne correspond à votre recherche.</Text>
-                }
-                onEndReached={loadMoreTeams}
-                onEndReachedThreshold={0.5}
-                ListFooterComponent={() => isMoreLoading && !allLoaded ? (
-                    <ActivityIndicator size="large" color="#0000ff" />
-                ) : null}
-            />
+            </ScrollView>
         </SafeAreaView>
-    );    
+    );
 }
 
 const styles = StyleSheet.create({
@@ -153,11 +173,27 @@ const styles = StyleSheet.create({
         marginTop: 10,
         marginBottom: 5,
     },
+    section: {
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 5,
+    },
+    sectionTitle: {
+        fontSize: 15,
+        fontFamily: fonts.OutfitBold,
+    },
+    sectionSubtitle: {
+        fontSize: 14,
+        fontFamily: fonts.OutfitSemiBold,
+        color: colors.secondary,
+        marginBottom: 5,
+    },
     noResultsText: {
         textAlign: 'center',
         marginTop: 20,
-        fontSize: 16,
-        color: 'gray'
+        fontFamily: fonts.OutfitSemiBold,
+        color: colors.darkgrey
     }
 });
 

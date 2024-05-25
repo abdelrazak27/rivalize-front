@@ -9,6 +9,8 @@ import { PrimaryColorText, Subtitle, Title } from '../components/TextComponents'
 import CustomTextInput from '../components/CustomTextInput';
 import CustomList from '../components/CustomList';
 import ItemList from '../components/ItemList';
+import { fonts } from '../styles/fonts';
+import colors from '../styles/colors';
 
 function UsersScreen() {
     const [users, setUsers] = useState([]);
@@ -116,7 +118,7 @@ function UsersScreen() {
                         )}
                     </CustomList>
                 ) : (
-                    <Text style={styles.emptyMessage}>Aucun utilisateur trouvé</Text>
+                    <Text style={styles.noResultsText}>Aucun utilisateur trouvé</Text>
                 )}
             </ScrollView>
         </SafeAreaView>
@@ -144,9 +146,11 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
-    emptyMessage: {
+    noResultsText: {
         textAlign: 'center',
         marginTop: 20,
+        fontFamily: fonts.OutfitSemiBold,
+        color: colors.darkgrey
     }
 });
 
