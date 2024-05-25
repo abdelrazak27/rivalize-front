@@ -11,6 +11,7 @@ import { PrimaryColorText, Subtitle, Title } from './TextComponents';
 import Spacer from './Spacer';
 import { fonts } from '../styles/fonts';
 import FunctionButton from './FunctionButton';
+import { BlurView } from 'expo-blur';
 
 const NotificationsButton = ({ userId }) => {
     const [visible, setVisible] = useState(false);
@@ -94,35 +95,37 @@ const NotificationsButton = ({ userId }) => {
                 visible={visible}
                 onRequestClose={toggleModal}
             >
-                <View style={styles.modalView}>
-                    <View style={styles.modalHeader}>
-                        <Title>Vos <PrimaryColorText>notifications</PrimaryColorText></Title>
-                        {notifications.filter(inv => !inv.hasBeenRead).length > 0 ? <Subtitle>Vous avez {notifications.filter(inv => !inv.hasBeenRead).length} notification(s) non lue(s)</Subtitle> : <Subtitle>Vous avez aucune notification</Subtitle>}
+                <BlurView intensity={10} style={styles.absolute}>
+                    <View style={styles.modalView}>
+                        <View style={styles.modalHeader}>
+                            <Title>Vos <PrimaryColorText>notifications</PrimaryColorText></Title>
+                            {notifications.filter(inv => !inv.hasBeenRead).length > 0 ? <Subtitle>Vous avez {notifications.filter(inv => !inv.hasBeenRead).length} notification(s) non lue(s)</Subtitle> : <Subtitle>Vous avez aucune notification</Subtitle>}
+                        </View>
+                        <ScrollView style={styles.notificationList}>
+                            {notifications.length > 0 && (
+                                notifications.map((notification) => (
+                                    <View key={notification.id}>
+                                        <Spacer top={10} bottom={10} />
+                                        <TouchableOpacity onPress={() => handleNotificationClick(notification.id, notification.type, notification.requestJoinClubId || notification.invitationId)}>
+                                            <Text style={styles.notificationDate}>
+                                                {formatTimestamp(notification.timestamp, { showSecond: false, showYear: false })}
+                                            </Text>
+                                            <Text style={[styles.notificationText, notification.hasBeenRead ? styles.readText : styles.unreadText]}>
+                                                {notification.message}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                ))
+                            )}
+                        </ScrollView>
+                        <View style={styles.modalFooter}>
+                            <FunctionButton 
+                                title='Fermer'
+                                onPress={toggleModal}
+                            />
+                        </View>
                     </View>
-                    <ScrollView style={styles.notificationList}>
-                        {notifications.length > 0 && (
-                            notifications.map((notification) => (
-                                <View key={notification.id}>
-                                    <Spacer top={10} bottom={10} />
-                                    <TouchableOpacity onPress={() => handleNotificationClick(notification.id, notification.type, notification.requestJoinClubId || notification.invitationId)}>
-                                        <Text style={styles.notificationDate}>
-                                            {formatTimestamp(notification.timestamp, { showSecond: false, showYear: false })}
-                                        </Text>
-                                        <Text style={[styles.notificationText, notification.hasBeenRead ? styles.readText : styles.unreadText]}>
-                                            {notification.message}
-                                        </Text>
-                                    </TouchableOpacity>
-                                </View>
-                            ))
-                        )}
-                    </ScrollView>
-                    <View style={styles.modalFooter}>
-                        <FunctionButton 
-                            title='Fermer'
-                            onPress={toggleModal}
-                        />
-                    </View>
-                </View>
+                </BlurView>
             </Modal>
         </View>
     );
@@ -156,7 +159,7 @@ const styles = StyleSheet.create({
     },
     modalView: {
         flex: 1,
-        marginTop: 150,
+        // marginTop: 150,
         marginHorizontal: 30,
         backgroundColor: "white",
         padding: 25,
@@ -185,7 +188,14 @@ const styles = StyleSheet.create({
     },
     readText: {
         fontFamily: fonts.OutfitRegular,
-    }
+    },
+    absolute: {
+        position: 'absolute',
+        top: 150,
+        left: 0,
+        bottom: 0,
+        right: 0,
+    },
 });
 
 export default NotificationsButton;
