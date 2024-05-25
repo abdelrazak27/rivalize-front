@@ -219,11 +219,12 @@ function ConnexionScreen() {
                     />
                 </View>
 
-
-                <FunctionButton title="Se connecter" onPress={handleSignIn} variant='primary' disabled={isButtonDisabled} />
-                <Text style={styles.orText}>ou</Text>
-                <RedirectLinkButton routeName="SignUpScreen" title="S'inscrire" variant='primaryOutline' />
-
+                <View style={{ paddingBottom: 20 }}>
+                    <FunctionButton title="Se connecter" onPress={handleSignIn} variant='primary' disabled={isButtonDisabled} />
+                    <Text style={styles.orText}>ou</Text>
+                    <RedirectLinkButton routeName="SignUpScreen" title="S'inscrire" variant='primaryOutline' />
+                </View>
+            
                 <Button title="Se connecter en tant que joueur" onPress={() => handleSignInForce("player")} />
                 <Button title="Se connecter en tant que joueurBis" onPress={() => handleSignInForce("player2")} />
                 <Button title="Se connecter en tant que coach" onPress={() => handleSignInForce("coach")} />
@@ -239,7 +240,7 @@ export default ConnexionScreen;
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingHorizontal: 30
+        paddingHorizontal: 30,
     },
     orText: {
         fontSize: 15,

@@ -5,6 +5,13 @@ import { CommonActions, useNavigation, useRoute } from "@react-navigation/native
 import { db } from "../firebaseConfig";
 import SelectedPlayersList from "../screens/CreateTeamScreen/SelectedPlayersList";
 import uuid from 'react-native-uuid';
+import CustomTextInput from "./CustomTextInput";
+import CustomList from "./CustomList";
+import ItemList from "./ItemList";
+import { Label } from "./TextComponents";
+import colors from "../styles/colors";
+import { fonts } from "../styles/fonts";
+import FunctionButton from "./FunctionButton";
 
 function InvitePlayers({ arrayList }) {
     const [players, setPlayers] = useState([]);
@@ -69,21 +76,21 @@ function InvitePlayers({ arrayList }) {
 
     const finishSelection = async () => {
         console.log('Selected Player UIDs:', selectedPlayerUids);
-    
+
         if (selectedPlayerUids.length > 0) {
             const operationsPromises = selectedPlayerUids.flatMap(uid => {
                 const invitationId = uuid.v4();
                 const notificationId = uuid.v4();
                 const invitationRef = doc(db, 'invitations', invitationId);
                 const notificationRef = doc(db, 'notifications', notificationId);
-    
+
                 const invitationDetails = {
                     invitedUid: uid,
                     timestamp: Timestamp.now(),
                     clubId: teamId,
                     state: 'pending',
                 };
-    
+
                 const notificationDetails = {
                     userId: uid,
                     message: "Vous êtes invité à rejoindre un club",
@@ -92,13 +99,13 @@ function InvitePlayers({ arrayList }) {
                     type: "invitation",
                     invitationId: invitationId,
                 };
-    
+
                 const setInvitationPromise = setDoc(invitationRef, invitationDetails);
                 const setNotificationPromise = setDoc(notificationRef, notificationDetails);
-    
+
                 return [setInvitationPromise, setNotificationPromise];
             });
-    
+
             try {
                 await Promise.all(operationsPromises.flat());
                 console.log("Toutes les invitations et notifications ont été créées.");
@@ -110,12 +117,12 @@ function InvitePlayers({ arrayList }) {
             console.log("Aucun joueur sélectionné pour envoyer une invitation.");
         }
     };
-    
+
     const navigateHome = () => {
         navigation.dispatch(
             CommonActions.reset({
                 index: 0,
-                routes: [{ 
+                routes: [{
                     name: 'HomeScreen'
                 }],
             })
@@ -124,26 +131,38 @@ function InvitePlayers({ arrayList }) {
 
     return (
         <View style={styles.container}>
-            <TextInput
-                style={styles.input}
-                placeholder="Rechercher un joueur"
+            <Label>Rechercher un joueur</Label>
+            <Text style={styles.textInfos}>Cliquez sur un joueur pour le sélectionner, plus bas vous pouvez confirmer la sélection</Text>
+            <CustomTextInput
+                placeholder="Rechercher le nom d'un joueur..."
                 value={searchQuery}
                 onChangeText={setSearchQuery}
             />
-            {filteredPlayers.length > 0 && filteredPlayers.map((player) => (
-                <TouchableOpacity key={player.uid} onPress={() => selectPlayer(player.uid)}>
-                    <Text style={styles.playerItem}>
-                        {player.firstname} {player.lastname}
-                    </Text>
-                </TouchableOpacity>
-            ))}
-            <SelectedPlayersList selectedPlayers={players.filter(player => selectedPlayerUids.includes(player.uid))} onRemovePlayer={removePlayer} />
-            <TouchableOpacity onPress={() => {
-                finishSelection();
-                navigateHome();
-            }}>
-                <Text>Inviter la sélection</Text>
-            </TouchableOpacity>
+
+            {filteredPlayers.length > 0 && (
+                <View style={{ paddingTop: 25 }}>
+                    <CustomList>
+                        {filteredPlayers.map((player) => (
+                            <ItemList
+                                key={player.uid}
+                                text={`${player.firstname} ${player.lastname}`}
+                                onPress={() => selectPlayer(player.uid)}
+                            />
+                        ))}
+                    </CustomList>
+                </View>
+            )}
+            <View style={{ gap: 15 }}>
+                <SelectedPlayersList selectedPlayers={players.filter(player => selectedPlayerUids.includes(player.uid))} onRemovePlayer={removePlayer} />
+                <FunctionButton 
+                    title="Inviter la sélection"
+                    onPress={() => {
+                        finishSelection();
+                        navigateHome();
+                    }}
+                    disabled={selectedPlayerUids.length === 0}
+                />
+            </View>
         </View>
     );
 }
@@ -151,7 +170,7 @@ function InvitePlayers({ arrayList }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        marginTop: 50
+
     },
     input: {
         height: 40,
@@ -162,6 +181,12 @@ const styles = StyleSheet.create({
     playerItem: {
         padding: 10,
         fontSize: 18
+    },
+    textInfos: {
+        color: colors.secondary,
+        fontFamily: fonts.OutfitSemiBold,
+        fontSize: 14,
+        paddingBottom: 15
     }
 });
 

@@ -1,7 +1,7 @@
 import { CommonActions, useFocusEffect, useNavigation, useRoute } from "@react-navigation/native";
 import { collection, getDoc, getDocs, updateDoc, doc, setDoc, Timestamp } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
-import { Text, View, ActivityIndicator, Image, StyleSheet, Alert, TouchableOpacity, ScrollView } from "react-native";
+import { Text, View, ActivityIndicator, Image, StyleSheet, Alert, ScrollView } from "react-native";
 import { db } from "../../firebaseConfig";
 import { useUser } from "../../context/UserContext";
 import FunctionButton from "../../components/FunctionButton";
@@ -19,7 +19,6 @@ import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
 import { LinearGradient } from "expo-linear-gradient";
 import { darkenColor } from "../../utils/colors";
 import { Label } from "../../components/TextComponents";
-import CustomList from "../../components/CustomList";
 
 function TeamScreen() {
     const { user, setUser } = useUser();
@@ -30,7 +29,6 @@ function TeamScreen() {
     const [teamData, setTeamData] = useState(null);
     const [coachData, setCoachData] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [requestedClubName, setRequestedClubName] = useState('');
     const [isCurrentCoach, setIsCurrentCoach] = useState(false);
 
     const fetchTeamDetails = async () => {
@@ -57,21 +55,6 @@ function TeamScreen() {
         }
         setIsLoading(false);
     };
-
-    useEffect(() => {
-        const fetchClubName = async () => {
-            if (user.requestedJoinClubId) {
-                const clubRef = doc(db, 'equipes', user.requestedJoinClubId);
-                const clubDoc = await getDoc(clubRef);
-                if (clubDoc.exists()) {
-                    setRequestedClubName(clubDoc.data().name);
-                }
-            }
-        };
-
-        fetchClubName();
-    }, [user.requestedJoinClubId]);
-
 
     useFocusEffect(
         React.useCallback(() => {
@@ -326,18 +309,38 @@ function TeamScreen() {
                                     />
                                 </View>
                             )}
-                            {user.accountType === 'player' && user.team != teamId && (
-                                <View style={{ paddingTop: 15 }}>
-                                    <FunctionButton
-                                        title="Rejoindre l'équipe"
-                                        onPress={requestJoinTeam}
-                                    />
-                                </View>
+                            {user.accountType === 'player' && (
+                                <>
+                                    {!teamData.players.includes(user.uid) && !user.requestedJoinClubId ? (
+                                        <View style={{ paddingTop: 15 }}>
+                                            <FunctionButton
+                                                title="Rejoindre l'équipe"
+                                                onPress={requestJoinTeam}
+                                            />
+                                        </View>
+                                    ) : (
+                                        user.requestedJoinClubId && (
+                                            <>
+                                                <View style={{ paddingTop: 15 }}>
+                                                    <FunctionButton
+                                                        title="Rejoindre l'équipe"
+                                                        onPress={requestJoinTeam}
+                                                        disabled
+                                                    />
+                                                </View>
+                                                <Text style={[styles.textInfos, { paddingTop: 10, textAlign: 'center' }]}>
+                                                    Vous avez déjà demandé à rejoindre une équipe, annulez votre demande depuis la page d'accueil pour pouvoir rejoindre cette équipe.
+                                                </Text>
+                                            </>
+                                        )
+                                    )}
+                                </>
                             )}
                             {isCurrentCoach && (
                                 <View style={{ paddingTop: 15 }}>
                                     <RedirectLinkButton
                                         title="Modifier les informations de l'équipe"
+                                        
                                     />
                                 </View>
                             )}
@@ -375,46 +378,23 @@ function TeamScreen() {
                                 />
                             </View>
                         </View>
-                        <Spacer />
-                        <View style={{ paddingBottom: 25 }}>
-                            <Label>Joueurs de l'équipe  ({teamData.players.length > 0 ? teamData.players.length : "0"} membre{teamData.players.length > 1 && "s"})</Label>
-                            <Text style={styles.textInfos}>Retrouvez leurs informations en cliquant sur l’un d’eux parmi la liste ci-dessous</Text>
-                        </View>
-                        <ListUsers arrayList={teamData.players} navigation={navigation} setTeamData={setTeamData} teamId={teamId} />
-                        {user.accountType === 'player' && !teamData.players.includes(user.uid) && !user.requestedJoinClubId && (
-                            <>
-                                <Spacer />
-                                <FunctionButton
-                                    title="Demander à rejoindre l'équipe"
-                                    onPress={requestJoinTeam}
-                                />
-                            </>
-                        )}
-                        {user.requestedJoinClubId && (
-                            <>
-                                <Spacer />
-                                <FunctionButton
-                                    disabled
-                                    title="Demander à rejoindre l'équipe"
-                                    onPress={requestJoinTeam}
-                                />
-                                <Text>Vous avez déjà demandé à rejoindre l'équipe {requestedClubName}, annulez votre demande depuis la page d'accueil pour pouvoir rejoindre une autre équipe.</Text>
-                            </>
-                        )}
                         {user.uid === teamData.coach_id && (
                             <>
                                 <Spacer />
                                 <InvitePlayers arrayList={teamData.players} setTeamData={setTeamData} />
-                                <FunctionButton
-                                    title="Modifier les informations de l'équipe"
-                                    onPress={() => navigation.navigate('EditTeamScreen', { teamData: teamData })}
-                                />
-                                <FunctionButton
-                                    title="Supprimer l'équipe"
-                                    onPress={deleteTeam}
-                                />
                             </>
                         )}
+                        <Spacer />
+                        <View style={{ paddingBottom: 25 }}>
+                            <Label>Joueurs de l'équipe  {teamData.players.length > 0 && (`(${teamData.players.length} membre${(teamData.players.length > 1) ? "s" : ""})`)}</Label>
+                            {teamData.players.length > 0 ? (
+                                <Text style={styles.textInfos}>Retrouvez leurs informations en cliquant sur l’un d’eux parmi la liste ci-dessous</Text>
+                            ) : (
+                                <Text style={styles.textInfos}>Il n'y a aucun joueur dans ce club.</Text>
+                            )}
+                        </View>
+                        <ListUsers arrayList={teamData.players} navigation={navigation} setTeamData={setTeamData} teamId={teamId} />
+
                         {teamData.players.includes(user.uid) && user.uid !== teamData.coach_id && (
                             <>
                                 <Spacer />
@@ -424,6 +404,18 @@ function TeamScreen() {
                                 />
                             </>
                         )}
+
+                        {user.uid === teamData.coach_id && (
+                            <>
+                                <Spacer />
+                                <FunctionButton
+                                    title="Supprimer l'équipe"
+                                    onPress={deleteTeam}
+                                    variant="error"
+                                />
+                            </>
+                        )}
+
                     </ScrollView>
                 </>
             ) : (

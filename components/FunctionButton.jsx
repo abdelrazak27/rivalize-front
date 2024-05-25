@@ -11,11 +11,15 @@ const FunctionButton = ({ title, onPress, disabled, variant = 'primary' }) => {
             style={[
                 styles.button,
                 variant === 'secondary' && styles.buttonSecondary,
+                variant === 'error' && styles.buttonError,
+                variant === 'errorOutline' && styles.buttonErrorOutline,
                 variant === 'primaryOutline' && styles.buttonPrimaryOutline,
                 variant === 'secondaryOutline' && styles.buttonSecondaryOutline,
                 disabled && (
                     variant === 'primary' ? styles.buttonDisabled :
                     variant === 'secondary' ? styles.buttonSecondaryDisabled :
+                    variant === 'error' ? styles.buttonErrorDisabled :
+                    variant === 'errorOutline' ? styles.buttonErrorDisabledOutline :
                     variant === 'primaryOutline' ? styles.buttonPrimaryOutlineDisabled :
                     styles.buttonSecondaryOutlineDisabled
                 )
@@ -24,7 +28,8 @@ const FunctionButton = ({ title, onPress, disabled, variant = 'primary' }) => {
             <Text style={[
                 styles.buttonText,
                 variant === 'primaryOutline' && (disabled ? styles.buttonTextPrimaryOutlineDisabled : styles.buttonTextPrimaryOutline),
-                variant === 'secondaryOutline' && (disabled ? styles.buttonTextSecondaryOutlineDisabled : styles.buttonTextSecondaryOutline)
+                variant === 'secondaryOutline' && (disabled ? styles.buttonTextSecondaryOutlineDisabled : styles.buttonTextSecondaryOutline),
+                variant === 'errorOutline' && (disabled ? styles.buttonTextErrorOutlineDisabled : styles.buttonTextErrorOutline)
             ]}>
                 {title}
             </Text>
@@ -44,6 +49,9 @@ const styles = StyleSheet.create({
     buttonSecondary: {
         backgroundColor: colors.secondary,
     },
+    buttonError: {
+        backgroundColor: colors.error,
+    },
     buttonPrimaryOutline: {
         backgroundColor: 'transparent',
         borderWidth: 2,
@@ -54,17 +62,28 @@ const styles = StyleSheet.create({
         borderWidth: 2,
         borderColor: colors.secondary,
     },
+    buttonErrorOutline: {
+        backgroundColor: 'transparent',
+        borderWidth: 2,
+        borderColor: colors.error,
+    },
     buttonDisabled: {
         backgroundColor: colors.primary + '99',
     },
     buttonSecondaryDisabled: {
         backgroundColor: colors.secondary + '99',
     },
+    buttonErrorDisabled: {
+        backgroundColor: colors.error + '99',
+    },
     buttonPrimaryOutlineDisabled: {
         borderColor: colors.primary + '99',
     },
     buttonSecondaryOutlineDisabled: {
         borderColor: colors.secondary + '99',
+    },
+    buttonErrorOutlineDisabled: {
+        borderColor: colors.error + '99',
     },
     buttonText: {
         color: 'white',
@@ -77,11 +96,17 @@ const styles = StyleSheet.create({
     buttonTextSecondaryOutline: {
         color: colors.secondary,
     },
+    buttonTextErrorOutline: {
+        color: colors.error,
+    },
     buttonTextPrimaryOutlineDisabled: {
         color: colors.primary + '99',
     },
     buttonTextSecondaryOutlineDisabled: {
         color: colors.secondary + '99',
+    },
+    buttonTextErrorOutlineDisabled: {
+        color: colors.error + '99',
     }
 });
 

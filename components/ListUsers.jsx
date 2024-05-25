@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Text, View, ActivityIndicator, TouchableOpacity, Button, Alert } from "react-native";
+import { Text, View, ActivityIndicator, TouchableOpacity, Button, Alert, StyleSheet } from "react-native";
 import { arrayRemove, doc, getDoc, setDoc, Timestamp, updateDoc } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 import uuid from 'react-native-uuid';
@@ -7,6 +7,8 @@ import { useUser } from "../context/UserContext";
 import CustomList from "./CustomList";
 import ItemList from "./ItemList";
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import colors from "../styles/colors";
+import { fonts } from "../styles/fonts";
 
 function ListUsers({ arrayList, navigation, setTeamData, teamId }) {
     const [users, setUsers] = useState([]);
@@ -92,7 +94,7 @@ function ListUsers({ arrayList, navigation, setTeamData, teamId }) {
 
         <View>
             <CustomList>
-                {users.length > 0 ? users.map((userOfList, index) => (
+                {users.length > 0 && users.map((userOfList, index) => (
                     <View key={index}>
                         {user.accountType === "coach" && user.teams.includes(teamId) ? (
                             <ItemList
@@ -109,12 +111,19 @@ function ListUsers({ arrayList, navigation, setTeamData, teamId }) {
                             />
                         )}
                     </View>
-                )) : (
-                    <Text>Aucun joueur dans ce club</Text>
-                )}
+                ))}
             </CustomList>
         </View>
     );
 }
 
 export default ListUsers;
+
+const styles = StyleSheet.create({
+    textInfos: {
+        fontSize: 14,
+        color: colors.secondary,
+        fontFamily: fonts.OutfitSemiBold,
+        textAlign: 'center'
+    }
+})

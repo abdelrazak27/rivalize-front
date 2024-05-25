@@ -1,19 +1,27 @@
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { Label } from "../../components/TextComponents";
+import CustomList from "../../components/CustomList";
+import ItemList from "../../components/ItemList";
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const SelectedPlayersList = ({ selectedPlayers, onRemovePlayer }) => {
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Joueurs Sélectionnés :</Text>
-            {selectedPlayers.map((player, index) => (
-                <View key={index} style={styles.playerContainer}>
-                    <Text style={styles.playerItem}>
-                        {player.firstname} {player.lastname}
-                    </Text>
-                    <TouchableOpacity onPress={() => onRemovePlayer(player.uid)}>
-                        <Text style={styles.removeButton}>X</Text>
-                    </TouchableOpacity>
-                </View>
-            ))}
+            <Label>Joueurs sélectionnés</Label>
+            {selectedPlayers.length > 0 && (
+                <CustomList>
+                    {selectedPlayers.map((player, index) => (
+                        <ItemList
+                            key={index}
+                            text={`${player.firstname} ${player.lastname}`}
+                            onPress={() => navigation.navigate('ProfileScreen', { userId: player.uid })}
+                            RightButtonIconComponent={MaterialCommunityIcons}
+                            rightButtonIconName="close-box-outline"
+                            rightButtonOnPress={() => onRemovePlayer(player.uid)}
+                        />
+                    ))}
+                </CustomList>
+            )}
         </View>
     );
 };
@@ -21,11 +29,7 @@ const SelectedPlayersList = ({ selectedPlayers, onRemovePlayer }) => {
 const styles = StyleSheet.create({
     container: {
         marginTop: 20,
-    },
-    title: {
-        fontSize: 18,
-        fontWeight: "bold",
-        marginBottom: 10,
+        gap: 10,
     },
     playerContainer: {
         flexDirection: "row",
