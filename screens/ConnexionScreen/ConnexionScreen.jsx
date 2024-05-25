@@ -1,4 +1,4 @@
-import { BackHandler, Text, Alert, StyleSheet, View, Button } from 'react-native'
+import { BackHandler, Text, Alert, StyleSheet, View, Button, ScrollView } from 'react-native'
 import { useEffect, useState } from 'react';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 import app from '../../firebaseConfig';
@@ -198,10 +198,11 @@ function ConnexionScreen() {
     const isButtonDisabled = email.length === 0 || password.length === 0;
 
     return (
-            <SafeAreaView style={styles.container}>
-                <Title>Bienvenue,</Title>
-                <Subtitle>Connectez-vous pour continuer l'aventure</Subtitle>
+        <SafeAreaView style={styles.container}>
+            <Title>Bienvenue,</Title>
+            <Subtitle>Connectez-vous pour continuer l'aventure</Subtitle>
 
+            <ScrollView>
                 <View style={styles.inputs}>
                     <CustomTextInput
                         label="Email"
@@ -228,8 +229,8 @@ function ConnexionScreen() {
                 <Button title="Se connecter en tant que coach" onPress={() => handleSignInForce("coach")} />
                 <Button title="Se connecter en tant que coachBis" onPress={() => handleSignInForce("coach2")} />
                 <Button title="Se connecter en tant que visiteur" onPress={() => handleSignInForce("visitor")} />
-
-            </SafeAreaView>
+            </ScrollView>
+        </SafeAreaView>
     );
 }
 

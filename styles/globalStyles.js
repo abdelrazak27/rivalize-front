@@ -3,7 +3,7 @@ import colors from './colors';
 
 export default StyleSheet.create({
     container: {
-        // flex: 1,
+        flex: 1,
     },
     headerContainer: {
         marginHorizontal: 30,
@@ -18,7 +18,7 @@ export default StyleSheet.create({
     scrollContainer: {
         flexGrow: 1,
         paddingTop: 10,
-        paddingBottom: 100,
+        paddingBottom: 30,
         marginHorizontal: 30,
     },
     modal: {
