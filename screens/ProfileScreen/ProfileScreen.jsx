@@ -249,15 +249,16 @@ function ProfileScreen({ route }) {
                                     {playerDetails.accountType === 'coach' && (
                                         <>
                                             <CustomTextInput label="Licence" value={playerDetails.licenceNumber} readOnly />
+                                            <Label color={colors.secondary}>Équipes</Label>
                                             {playerDetails.teams.length > 0 ? (
                                                 <View>
-                                                    <Label color={colors.secondary}>Équipes</Label>
                                                     <View style={{ gap: 5 }}>
                                                         {playerDetails.teams.map((team, index) => (
                                                             <ItemList
+                                                                key={index}
                                                                 text={team}
                                                                 onPress={() => {
-                                                                    navigation.navigate('TeamScreen', { teamId: playerDetails.team });
+                                                                    navigation.navigate('TeamScreen', { teamId: team });
                                                                 }}
                                                             />
                                                         ))}
@@ -265,8 +266,9 @@ function ProfileScreen({ route }) {
                                                 </View>
                                             ) : (
                                                 <View>
-                                                    <Label color={colors.secondary}>Équipes</Label>
-                                                    <Subtitle>Vous n'avez aucun club actuellement.</Subtitle>
+                                                    <ItemList
+                                                        text="N/A"
+                                                    />
                                                 </View>
                                             )}
                                         </>

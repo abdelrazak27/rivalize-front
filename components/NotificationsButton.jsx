@@ -6,13 +6,18 @@ import { useNavigation } from '@react-navigation/native';
 import { formatTimestamp } from '../utils/date';
 import SquareButtonIcon from './SquareButtonIcon';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import colors from '../styles/colors';
+import { PrimaryColorText, Subtitle, Title } from './TextComponents';
+import Spacer from './Spacer';
+import { fonts } from '../styles/fonts';
+import FunctionButton from './FunctionButton';
 
 const NotificationsButton = ({ userId }) => {
     const [visible, setVisible] = useState(false);
     const [notifications, setNotifications] = useState([]);
     const [hasUnread, setHasUnread] = useState(false);
     // Booléen pour activer ou désactiver les notifications
-    const activateNotification = true;
+    const activateNotification = false;
     const navigation = useNavigation();
 
     useEffect(() => {
@@ -89,16 +94,29 @@ const NotificationsButton = ({ userId }) => {
                 onRequestClose={toggleModal}
             >
                 <View style={styles.modalView}>
-                    {notifications.map((notification) => (
-                        <TouchableOpacity key={notification.id} onPress={() => handleNotificationClick(notification.id, notification.type, notification.requestJoinClubId || notification.invitationId)}>
-                            <Text style={notification.hasBeenRead ? styles.readText : styles.unreadText}>
-                                {formatTimestamp(notification.timestamp, { showSecond: false, showYear: false })} - {notification.message}
-                            </Text>
-                        </TouchableOpacity>
-                    ))}
-                    <TouchableOpacity onPress={toggleModal}>
-                        <Text>Fermer</Text>
-                    </TouchableOpacity>
+                    <View style={{ alignItems: 'center', marginBottom: 15 }}>
+                        <Title>Vos <PrimaryColorText>notifications</PrimaryColorText></Title>
+                        {notifications.filter(inv => !inv.hasBeenRead).length > 0 ? <Subtitle>Vous avez {notifications.filter(inv => !inv.hasBeenRead).length} notification(s) non lue(s)</Subtitle> : <Subtitle>Vous avez aucune notification</Subtitle>}
+                    </View>
+                    {notifications.length > 0 && (
+                        notifications.map((notification) => (
+                            <View>
+                                <Spacer top={10} bottom={10} />
+                                <TouchableOpacity key={notification.id} onPress={() => handleNotificationClick(notification.id, notification.type, notification.requestJoinClubId || notification.invitationId)}>
+                                    <Text style={styles.notificationDate}>
+                                        {formatTimestamp(notification.timestamp, { showSecond: false, showYear: false })}
+                                    </Text>
+                                    <Text style={[styles.notificationText, notification.hasBeenRead ? styles.readText : styles.unreadText]}>
+                                        {notification.message}
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
+                        ))
+                    )}
+                    <FunctionButton 
+                        title='Fermer'
+                        onPress={toggleModal}
+                    />
                 </View>
             </Modal>
         </View>
@@ -118,26 +136,36 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         backgroundColor: 'red',
     },
+    notificationDate: {
+        fontSize: 12,
+        fontFamily: fonts.OutfitSemiBold,
+        color: colors.secondary
+    },
+    notificationText: {
+        fontSize: 14,
+    },
+    textInfos: {
+        textAlign: 'center',
+        fontSize: 14,
+        fontFamily: fonts.OutfitSemiBold,
+    },
     modalView: {
-        margin: 20,
+        marginTop: 150,
+        marginHorizontal: 30,
         backgroundColor: "white",
-        borderRadius: 20,
-        padding: 35,
-        alignItems: "center",
-        shadowColor: "#000",
-        shadowOffset: {
-            width: 0,
-            height: 2
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 5
+        padding: 25,
+        borderRadius: 8,
+        borderColor: colors.darkgrey,
+        borderWidth: 2,
+        elevation: 5,
+        marginBottom: 50,
+        flex: 1,
     },
     unreadText: {
-        fontWeight: 'bold'
+        fontFamily: fonts.OutfitBold,
     },
     readText: {
-        fontWeight: 'normal'
+        fontFamily: fonts.OutfitRegular,
     }
 });
 

@@ -63,7 +63,7 @@ function App() {
                     IconComponent={Feather}
                     iconName="user"
                     iconSize={30}
-                    isFocused={route.name === 'ProfileScreen'}
+                    isFocused={route.name === 'ProfileScreen' && route.params?.userId === user.uid}
                   />
                   <NotificationsButton userId={user.uid} />
                   <SquareButtonIcon
