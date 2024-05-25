@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { useNavigation } from '@react-navigation/native';
 import { useUser } from '../context/UserContext';
+import CustomList from '../components/CustomList';
+import ItemList from '../components/ItemList';
 
 const TournamentList = ({ refresh, state, showMyTournaments, userId, searchQuery }) => {
     const { user } = useUser();
@@ -43,15 +45,12 @@ const TournamentList = ({ refresh, state, showMyTournaments, userId, searchQuery
 
     const getUserTeamIds = () => {
         if (user.teams) {
-            console.log('user.teams : ', user.teams);
             return user.teams;
         } else if (user.team) {
-            console.log('user.team : ', [user.team]);
             return [user.team];
         }
         return [];
     };
-
 
     const fetchTournaments = async () => {
         setLoading(true);
@@ -92,8 +91,6 @@ const TournamentList = ({ refresh, state, showMyTournaments, userId, searchQuery
         }
     };
 
-
-
     useEffect(() => {
         fetchTournaments();
     }, [refresh, searchQuery]);
@@ -120,18 +117,15 @@ const TournamentList = ({ refresh, state, showMyTournaments, userId, searchQuery
     }
 
     return (
-        <FlatList
-            data={tournaments}
-            keyExtractor={item => item.id}
-            renderItem={({ item }) => (
-                <TouchableOpacity style={styles.item} onPress={() => handlePress(item.id)}>
-                    <Text>{item.name}</Text>
-                    <Text>Places restantes : {item.availableSlots}</Text>
-                    <Text>Début du tournoi : {item.startDate.toLocaleDateString()}</Text>
-                    <Text>Fin du tournoi : {item.endDate.toLocaleDateString()}</Text>
-                </TouchableOpacity>
-            )}
-        />
+        <CustomList>
+            {tournaments.map(tournament => (
+                <ItemList 
+                    key={tournament.id} 
+                    text={`${tournament.name}\nPlaces restantes : ${tournament.availableSlots}\nDébut du tournoi : ${tournament.startDate.toLocaleDateString()}\nFin du tournoi : ${tournament.endDate.toLocaleDateString()}`} 
+                    onPress={() => handlePress(tournament.id)} 
+                />
+            ))}
+        </CustomList>
     );
 };
 
