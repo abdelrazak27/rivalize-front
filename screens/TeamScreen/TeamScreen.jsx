@@ -16,6 +16,10 @@ import RedirectLinkButton from "../../components/RedirectLinkButton";
 import RedirectLinkButtonMini from "../../components/RedirectLinkButtonMini";
 import Spacer from "../../components/Spacer";
 import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
+import { LinearGradient } from "expo-linear-gradient";
+import { darkenColor } from "../../utils/colors";
+import { Label } from "../../components/TextComponents";
+import CustomList from "../../components/CustomList";
 
 function TeamScreen() {
     const { user, setUser } = useUser();
@@ -320,7 +324,7 @@ function TeamScreen() {
                                 />
                             </View>
                         )}
-                        {user.accountType === 'player' && (
+                        {user.accountType === 'player' && user.team != teamId && (
                             <View style={{ paddingTop: 15 }}>
                                 <FunctionButton
                                     title="Rejoindre l'équipe"
@@ -357,27 +361,27 @@ function TeamScreen() {
                                 </View>
                             </View>
                             <View style={styles.teamColorContainer}>
-                                <View style={[styles.squareColor, { backgroundColor: teamData.color_int } ]} />
-                                <View style={[styles.squareColor, { top: 23, left: 30, backgroundColor: teamData.color_ext } ]} />
+                                <LinearGradient
+                                    colors={[teamData.color_int, darkenColor(teamData.color_int, -40)]}
+                                    locations={[0.3, 1]}
+                                    style={styles.squareColor}
+                                />
+                                <LinearGradient
+                                    colors={[teamData.color_ext, darkenColor(teamData.color_ext, -40)]}
+                                    locations={[0.3, 1]}
+                                    style={[styles.squareColor, { top: 23, left: 30 } ]}
+                                />
                             </View>
                         </View>
                         <Spacer />
+                        <View style={{ paddingBottom: 25 }}>
+                            <Label>Joueurs de l'équipe  ({teamData.players.length > 0 ? teamData.players.length : "0"} membre{teamData.players.length > 1 && "s"})</Label>
+                            <Text style={styles.textInfos}>Retrouvez leurs informations en cliquant sur l’un d’eux parmi la liste ci-dessous</Text>
+                        </View>
+                        <ListUsers arrayList={teamData.players} navigation={navigation} setTeamData={setTeamData} teamId={teamId} />
                     </ScrollView>
 
 
-
-
-
-
-
-
-                    <Text>Catégorie : {teamData.category}</Text>
-                    <Text>Ville : {teamData.city}</Text>
-                    <Text>Coach : {coachData ? `${coachData.firstname} ${coachData.lastname}` : "Inconnu"}</Text>
-                    <Text>Color int : {teamData.color_int}</Text>
-                    <Text>Color ext : {teamData.color_ext}</Text>
-                    <Text>Nombre de joueur(s) : {teamData.players.length > 0 ? teamData.players.length : "0"}</Text>
-                    <ListUsers arrayList={teamData.players} navigation={navigation} setTeamData={setTeamData} teamId={teamId} />
                     {user.accountType === 'player' && !teamData.players.includes(user.uid) && !user.requestedJoinClubId && (
                         <FunctionButton
                             title="Demander à rejoindre l'équipe"
@@ -480,6 +484,11 @@ const styles = StyleSheet.create({
         borderWidth: 3,
         borderColor: colors.darkgrey,
         borderRadius: 8
+    },
+    textInfos: {
+        fontFamily: fonts.OutfitBold,
+        fontSize: 14,
+        color: colors.secondary,
     }
 });
 

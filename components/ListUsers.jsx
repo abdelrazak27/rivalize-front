@@ -4,6 +4,9 @@ import { arrayRemove, doc, getDoc, setDoc, Timestamp, updateDoc } from "firebase
 import { db } from "../firebaseConfig";
 import uuid from 'react-native-uuid';
 import { useUser } from "../context/UserContext";
+import CustomList from "./CustomList";
+import ItemList from "./ItemList";
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 function ListUsers({ arrayList, navigation, setTeamData, teamId }) {
     const [users, setUsers] = useState([]);
@@ -86,19 +89,30 @@ function ListUsers({ arrayList, navigation, setTeamData, teamId }) {
     }
 
     return (
+
         <View>
-            {users.length > 0 ? users.map((userOfList, index) => (
-                <View key={index}>
-                    <TouchableOpacity onPress={() => navigation.navigate('ProfileScreen', { userId: userOfList.userId })}>
-                        <Text>{userOfList.firstname} {userOfList.lastname}</Text>
-                    </TouchableOpacity>
-                    {user.accountType === "coach" && user.teams.includes(teamId) && (
-                        <Button title="Exclure de l'équipe" onPress={() => excludePlayer(userOfList.userId)} />
-                    )}
-                </View>
-            )) : (
-                <Text>Aucun joueur dans ce club</Text>
-            )}
+            <CustomList>
+                {users.length > 0 ? users.map((userOfList, index) => (
+                    <View key={index}>
+                        {user.accountType === "coach" && user.teams.includes(teamId) ? (
+                            <ItemList
+                                text={`${userOfList.firstname} ${userOfList.lastname}`}
+                                onPress={() => navigation.navigate('ProfileScreen', { userId: userOfList.userId })}
+                                RightButtonIconComponent={(user.accountType === "coach" && user.teams.includes(teamId)) && MaterialCommunityIcons}
+                                rightButtonIconName={(user.accountType === "coach" && user.teams.includes(teamId)) && "close-box-outline"}
+                                rightButtonOnPress={(user.accountType === "coach" && user.teams.includes(teamId)) && (() => excludePlayer(userOfList.userId))}
+                            />
+                        ) : (
+                            <ItemList
+                                text={`${userOfList.firstname} ${userOfList.lastname}`}
+                                onPress={() => navigation.navigate('ProfileScreen', { userId: userOfList.userId })}
+                            />
+                        )}
+                    </View>
+                )) : (
+                    <Text>Aucun joueur dans ce club</Text>
+                )}
+            </CustomList>
         </View>
     );
 }
