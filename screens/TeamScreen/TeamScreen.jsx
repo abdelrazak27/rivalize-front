@@ -340,7 +340,8 @@ function TeamScreen() {
                                 <View style={{ paddingTop: 15 }}>
                                     <RedirectLinkButton
                                         title="Modifier les informations de l'équipe"
-                                        
+                                        routeName='EditTeamScreen'
+                                        params={{ teamData: teamData }}
                                     />
                                 </View>
                             )}
