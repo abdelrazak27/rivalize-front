@@ -1,4 +1,4 @@
-import { View, Text, Button, Alert, StyleSheet } from 'react-native';
+import { View, Text, Button, Alert, StyleSheet, ScrollView } from 'react-native';
 import { useRoute, useNavigation, CommonActions } from '@react-navigation/native';
 import { arrayUnion, collection, doc, getDoc, getDocs, query, updateDoc, where } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
@@ -130,18 +130,12 @@ function InvitationDetailScreen() {
                 <Subtitle>Il semblerait que vous venez d’être invité à rejoindre un club</Subtitle>
             </View>
 
-            <View
+            <ScrollView
                 style={{ marginTop: 50, paddingHorizontal: 30 }}
             >
                 {invitationDetails && (
                     <View>
-                        <Title>Le club <PrimaryColorText>{clubName}</PrimaryColorText> souhaite vous voir parmi ses membres</Title>
-                        {/* a tester le message hasTeam */}
-                        {hasTeam && (
-                            <Subtitle style={{ color: colors.error }}>
-                                Attention : Vous faites déjà partie d'une équipe. Accepter cette invitation vous fera quitter votre équipe actuelle.
-                            </Subtitle>
-                        )}
+                        <Title>Le club <PrimaryColorText>{clubName}</PrimaryColorText> souhaite vous voir parmi ses membres</Title>                        
                         {invitationDetails.state === 'pending' ? (
                             <View style={styles.buttons}>
                                 <FunctionButton
@@ -160,6 +154,11 @@ function InvitationDetailScreen() {
                                     onPress={() => navigation.navigate('TeamScreen', { teamId: invitationDetails.clubId })}
                                     variant='secondaryOutline'
                                 />
+                                {hasTeam && (
+                                    <Text style={[styles.textInfos, { fontSize: 14, color: colors.error, textAlign: 'center' }]}>
+                                        Attention : Vous faites déjà parti d'une équipe. Accepter cette invitation vous fera quitter votre équipe actuelle.
+                                    </Text>
+                                )}
                             </View>
                         ) : (
                             <View>
@@ -175,7 +174,7 @@ function InvitationDetailScreen() {
                     </View>
                 )}
                 {!invitationDetails && <Text>Chargement des détails de la demande...</Text>}
-            </View>
+            </ScrollView>
         </SafeAreaView>
     );
 }
