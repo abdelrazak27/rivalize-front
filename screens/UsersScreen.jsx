@@ -1,8 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, TextInput, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
 import { collection, getDocs, limit, query, startAfter } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { useNavigation } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import globalStyles from '../styles/globalStyles';
+import { PrimaryColorText, Subtitle, Title } from '../components/TextComponents';
+import CustomTextInput from '../components/CustomTextInput';
+import CustomList from '../components/CustomList';
+import ItemList from '../components/ItemList';
 
 function UsersScreen() {
     const [users, setUsers] = useState([]);
@@ -79,38 +85,41 @@ function UsersScreen() {
     };
 
     return (
-        <View style={styles.container}>
-            <TextInput
-                style={styles.searchBar}
-                placeholder="Recherche par nom ou prénom..."
-                value={searchQuery}
-                onChangeText={filterUsers}
-            />
-            {loading ? (
-                <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color="#0000ff" />
-                    <Text>Chargement des utilisateurs...</Text>
-                </View>
-            ) : filteredUsers.length > 0 ? (
-                // ne pas afficher soi meme
-                <FlatList
-                    data={filteredUsers}
-                    keyExtractor={item => item.id}
-                    renderItem={({ item }) => (
-                        <TouchableOpacity style={styles.item} onPress={() => handleSelectUser(item.id)}>
-                            <Text>{item.firstname} {item.lastname}</Text>
-                        </TouchableOpacity>
-                    )}
-                    onEndReached={loadMoreUsers}
-                    onEndReachedThreshold={0.5}
-                    ListFooterComponent={() => isMoreLoading && !allLoaded ? (
-                        <ActivityIndicator size="large" color="#0000ff" />
-                    ) : null}
+        <SafeAreaView style={globalStyles.container}>
+            <View style={[globalStyles.headerContainer, { paddingBottom: 25, marginBottom: 25 }]}>
+                <Title>Nos <PrimaryColorText>utilisateurs</PrimaryColorText></Title>
+                <Subtitle>Retrouvez leurs informations en cliquant sur l’un d’eux parmi la liste ci-dessous</Subtitle>
+                <View style={{ height: 15 }}></View>
+                <CustomTextInput 
+                    label="Rechercher un utilisateur en particulier"
+                    placeholder="Recherche par nom ou prénom..."
+                    value={searchQuery}
+                    onChangeText={filterUsers}
                 />
-            ) : (
-                <Text style={styles.emptyMessage}>Aucun utilisateur trouvé</Text>
-            )}
-        </View>
+            </View>
+            <ScrollView style={{ paddingHorizontal: 30 }}>
+                {loading ? (
+                    <View style={styles.loadingContainer}>
+                        <ActivityIndicator size="large" color="#0000ff" />
+                    </View>
+                ) : filteredUsers.length > 0 ? (
+                    <CustomList>
+                        {filteredUsers.map(user => (
+                            <ItemList 
+                                key={user.id} 
+                                text={`${user.firstname} ${user.lastname}`} 
+                                onPress={() => handleSelectUser(user.id)} 
+                            />
+                        ))}
+                        {isMoreLoading && !allLoaded && (
+                            <ActivityIndicator size="large" color="#0000ff" />
+                        )}
+                    </CustomList>
+                ) : (
+                    <Text style={styles.emptyMessage}>Aucun utilisateur trouvé</Text>
+                )}
+            </ScrollView>
+        </SafeAreaView>
     );
 }
 
