@@ -1,9 +1,17 @@
-import { View, Text, Button, Alert } from 'react-native';
+import { View, Text, Button, Alert, StyleSheet } from 'react-native';
 import { useRoute, useNavigation, CommonActions } from '@react-navigation/native';
 import { arrayUnion, collection, doc, getDoc, getDocs, query, updateDoc, where } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
 import { useUser } from '../../context/UserContext';
 import { useEffect, useState } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { PrimaryColorText, Subtitle, Title } from '../../components/TextComponents';
+import globalStyles from '../../styles/globalStyles';
+import { getTeamName } from '../../utils/teams';
+import { getPlayerNameById } from '../../utils/users';
+import { fonts } from '../../styles/fonts';
+import colors from '../../styles/colors';
+import FunctionButton from '../../components/FunctionButton';
 
 function InvitationDetailScreen() {
     const route = useRoute();
@@ -13,6 +21,7 @@ function InvitationDetailScreen() {
 
     const [invitationDetails, setInvitationDetails] = useState('');
     const [hasTeam, setHasTeam] = useState(false);
+    const [clubName, setClubName] = useState('');
 
     const invitationRef = doc(db, 'invitations', invitationId);
 
@@ -20,7 +29,11 @@ function InvitationDetailScreen() {
         const fetchInvitation = async () => {
             const invitationDoc = await getDoc(invitationRef);
             if (invitationDoc.exists()) {
-                setInvitationDetails(invitationDoc.data());
+                const invitationData = invitationDoc.data();
+                setInvitationDetails(invitationData);
+
+                const teamName = await getTeamName(invitationData.clubId)
+                setClubName(teamName);
             }
         };
 
@@ -31,6 +44,8 @@ function InvitationDetailScreen() {
                 setHasTeam(true);
             }
         };
+
+
 
         fetchInvitation();
         checkUserTeam();
@@ -109,31 +124,73 @@ function InvitationDetailScreen() {
 
 
     return (
-        <View>
-            <Text>Invitation de {invitationDetails.clubId}</Text>
-            {invitationDetails.state === 'pending' ? (
-                <View>
-                    {hasTeam && (
-                        <Text style={{ color: 'red', fontWeight: 'bold' }}>
-                            Attention : Vous faites déjà partie d'une équipe. Accepter cette invitation vous fera quitter votre équipe actuelle.
-                        </Text>
-                    )}
-                    <Button title="Accepter" onPress={() => handleInvitationResponse('accepted')} />
-                    <Button title="Refuser" onPress={() => handleInvitationResponse('rejected')} />
-                </View>
-            ) : (
-                <View>
-                    {invitationDetails.state === "rejected" ? (
-                        <Text>Il semble que cette invitation a déjà été refusée.</Text>
-                    ) : invitationDetails.state === "accepted" ? (
-                        <Text>Il semble que cette invitation a déjà été acceptée.</Text>
-                    ) : invitationDetails.state === "expired" && (
-                        <Text>Il semble que cette invitation est expirée.</Text>
-                    )}
-                </View>
-            )}
-        </View>
+        <SafeAreaView style={globalStyles.container}>
+            <View style={globalStyles.headerContainerWithNoBorderBottom}>
+                <Title>Oh, une <PrimaryColorText>invitation</PrimaryColorText></Title>
+                <Subtitle>Il semblerait que vous venez d’être invité à rejoindre un club</Subtitle>
+            </View>
+
+            <View
+                style={{ marginTop: 50, paddingHorizontal: 30 }}
+            >
+                {invitationDetails && (
+                    <View>
+                        <Title>Le club <PrimaryColorText>{clubName}</PrimaryColorText> souhaite vous voir parmi ses membres</Title>
+                        {/* a tester le message hasTeam */}
+                        {hasTeam && (
+                            <Subtitle style={{ color: colors.error }}>
+                                Attention : Vous faites déjà partie d'une équipe. Accepter cette invitation vous fera quitter votre équipe actuelle.
+                            </Subtitle>
+                        )}
+                        {invitationDetails.state === 'pending' ? (
+                            <View style={styles.buttons}>
+                                <FunctionButton
+                                    title="Accepter"
+                                    onPress={() => handleInvitationResponse('accepted')}
+                                    disabled={hasTeam}
+                                />
+                                <FunctionButton
+                                    title="Refuser"
+                                    onPress={() => handleInvitationResponse('rejected')}
+                                    variant='primaryOutline'
+                                    disabled={hasTeam}
+                                />
+                                <FunctionButton
+                                    title="Voir la page du club"
+                                    onPress={() => navigation.navigate('TeamScreen', { teamId: invitationDetails.clubId })}
+                                    variant='secondaryOutline'
+                                />
+                            </View>
+                        ) : (
+                            <View>
+                                {invitationDetails.state === "rejected" ? (
+                                    <Text style={styles.textInfos}>Cette demande a déjà été refusée.</Text>
+                                ) : invitationDetails.state === "accepted" ? (
+                                    <Text style={styles.textInfos}>Cette demande a déjà été acceptée.</Text>
+                                ) : invitationDetails.state === "expired" && (
+                                    <Text style={styles.textInfos}>Cette demande a expiré.</Text>
+                                )}
+                            </View>
+                        )}
+                    </View>
+                )}
+                {!invitationDetails && <Text>Chargement des détails de la demande...</Text>}
+            </View>
+        </SafeAreaView>
     );
 }
 
 export default InvitationDetailScreen;
+
+const styles = StyleSheet.create({
+    buttons: {
+        paddingVertical: 25,
+        gap: 15,
+    },
+    textInfos: {
+        paddingTop: 15,
+        fontSize: 16,
+        fontFamily: fonts.OutfitSemiBold,
+        color: colors.secondary
+    },
+});

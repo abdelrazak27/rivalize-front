@@ -11,6 +11,10 @@ export default StyleSheet.create({
         borderBottomColor: colors.lightgrey,
         borderBottomWidth: 1,
     },
+    headerContainerWithNoBorderBottom: {
+        marginHorizontal: 30,
+        paddingBottom: 50,
+    },
     scrollContainer: {
         flexGrow: 1,
         paddingTop: 10,

@@ -5,5 +5,6 @@ export default {
     lightgrey: '#E3E3E3', // gris très clair
     darkgrey: '#434343', // gris très foncé
     
+    error: '#FF3333', // rouge
     black: 'black', // noir
 };

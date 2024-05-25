@@ -1,9 +1,17 @@
-import { View, Text, Button, Alert } from 'react-native';
+import { View, Text, Alert, ScrollView, StyleSheet } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { arrayUnion, doc, getDoc, setDoc, Timestamp, updateDoc } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { db } from '../firebaseConfig';
 import uuid from 'react-native-uuid';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import globalStyles from '../styles/globalStyles';
+import { PrimaryColorText, Subtitle, Title } from '../components/TextComponents';
+import FunctionButton from '../components/FunctionButton';
+import { getPlayerNameById } from '../utils/users';
+import { getTeamName } from '../utils/teams';
+import { fonts } from '../styles/fonts';
+import colors from '../styles/colors';
 
 function RequestJoinTeamDetailScreen() {
     const route = useRoute();
@@ -11,6 +19,8 @@ function RequestJoinTeamDetailScreen() {
     const navigation = useNavigation();
 
     const [requestDetails, setRequestDetails] = useState(null);
+    const [playerName, setPlayerName] = useState('');
+    const [clubName, setClubName] = useState('');
 
     const requestRef = doc(db, 'requests_join_club', requestJoinClubId);
 
@@ -18,7 +28,14 @@ function RequestJoinTeamDetailScreen() {
         const fetchRequest = async () => {
             const requestDoc = await getDoc(requestRef);
             if (requestDoc.exists()) {
-                setRequestDetails(requestDoc.data());
+                const requestData = requestDoc.data();
+                setRequestDetails(requestData);
+
+                const playerName = await getPlayerNameById(requestData.userId);
+                setPlayerName(playerName);
+
+                const teamName = await getTeamName(requestData.clubId)
+                setClubName(teamName);
             }
         };
 
@@ -87,25 +104,59 @@ function RequestJoinTeamDetailScreen() {
     };
 
     return (
-        <View>
-            {requestDetails && (
-                <>
-                    <Text>Demande de {requestDetails.userId} pour rejoindre {requestDetails.clubId}</Text>
-                    {requestDetails.state === 'pending' ? (
-                        <View>
-                            <Button title="Accepter" onPress={() => handleRequestResponse('accepted')} />
-                            <Button title="Refuser" onPress={() => handleRequestResponse('rejected')} />
-                        </View>
-                    ) : requestDetails.state === 'canceled' ? (
-                        <Text>Il semble que cette demande a été annulée.</Text>
-                    ) : (
-                        <Text>Il semble que cette demande a déjà été traitée.</Text>
-                    )}
-                </>
-            )}
-            {!requestDetails && <Text>Chargement des détails de la demande...</Text>}
-        </View>
+        <SafeAreaView style={globalStyles.container}>
+            <View style={globalStyles.headerContainerWithNoBorderBottom}>
+                <Title>Oh, une <PrimaryColorText>invitation</PrimaryColorText></Title>
+                <Subtitle>Il semblerait qu'un joueur souahite être invité à rejoindre l'un de vos clubs</Subtitle>
+            </View>
+
+            <View
+                style={{ marginTop: 50, paddingHorizontal: 30 }}
+            >
+                {requestDetails && (
+                    <View>
+                        <Title><PrimaryColorText>{playerName}</PrimaryColorText> demande à rejoindre <PrimaryColorText>{clubName}</PrimaryColorText></Title>
+                        {requestDetails.state === 'pending' ? (
+                            <View style={styles.buttons}>
+                                <FunctionButton
+                                    title="Accepter"
+                                    onPress={() => handleRequestResponse('accepted')}
+                                />
+                                <FunctionButton
+                                    title="Refuser"
+                                    onPress={() => handleRequestResponse('rejected')}
+                                    variant='primaryOutline'
+                                />
+                                <FunctionButton
+                                    title="Voir le profil du joueur"
+                                    onPress={() => navigation.navigate('ProfileScreen', { userId: requestDetails.userId })}
+                                    variant='secondaryOutline'
+                                />
+                            </View>
+                        ) : requestDetails.state === 'canceled' ? (
+                            <Text style={styles.textInfos}>Cette demande a été annulée.</Text>
+                        ) : (
+                            <Text style={styles.textInfos}>Cette demande a déjà été traitée.</Text>
+                        )}
+                    </View>
+                )}
+                {!requestDetails && <Text>Chargement des détails de la demande...</Text>}
+            </View>
+        </SafeAreaView>
     );
 }
 
 export default RequestJoinTeamDetailScreen;
+
+const styles = StyleSheet.create({
+    buttons: {
+        paddingVertical: 25,
+        gap: 15,
+    },
+    textInfos: {
+        paddingTop: 15,
+        fontSize: 16,
+        fontFamily: fonts.OutfitSemiBold,
+        color: colors.secondary
+    },
+});
