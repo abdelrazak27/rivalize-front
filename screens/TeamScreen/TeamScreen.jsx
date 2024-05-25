@@ -1,25 +1,33 @@
 import { CommonActions, useFocusEffect, useNavigation, useRoute } from "@react-navigation/native";
 import { collection, getDoc, getDocs, updateDoc, doc, setDoc, Timestamp } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
-import { Text, View, ActivityIndicator, Image, StyleSheet, Alert, TouchableOpacity } from "react-native";
+import { Text, View, ActivityIndicator, Image, StyleSheet, Alert, TouchableOpacity, ScrollView } from "react-native";
 import { db } from "../../firebaseConfig";
 import { useUser } from "../../context/UserContext";
 import FunctionButton from "../../components/FunctionButton";
 import ListUsers from "../../components/ListUsers";
 import InvitePlayers from "../../components/InvitePlayers";
 import uuid from 'react-native-uuid';
+import { SafeAreaView } from "react-native-safe-area-context";
+import globalStyles from "../../styles/globalStyles";
+import colors from "../../styles/colors";
+import { fonts } from "../../styles/fonts";
+import RedirectLinkButton from "../../components/RedirectLinkButton";
+import RedirectLinkButtonMini from "../../components/RedirectLinkButtonMini";
+import Spacer from "../../components/Spacer";
+import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
 
 function TeamScreen() {
-    const { setUser } = useUser();
+    const { user, setUser } = useUser();
     const route = useRoute();
     const { teamId } = route.params;
-    const { user } = useUser();
     const navigation = useNavigation();
 
     const [teamData, setTeamData] = useState(null);
     const [coachData, setCoachData] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [requestedClubName, setRequestedClubName] = useState('');
+    const [isCurrentCoach, setIsCurrentCoach] = useState(false);
 
     const fetchTeamDetails = async () => {
         const teamRef = doc(db, 'equipes', teamId);
@@ -37,7 +45,10 @@ function TeamScreen() {
             const coachRef = doc(db, 'utilisateurs', coachId);
             const coachDoc = await getDoc(coachRef);
             if (coachDoc.exists()) {
-                setCoachData(coachDoc.data());
+                setCoachData({ id: coachId, ...coachDoc.data() });
+                if (coachDoc.data().email === user.email) {
+                    setIsCurrentCoach(true);
+                }
             }
         }
         setIsLoading(false);
@@ -53,10 +64,10 @@ function TeamScreen() {
                 }
             }
         };
-    
+
         fetchClubName();
     }, [user.requestedJoinClubId]);
-    
+
 
     useFocusEffect(
         React.useCallback(() => {
@@ -271,21 +282,95 @@ function TeamScreen() {
     }
 
     return (
-        <View style={styles.container}>
-            <Text>
-                Team ID: {teamId}
-            </Text>
+        <SafeAreaView style={globalStyles.container}>
             {teamData ? (
                 <>
-                    {teamData.logo_link && (
-                        <View style={styles.imageContainer}>
-                            <Image
-                                source={{ uri: teamData.logo_link }}
-                                style={styles.logo}
-                            />
+                    <View style={{ marginHorizontal: 30 }}>
+                        {teamData.logo_link && (
+                            <View style={styles.imageContainer}>
+                                <Image
+                                    source={{ uri: teamData.logo_link }}
+                                    style={styles.logo}
+                                />
+                            </View>
+                        )}
+                        <Text style={styles.teamName}>{teamData.name}</Text>
+                        <Text style={styles.teamCoach}>
+                            Club géré par {
+                                coachData ? (
+                                    isCurrentCoach ? (
+                                        "vous"
+                                    ) : coachData.firstname && coachData.lastname ? (
+                                        `${coachData.firstname} ${coachData.lastname}`
+                                    ) : (
+                                        "un coach inconnu"
+                                    )
+                                ) : (
+                                    ""
+                                )
+                            }
+                        </Text>
+                        {!isCurrentCoach && (
+                            <View style={{ paddingHorizontal: 80, paddingTop: 15 }}>
+                                <RedirectLinkButtonMini
+                                    routeName='ProfileScreen'
+                                    params={{ userId: coachData.id }}
+                                    title="Voir son profil"
+                                    variant="secondary"
+                                />
+                            </View>
+                        )}
+                        {user.accountType === 'player' && (
+                            <View style={{ paddingTop: 15 }}>
+                                <FunctionButton
+                                    title="Rejoindre l'équipe"
+                                    onPress={requestJoinTeam}
+                                />
+                            </View>
+                        )}
+                        {isCurrentCoach && (
+                            <View style={{ paddingTop: 15 }}>
+                                <RedirectLinkButton
+                                    title="Modifier les informations de l'équipe"
+                                />
+                            </View>
+                        )}
+                        <Spacer bottom={0} />
+                    </View>
+
+                    <ScrollView contentContainerStyle={{ paddingHorizontal: 30, paddingTop: 25 }}>
+                        <View style={styles.teamInfoContainer}>
+                            <View style={{ gap: 20 }}>
+                                <View style={styles.teamInfoItemContainer}>
+                                    <View style={{ width: 40, alignItems: 'center' }}>
+                                        <FontAwesome6 name="users-rectangle" size={24} color={colors.darkgrey} />
+                                    </View>
+                                    <Text style={styles.teamInfoItemText}>{teamData.category}</Text>
+                                </View>
+                                <View style={styles.teamInfoItemContainer}>
+                                    <View style={{ width: 40, alignItems: 'center' }}>
+                                        <FontAwesome6 name="location-dot" size={24} color={colors.darkgrey} />
+                                    </View>
+                                    <Text style={styles.teamInfoItemText}>
+                                        {teamData.city && `${teamData.city.charAt(0).toUpperCase()}${teamData.city.slice(1).toLowerCase()}, France`}
+                                    </Text>
+                                </View>
+                            </View>
+                            <View style={styles.teamColorContainer}>
+                                <View style={[styles.squareColor, { backgroundColor: teamData.color_int } ]} />
+                                <View style={[styles.squareColor, { top: 23, left: 30, backgroundColor: teamData.color_ext } ]} />
+                            </View>
                         </View>
-                    )}
-                    <Text>Nom : {teamData.name}</Text>
+                        <Spacer />
+                    </ScrollView>
+
+
+
+
+
+
+
+
                     <Text>Catégorie : {teamData.category}</Text>
                     <Text>Ville : {teamData.city}</Text>
                     <Text>Coach : {coachData ? `${coachData.firstname} ${coachData.lastname}` : "Inconnu"}</Text>
@@ -333,7 +418,7 @@ function TeamScreen() {
             ) : (
                 <Text>Aucune donnée de l'équipe disponible</Text>
             )}
-        </View>
+        </SafeAreaView>
     );
 }
 
@@ -352,9 +437,49 @@ const styles = StyleSheet.create({
         marginVertical: 20
     },
     logo: {
-        width: 200,
-        height: 200,
+        width: 150,
+        height: 150,
         resizeMode: 'contain'
+    },
+    teamName: {
+        textTransform: 'uppercase',
+        color: colors.primary,
+        fontSize: 25,
+        fontFamily: fonts.OutfitBold,
+        textAlign: 'center'
+    },
+    teamCoach: {
+        fontFamily: fonts.OutfitBold,
+        fontSize: 14,
+        color: colors.secondary,
+        textAlign: 'center'
+    },
+    teamInfoContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingRight: 3,
+    },
+    teamInfoItemContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 15
+    },
+    teamInfoItemText: {
+        fontSize: 14,
+        fontFamily: fonts.OutfitBold,
+        color: colors.darkgrey
+    },
+    teamColorContainer: {
+        width: 70,
+        position: 'relative'
+    },
+    squareColor: {
+        position: 'absolute',
+        width: 43,
+        height: 43,
+        borderWidth: 3,
+        borderColor: colors.darkgrey,
+        borderRadius: 8
     }
 });
 

@@ -273,18 +273,21 @@ function ProfileScreen({ route }) {
                                             )}
                                         </>
                                     )}
-                                    <Spacer top={12} />
                                 </View>
                                 {isCurrentUserProfile && playerDetails.accountType === 'player' && playerDetails.requestedJoinClubId && requestedClubName && (
-                                    <View style={styles.section}>
-                                        <Text style={styles.sectionTitle}>Demande en cours</Text>
-                                        <Text style={styles.sectionSubtitle}>Votre demande concernant le club {requestedClubName} est toujours en attente.</Text>
-                                        <FunctionButton title="Annuler ma demande" onPress={handleCancelRequest} variant="primaryOutline" />
-                                        <Spacer />
-                                    </View>
+                                    <>
+                                        <Spacer top={12} />
+                                        <View style={styles.section}>
+                                            <Text style={styles.sectionTitle}>Demande en cours</Text>
+                                            <Text style={styles.sectionSubtitle}>Votre demande concernant le club {requestedClubName} est toujours en attente.</Text>
+                                            <FunctionButton title="Annuler ma demande" onPress={handleCancelRequest} variant="primaryOutline" />
+                                            <Spacer />
+                                        </View>
+                                    </>
                                 )}
                                 {user.accountType === 'coach' && availableTeams.length > 0 && playerDetails.accountType === "player" && (
                                     <>
+                                        <Spacer top={12} />
                                         <FunctionButton title="Inviter ce joueur" onPress={() => setModalVisible(true)} />
                                         <Modal
                                             transparent={true}
@@ -323,22 +326,25 @@ function ProfileScreen({ route }) {
                                     <FunctionButton title="Aucun club possédé compatible" onPress={() => setModalVisible(true)} disabled />
                                 )}
                                 {isCurrentUserProfile && (
-                                    <FunctionButton title="Se déconnecter" onPress={async () => {
-                                        try {
-                                            Alert.alert("Déconnexion", "Vous avez été déconnecté avec succès.");
-                                            navigation.dispatch(
-                                                CommonActions.reset({
-                                                    index: 0,
-                                                    routes: [{ name: 'ConnexionScreen' }],
-                                                })
-                                            );
-                                            await setUser(null);
-                                            await signOut(auth);
-                                        } catch (error) {
-                                            console.log(error);
-                                            Alert.alert("Erreur", "Une erreur est survenue lors de la déconnexion.");
-                                        }
-                                    }} />
+                                    <>
+                                        <Spacer top={12} />
+                                        <FunctionButton title="Se déconnecter" onPress={async () => {
+                                            try {
+                                                Alert.alert("Déconnexion", "Vous avez été déconnecté avec succès.");
+                                                navigation.dispatch(
+                                                    CommonActions.reset({
+                                                        index: 0,
+                                                        routes: [{ name: 'ConnexionScreen' }],
+                                                    })
+                                                );
+                                                await setUser(null);
+                                                await signOut(auth);
+                                            } catch (error) {
+                                                console.log(error);
+                                                Alert.alert("Erreur", "Une erreur est survenue lors de la déconnexion.");
+                                            }
+                                        }} />
+                                    </>
                                 )}
                             </>
                         ) : (
