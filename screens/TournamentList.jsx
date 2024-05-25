@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { useNavigation } from '@react-navigation/native';
 import { useUser } from '../context/UserContext';
 import CustomList from '../components/CustomList';
 import ItemList from '../components/ItemList';
+import { fonts } from '../styles/fonts';
+import colors from '../styles/colors';
 
 const TournamentList = ({ refresh, state, showMyTournaments, userId, searchQuery }) => {
     const { user } = useUser();
@@ -111,7 +113,16 @@ const TournamentList = ({ refresh, state, showMyTournaments, userId, searchQuery
     if (tournaments.length === 0) {
         return (
             <View style={styles.loadingContainer}>
-                <Text>Aucun tournoi correspondant aux critères n'est disponible</Text>
+                {searchQuery.length > 0 ? (
+                    <Text style={styles.noTournamentsFound}>Aucun tournoi correspondant aux critères n'est disponible</Text>
+                ) : (
+                    <Text style={styles.noTournamentsFound}>
+                        {user.accountType === 'coach' 
+                            ? "Aucun tournoi pour cette période, n'hésitez pas à en créer un."
+                            : "Aucun tournoi pour cette période."
+                        }
+                    </Text>
+                )}
             </View>
         );
     }
@@ -121,7 +132,15 @@ const TournamentList = ({ refresh, state, showMyTournaments, userId, searchQuery
             {tournaments.map(tournament => (
                 <ItemList 
                     key={tournament.id} 
-                    text={`${tournament.name}\nPlaces restantes : ${tournament.availableSlots}\nDébut du tournoi : ${tournament.startDate.toLocaleDateString()}\nFin du tournoi : ${tournament.endDate.toLocaleDateString()}`} 
+                    text={
+                        <>
+                            <Text style={styles.nameTournament}>{tournament.name}</Text>
+                            {"\n"}
+                            <Text style={styles.infoTournament}>Place(s) restante(s) : {tournament.availableSlots}</Text>
+                            {"\n"}
+                            <Text style={styles.infoTournament}>Du {tournament.startDate.toLocaleDateString()} au {tournament.endDate.toLocaleDateString()}</Text>
+                        </>
+                    }
                     onPress={() => handlePress(tournament.id)} 
                 />
             ))}
@@ -130,15 +149,22 @@ const TournamentList = ({ refresh, state, showMyTournaments, userId, searchQuery
 };
 
 const styles = StyleSheet.create({
-    item: {
-        padding: 10,
-        borderBottomWidth: 1,
-        borderBottomColor: '#ddd',
-    },
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    noTournamentsFound: {
+        textAlign: 'center',
+        fontFamily: fonts.OutfitSemiBold,
+        color: colors.secondary,
+        fontSize: 16
+    },
+    nameTournament: {
+        fontFamily: fonts.OutfitBold,
+    },
+    infoTournament: {
+        fontFamily: fonts.OutfitRegular,
     }
 });
 

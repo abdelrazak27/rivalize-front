@@ -1,9 +1,16 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Switch, TextInput } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Switch, ScrollViewBase, ScrollView } from 'react-native';
 import RedirectLinkButton from '../components/RedirectLinkButton';
 import { useFocusEffect, useRoute } from '@react-navigation/native';
 import TournamentList from './TournamentList';
 import { useUser } from '../context/UserContext';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import globalStyles from '../styles/globalStyles';
+import { Label, PrimaryColorText, Subtitle, Title } from '../components/TextComponents';
+import CustomTextInput from '../components/CustomTextInput';
+import Spacer from '../components/Spacer';
+import colors from '../styles/colors';
+import { fonts } from '../styles/fonts';
 
 function TournamentsScreen() {
     const { user } = useUser();
@@ -30,53 +37,65 @@ function TournamentsScreen() {
     };
 
     return (
-        <View style={styles.container}>
-            {user.accountType === "coach" && (
-                <>
-                    <RedirectLinkButton
-                        routeName="CreateTournamentFormScreen"
-                        title="Créer un tournoi"
-                        params={{ user: user }}
+        <SafeAreaView style={globalStyles.container}>
+            <View style={[globalStyles.headerContainer, { paddingBottom: 25, marginBottom: 25 }]}>
+                <Title>Les <PrimaryColorText>tournois</PrimaryColorText></Title>
+                <Subtitle>Retrouvez leurs informations en cliquant sur l’un d’eux parmi la liste ci-dessous</Subtitle>
+                {user.accountType === "coach" && (
+                    <View style={{ paddingTop: 20 }}>
+                        <RedirectLinkButton
+                            routeName="CreateTournamentFormScreen"
+                            title="Créer un tournoi"
+                            params={{ user: user }}
+                        />
+                    </View>
+                )}
+                <View style={styles.navbar}>
+                    <TouchableOpacity
+                        style={[styles.navButton, activeSection === 'past' && styles.activeButton]}
+                        onPress={() => setActiveSection('past')}
+                    >
+                        <Text style={[styles.navButtonText, activeSection === 'past' && styles.activeButtonText]}>Passés</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[styles.navButton, activeSection === 'current' && styles.activeButton]}
+                        onPress={() => setActiveSection('current')}
+                    >
+                        <Text style={[styles.navButtonText, activeSection === 'current' && styles.activeButtonText]}>En cours</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[styles.navButton, activeSection === 'upcoming' && styles.activeButton]}
+                        onPress={() => setActiveSection('upcoming')}
+                    >
+                        <Text style={[styles.navButtonText, activeSection === 'upcoming' && styles.activeButtonText]}>Prochains</Text>
+                    </TouchableOpacity>
+                </View>
+                <View style={styles.checkboxContainer}>
+                    <Switch
+                        value={showMyTournaments}
+                        onValueChange={(value) => setShowMyTournaments(value)}
+                        trackColor={{ true: colors.primary }}
+                        style={{ transform: [{ scaleX: 0.9 }, { scaleY: 0.9 }] }}
                     />
-                </>
-            )}
-            <TextInput
-                style={styles.searchInput}
-                placeholder="Rechercher un tournoi"
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-            />
-            <View style={styles.navbar}>
-                <TouchableOpacity
-                    style={[styles.navButton, activeSection === 'past' && styles.activeButton]}
-                    onPress={() => setActiveSection('past')}
-                >
-                    <Text style={styles.navButtonText}>Past</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={[styles.navButton, activeSection === 'current' && styles.activeButton]}
-                    onPress={() => setActiveSection('current')}
-                >
-                    <Text style={styles.navButtonText}>Current</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={[styles.navButton, activeSection === 'upcoming' && styles.activeButton]}
-                    onPress={() => setActiveSection('upcoming')}
-                >
-                    <Text style={styles.navButtonText}>Upcoming</Text>
-                </TouchableOpacity>
-            </View>
-            <View style={styles.checkboxContainer}>
-                <Text>Afficher uniquement mes tournois</Text>
-                <Switch
-                    value={showMyTournaments}
-                    onValueChange={(value) => setShowMyTournaments(value)}
+                    <Text style={[styles.textCheckbox, showMyTournaments && { color: colors.primary }]}>Afficher uniquement mes tournois</Text>
+                </View>
+                <CustomTextInput
+                    label="Rechercher un tournoi par son nom"
+                    placeholder="Recherche par nom de tournoi..."
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
                 />
             </View>
-            <View style={styles.sectionContainer}>
-                {renderSection()}
+
+            <View style={{ paddingBottom: 10, paddingHorizontal: 30 }}>
+                <Label>Liste des tournois</Label>
             </View>
-        </View>
+            <ScrollView
+                contentContainerStyle={globalStyles.scrollContainer}
+            >
+                {renderSection()}
+            </ScrollView>
+        </SafeAreaView>
     );
 }
 
@@ -87,30 +106,43 @@ const styles = StyleSheet.create({
     },
     navbar: {
         flexDirection: 'row',
-        justifyContent: 'space-around',
-        marginBottom: 10,
+        justifyContent: 'space-between',
+        paddingTop: 20
     },
     navButton: {
-        padding: 10,
-        borderRadius: 5,
-        backgroundColor: '#ccc',
+        borderRadius: 8,
+        borderWidth: 2,
+        borderColor: colors.secondary,
+        backgroundColor: 'white',
+        width: '30%',
+        padding: 5,
     },
     activeButton: {
-        backgroundColor: '#007bff',
+        borderColor: colors.primary,
+    },
+    activeButtonText: {
+        color: colors.primary,
     },
     navButtonText: {
-        color: 'white',
+        fontSize: 14,
+        color: colors.secondary,
+        textAlign: 'center',
+        fontFamily: fonts.OutfitSemiBold
     },
     checkboxContainer: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
         alignItems: 'center',
-        paddingHorizontal: 10,
-        marginBottom: 10,
+        paddingVertical: 15,
+        gap: 15,
     },
     sectionContainer: {
         flex: 1,
-    }
+    },
+    textCheckbox: {
+        fontSize: 16,
+        fontFamily: fonts.OutfitSemiBold,
+        color: colors.secondary
+    },
 });
 
 export default TournamentsScreen;

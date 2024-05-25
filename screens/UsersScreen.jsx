@@ -92,14 +92,16 @@ function UsersScreen() {
                 <Title>Nos <PrimaryColorText>utilisateurs</PrimaryColorText></Title>
                 <Subtitle>Retrouvez leurs informations en cliquant sur l’un d’eux parmi la liste ci-dessous</Subtitle>
                 <View style={{ height: 15 }}></View>
-                <CustomTextInput 
+                <CustomTextInput
                     label="Rechercher un utilisateur en particulier"
                     placeholder="Recherche par nom ou prénom..."
                     value={searchQuery}
                     onChangeText={filterUsers}
                 />
             </View>
-            <ScrollView style={{ paddingHorizontal: 30 }}>
+            <ScrollView
+                contentContainerStyle={globalStyles.scrollContainer}
+            >
                 {loading ? (
                     <View style={styles.loadingContainer}>
                         <ActivityIndicator size="large" color="#0000ff" />
@@ -107,10 +109,10 @@ function UsersScreen() {
                 ) : filteredUsers.length > 0 ? (
                     <CustomList>
                         {filteredUsers.map(user => (
-                            <ItemList 
-                                key={user.id} 
-                                text={`${user.firstname} ${user.lastname}`} 
-                                onPress={() => handleSelectUser(user.id)} 
+                            <ItemList
+                                key={user.id}
+                                text={`${user.firstname} ${user.lastname}`}
+                                onPress={() => handleSelectUser(user.id)}
                             />
                         ))}
                         {isMoreLoading && !allLoaded && (
