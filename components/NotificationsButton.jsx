@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Modal, View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { db } from '../firebaseConfig';
-import { collection, query, where, getDocs, updateDoc, doc } from 'firebase/firestore';
+import { collection, query, where, getDocs, updateDoc, doc, Timestamp } from 'firebase/firestore';
 import { useNavigation } from '@react-navigation/native';
 import { formatTimestamp } from '../utils/date';
 import SquareButtonIcon from './SquareButtonIcon';
@@ -19,6 +19,38 @@ const NotificationsButton = ({ userId }) => {
     // Booléen pour activer ou désactiver les notifications
     const activateNotification = false;
     const navigation = useNavigation();
+    const useFakeNotifications = true;
+
+    const generateFakeNotifications = () => {
+        return [
+            {
+                id: '1',
+                userId: userId,
+                timestamp: Timestamp.fromDate(new Date()),
+                message: 'Vous avez une nouvelle invitation.',
+                hasBeenRead: false,
+                type: 'invitation',
+                invitationId: 'fake_invitation_1',
+            },
+            {
+                id: '2',
+                userId: userId,
+                timestamp: Timestamp.fromDate(new Date(Date.now() - 86400000)), // 1 jour avant
+                message: 'Votre demande de rejoindre le club a été acceptée.',
+                hasBeenRead: true,
+                type: 'request_join_club',
+                requestJoinClubId: 'fake_request_1',
+            },
+            {
+                id: '3',
+                userId: userId,
+                timestamp: Timestamp.fromDate(new Date(Date.now() - 3600000)), // 1 heure avant
+                message: 'Vous avez été ajouté à une nouvelle équipe.',
+                hasBeenRead: false,
+                type: 'notification',
+            }
+        ];
+    };
 
     useEffect(() => {
         if (activateNotification && userId) {
@@ -43,6 +75,12 @@ const NotificationsButton = ({ userId }) => {
             fetchNotifications();
 
             return () => clearInterval(interval);
+        }
+
+        if (useFakeNotifications) {
+            const fakeNotifications = generateFakeNotifications();
+            setNotifications(fakeNotifications);
+            checkForUnreadNotifications(fakeNotifications);
         }
     }, [userId]);
 
@@ -94,29 +132,33 @@ const NotificationsButton = ({ userId }) => {
                 onRequestClose={toggleModal}
             >
                 <View style={styles.modalView}>
-                    <View style={{ alignItems: 'center', marginBottom: 15 }}>
+                    <View style={styles.modalHeader}>
                         <Title>Vos <PrimaryColorText>notifications</PrimaryColorText></Title>
                         {notifications.filter(inv => !inv.hasBeenRead).length > 0 ? <Subtitle>Vous avez {notifications.filter(inv => !inv.hasBeenRead).length} notification(s) non lue(s)</Subtitle> : <Subtitle>Vous avez aucune notification</Subtitle>}
                     </View>
-                    {notifications.length > 0 && (
-                        notifications.map((notification) => (
-                            <View>
-                                <Spacer top={10} bottom={10} />
-                                <TouchableOpacity key={notification.id} onPress={() => handleNotificationClick(notification.id, notification.type, notification.requestJoinClubId || notification.invitationId)}>
-                                    <Text style={styles.notificationDate}>
-                                        {formatTimestamp(notification.timestamp, { showSecond: false, showYear: false })}
-                                    </Text>
-                                    <Text style={[styles.notificationText, notification.hasBeenRead ? styles.readText : styles.unreadText]}>
-                                        {notification.message}
-                                    </Text>
-                                </TouchableOpacity>
-                            </View>
-                        ))
-                    )}
-                    <FunctionButton 
-                        title='Fermer'
-                        onPress={toggleModal}
-                    />
+                    <ScrollView style={styles.notificationList}>
+                        {notifications.length > 0 && (
+                            notifications.map((notification) => (
+                                <View key={notification.id}>
+                                    <Spacer top={10} bottom={10} />
+                                    <TouchableOpacity onPress={() => handleNotificationClick(notification.id, notification.type, notification.requestJoinClubId || notification.invitationId)}>
+                                        <Text style={styles.notificationDate}>
+                                            {formatTimestamp(notification.timestamp, { showSecond: false, showYear: false })}
+                                        </Text>
+                                        <Text style={[styles.notificationText, notification.hasBeenRead ? styles.readText : styles.unreadText]}>
+                                            {notification.message}
+                                        </Text>
+                                    </TouchableOpacity>
+                                </View>
+                            ))
+                        )}
+                    </ScrollView>
+                    <View style={styles.modalFooter}>
+                        <FunctionButton 
+                            title='Fermer'
+                            onPress={toggleModal}
+                        />
+                    </View>
                 </View>
             </Modal>
         </View>
@@ -150,6 +192,7 @@ const styles = StyleSheet.create({
         fontFamily: fonts.OutfitSemiBold,
     },
     modalView: {
+        flex: 1,
         marginTop: 150,
         marginHorizontal: 30,
         backgroundColor: "white",
@@ -159,7 +202,20 @@ const styles = StyleSheet.create({
         borderWidth: 2,
         elevation: 5,
         marginBottom: 50,
+    },
+    modalHeader: {
+        alignItems: 'center',
+        marginBottom: 15,
+    },
+    modalFooter: {
+        paddingTop: 20,
+        borderTopWidth: 1,
+        borderColor: colors.lightgrey,
+        alignItems: 'center',
+    },
+    notificationList: {
         flex: 1,
+        marginBottom: 15,
     },
     unreadText: {
         fontFamily: fonts.OutfitBold,
