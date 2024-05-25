@@ -19,38 +19,6 @@ const NotificationsButton = ({ userId }) => {
     // Booléen pour activer ou désactiver les notifications
     const activateNotification = false;
     const navigation = useNavigation();
-    const useFakeNotifications = true;
-
-    const generateFakeNotifications = () => {
-        return [
-            {
-                id: '1',
-                userId: userId,
-                timestamp: Timestamp.fromDate(new Date()),
-                message: 'Vous avez une nouvelle invitation.',
-                hasBeenRead: false,
-                type: 'invitation',
-                invitationId: 'fake_invitation_1',
-            },
-            {
-                id: '2',
-                userId: userId,
-                timestamp: Timestamp.fromDate(new Date(Date.now() - 86400000)), // 1 jour avant
-                message: 'Votre demande de rejoindre le club a été acceptée.',
-                hasBeenRead: true,
-                type: 'request_join_club',
-                requestJoinClubId: 'fake_request_1',
-            },
-            {
-                id: '3',
-                userId: userId,
-                timestamp: Timestamp.fromDate(new Date(Date.now() - 3600000)), // 1 heure avant
-                message: 'Vous avez été ajouté à une nouvelle équipe.',
-                hasBeenRead: false,
-                type: 'notification',
-            }
-        ];
-    };
 
     useEffect(() => {
         if (activateNotification && userId) {
@@ -77,11 +45,6 @@ const NotificationsButton = ({ userId }) => {
             return () => clearInterval(interval);
         }
 
-        if (useFakeNotifications) {
-            const fakeNotifications = generateFakeNotifications();
-            setNotifications(fakeNotifications);
-            checkForUnreadNotifications(fakeNotifications);
-        }
     }, [userId]);
 
     const checkForUnreadNotifications = (notifications) => {
