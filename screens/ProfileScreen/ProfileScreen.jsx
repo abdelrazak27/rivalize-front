@@ -26,6 +26,7 @@ function ProfileScreen({ route }) {
     const [playerDetails, setPlayerDetails] = useState(null);
     const [availableTeams, setAvailableTeams] = useState([]);
     const [teamName, setTeamName] = useState('');
+    const [teamNames, setTeamNames] = useState([]);
     const isCurrentUserProfile = user.uid === userId;
     const navigation = useNavigation();
     const [requestedClubName, setRequestedClubName] = useState('');
@@ -87,9 +88,17 @@ function ProfileScreen({ route }) {
             }
         };
 
+        const fetchCoachTeamsNames = async () => {
+            if (playerDetails && playerDetails.accountType === 'coach' && playerDetails.teams.length > 0) {
+                const teamNames = await Promise.all(playerDetails.teams.map(teamId => getTeamName(teamId)));
+                setTeamNames(teamNames);
+            }
+        };
+
         fetchPlayerDetails();
         fetchPendingInvitations();
         fetchTeamName();
+        fetchCoachTeamsNames();
     }, [userId, user.teams, playerDetails]);
 
     const handleInvitePlayer = async () => {
@@ -238,7 +247,7 @@ function ProfileScreen({ route }) {
                                                 <ItemList
                                                     text={playerDetails.team ? teamName : "N/A"}
                                                     onPress={() => {
-                                                        if(playerDetails.team) {
+                                                        if (playerDetails.team) {
                                                             navigation.navigate('TeamScreen', { teamId: playerDetails.team });
                                                         }
                                                     }}
@@ -250,15 +259,15 @@ function ProfileScreen({ route }) {
                                         <>
                                             <CustomTextInput label="Licence" value={playerDetails.licenceNumber} readOnly />
                                             <Label color={colors.secondary}>Équipes</Label>
-                                            {playerDetails.teams.length > 0 ? (
+                                            {teamNames && teamNames.length > 0 ? (
                                                 <View>
                                                     <View style={{ gap: 5 }}>
-                                                        {playerDetails.teams.map((team, index) => (
+                                                        {teamNames.map((teamName, index) => (
                                                             <ItemList
                                                                 key={index}
-                                                                text={team}
+                                                                text={teamName}
                                                                 onPress={() => {
-                                                                    navigation.navigate('TeamScreen', { teamId: team });
+                                                                    navigation.navigate('TeamScreen', { teamId: playerDetails.teams[index] });
                                                                 }}
                                                             />
                                                         ))}

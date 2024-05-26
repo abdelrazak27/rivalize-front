@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { db } from '../firebaseConfig';
 import { collection, query, where, getDocs, updateDoc, doc, Timestamp } from 'firebase/firestore';
@@ -12,14 +12,17 @@ import Spacer from './Spacer';
 import { fonts } from '../styles/fonts';
 import FunctionButton from './FunctionButton';
 import { BlurView } from 'expo-blur';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const NotificationsButton = ({ userId }) => {
     const [visible, setVisible] = useState(false);
     const [notifications, setNotifications] = useState([]);
     const [hasUnread, setHasUnread] = useState(false);
+    const insets = useSafeAreaInsets();
+    const navigation = useNavigation();
+
     // Booléen pour activer ou désactiver les notifications
     const activateNotification = false;
-    const navigation = useNavigation();
 
     useEffect(() => {
         if (activateNotification && userId) {
@@ -95,7 +98,7 @@ const NotificationsButton = ({ userId }) => {
                 visible={visible}
                 onRequestClose={toggleModal}
             >
-                <BlurView intensity={10} style={styles.absolute}>
+                <BlurView intensity={6} style={[styles.absolute, { top: insets.top + 110 }]}>
                     <View style={styles.modalView}>
                         <View style={styles.modalHeader}>
                             <Title>Vos <PrimaryColorText>notifications</PrimaryColorText></Title>
@@ -158,8 +161,6 @@ const styles = StyleSheet.create({
         fontFamily: fonts.OutfitSemiBold,
     },
     modalView: {
-        flex: 1,
-        // marginTop: 150,
         marginHorizontal: 30,
         backgroundColor: "white",
         padding: 25,
@@ -167,7 +168,14 @@ const styles = StyleSheet.create({
         borderColor: colors.darkgrey,
         borderWidth: 2,
         elevation: 5,
-        marginBottom: 50,
+        height: '95%',
+    },
+    absolute: {
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        bottom: 0,
+        top: 0,
     },
     modalHeader: {
         alignItems: 'center',
@@ -188,13 +196,6 @@ const styles = StyleSheet.create({
     },
     readText: {
         fontFamily: fonts.OutfitRegular,
-    },
-    absolute: {
-        position: 'absolute',
-        top: 150,
-        left: 0,
-        bottom: 0,
-        right: 0,
     },
 });
 
