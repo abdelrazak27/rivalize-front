@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import uuid from 'react-native-uuid';
 import * as ImagePicker from 'expo-image-picker';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -8,7 +8,18 @@ import { doc, setDoc, updateDoc, arrayUnion } from 'firebase/firestore';
 import citiesData from '../../data/citiesFR.json';
 import { Picker } from '@react-native-picker/picker';
 import { CommonActions, useNavigation } from '@react-navigation/native';
-
+import { SafeAreaView } from 'react-native-safe-area-context';
+import globalStyles from '../../styles/globalStyles';
+import FunctionButtonMini from '../../components/FunctionButtonMini';
+import Spacer from '../../components/Spacer';
+import defaultImage from '../../assets/default-image.png';
+import colors from '../../styles/colors';
+import CustomTextInput from '../../components/CustomTextInput';
+import { Label } from '../../components/TextComponents';
+import FunctionButton from '../../components/FunctionButton';
+import { LinearGradient } from 'expo-linear-gradient';
+import { darkenColor } from '../../utils/colors';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
 function CreateTeamForm({ user }) {
     const team_id = uuid.v4();
@@ -21,9 +32,8 @@ function CreateTeamForm({ user }) {
     const colors = {
         red: '#FF0000',
         orange: '#FFA500',
-        yellow: '#FFFF00',
+        yellow: '#F7DE3A',
         green: '#008000',
-        navy: '#000080',
         blue: '#0000FF',
         purple: '#800080',
         pink: '#FFC0CB',
@@ -68,7 +78,10 @@ function CreateTeamForm({ user }) {
         'SENIOR VETERAN'
     ]
 
-
+    const colorKeys = Object.keys(colors);
+    const firstRowColors = colorKeys.slice(0, Math.ceil(colorKeys.length / 2));
+    const secondRowColors = colorKeys.slice(Math.ceil(colorKeys.length / 2));
+    
     const [teamDetails, setTeamDetails] = useState({
         id: '',
         color_int: '',
@@ -89,13 +102,27 @@ function CreateTeamForm({ user }) {
         const isSelected = teamDetails[colorField] === colors[colorName];
         return (
             <TouchableOpacity
-                style={[
-                    styles.colorButton,
-                    { backgroundColor: colors[colorName] },
-                    isSelected && styles.selectedColorButton
-                ]}
                 onPress={() => handleChange(colorField, colors[colorName])}
-            />
+            >
+                <View style={isSelected && { borderWidth: 3, borderColor: darkenColor(colors[colorName], -20), borderRadius: 8, position: 'relative' }}>
+                    <LinearGradient
+                        colors={[colors[colorName], darkenColor(colors[colorName], -30)]}
+                        locations={[0.3, 1]}
+                        style={[
+                            styles.colorButton,
+                            isSelected && styles.selectedColorButton
+                        ]}
+                    />
+                    {isSelected && (
+                        <FontAwesome
+                            name="check"
+                            size={20}
+                            color="white"
+                            style={[styles.checkIcon, {color: colorName === "white" ? darkenColor(colors[colorName], -50) : 'white'} ]}
+                        />
+                    )}
+                </View>
+            </TouchableOpacity>
         );
     };
 
@@ -211,107 +238,163 @@ function CreateTeamForm({ user }) {
     };
 
     return (
-        <View>
-            <Text>Création de votre équipe</Text>
-            <Text>Couleur intérieure :</Text>
-            <View style={styles.colorsContainer}>
-                {Object.keys(colors).map((color) => (
-                    <ColorButton key={`${color}_int`} colorName={color} colorField="color_int" />
-                ))}
-            </View>
-
-            <Text>Couleur extérieure :</Text>
-            <View style={styles.colorsContainer}>
-                {Object.keys(colors).map((color) => (
-                    <ColorButton key={`${color}_ext`} colorName={color} colorField="color_ext" />
-                ))}
-            </View>
-
-
-            <TouchableOpacity onPress={pickImage}>
-                <Text>Sélectionner le logo</Text>
-            </TouchableOpacity>
-            {imageUri ? (
-                <Image source={{ uri: imageUri }} style={styles.logo} />
-            ) : (
-                <Text>Aucun logo sélectionné</Text>
-            )}
-
-            <TextInput
-                placeholder="Nom du club *"
-                value={teamDetails.name}
-                onChangeText={(text) => handleChange('name', text)}
-            />
-
-            <View style={styles.cities}>
-                <TextInput
-                    placeholder="Rechercher une ville"
-                    value={teamDetails.city ? teamDetails.city : searchQuery}
-                    onChangeText={(text) => {
-                        setSearchQuery(text);
-                        handleChange('city', text);
-                        filterCities(text);
-                    }}
-                />
-
-                {filteredCities.length > 0 && (
-                    <View style={styles.citiesList}>
-                        {Array.from(new Set(filteredCities.map(city => city.Nom_commune)))
-                            .map((nomCommune, index) => (
-                                <Text
-                                    key={index}
-                                    onPress={() => {
-                                        handleChange('city', nomCommune);
-                                        setFilteredCities([]);
-                                        setSearchQuery(nomCommune);
-                                    }}
-                                    style={{ padding: 10 }}
-                                >
-                                    {nomCommune}
-                                </Text>
-                            ))}
+        <SafeAreaView>
+            <View style={{ height: 1, backgroundColor: colors.lightgrey, marginHorizontal: 30 }} />
+            <ScrollView contentContainerStyle={globalStyles.scrollContainer}>
+                {imageUri ? (
+                    <View style={styles.imageContainer}>
+                        <Image
+                            source={{ uri: imageUri }}
+                            style={styles.logo}
+                        />
+                    </View>
+                ) : (
+                    <View style={styles.imageContainer}>
+                        <Image
+                            source={defaultImage}
+                            style={styles.logo}
+                        />
                     </View>
                 )}
-            </View>
+                <View style={{ paddingHorizontal: '20%' }}>
+                    <FunctionButtonMini
+                        title="Sélectionner le logo"
+                        onPress={pickImage}
+                        variant='secondary'
+                    />
+                </View>
+                <Spacer />
+                <CustomTextInput
+                    label="Nom du club *"
+                    placeholder="Choisissez le nom du club"
+                    value={teamDetails.name}
+                    onChangeText={(text) => handleChange('name', text)}
+                />
+                <View style={{ gap: 5, paddingTop: 15 }}>
+                    <Label>Catégorie</Label>
+                    <Picker
+                        selectedValue={teamDetails.category}
+                        onValueChange={(itemValue) => handleChange('category', itemValue)}>
+                        <Picker.Item label="Choisir la catégorie" value="" />
+                        {categories.map((category, index) => (
+                            <Picker.Item key={index} label={category} value={category} />
+                        ))}
+                    </Picker>
+                </View>
+                <View style={styles.cities}>
+                    <CustomTextInput
+                        label="Commune"
+                        placeholder="Choisissez la commune du club"
+                        value={teamDetails.city ? teamDetails.city : searchQuery}
+                        onChangeText={(text) => {
+                            setSearchQuery(text);
+                            handleChange('city', text);
+                            filterCities(text);
+                        }}
+                    />
+                    {filteredCities.length > 0 && (
+                        <View style={styles.citiesList}>
+                            {Array.from(new Set(filteredCities.map(city => city.Nom_commune)))
+                                .map((nomCommune, index) => (
+                                    <Text
+                                        key={index}
+                                        onPress={() => {
+                                            handleChange('city', nomCommune);
+                                            setFilteredCities([]);
+                                            setSearchQuery(nomCommune);
+                                        }}
+                                        style={styles.city}
+                                    >
+                                        {nomCommune}
+                                    </Text>
+                                ))}
+                        </View>
+                    )}
+                </View>
+                <Spacer />
 
-            <Picker
-                selectedValue={teamDetails.category}
-                onValueChange={(itemValue) => handleChange('category', itemValue)}>
-                <Picker.Item label="Choisir la catégorie" value="" />
-                {categories.map((category, index) => (
-                    <Picker.Item key={index} label={category} value={category} />
-                ))}
-            </Picker>
+                <Label>Couleur principale</Label>
+                <View style={styles.colorsContainer}>
+                    {firstRowColors.map((color) => (
+                        <ColorButton key={`${color}_int`} colorName={color} colorField="color_int" />
+                    ))}
+                </View>
+                <View style={styles.colorsContainer}>
+                    {secondRowColors.map((color) => (
+                        <ColorButton key={`${color}_int`} colorName={color} colorField="color_int" />
+                    ))}
+                </View>
 
-            <TouchableOpacity onPress={handleSaveTeam}>
-                <Text>Enregistrer l'équipe</Text>
-            </TouchableOpacity>
-        </View>
+                <Spacer />
+                <Label>Couleur secondaire</Label>
+                <View style={styles.colorsContainer}>
+                    {firstRowColors.map((color) => (
+                        <ColorButton key={`${color}_ext`} colorName={color} colorField="color_ext" />
+                    ))}
+                </View>
+                <View style={styles.colorsContainer}>
+                    {secondRowColors.map((color) => (
+                        <ColorButton key={`${color}_ext`} colorName={color} colorField="color_ext" />
+                    ))}
+                </View>
+
+                <Spacer />
+                <FunctionButton
+                    title="Créer l'équipe"
+                    onPress={handleSaveTeam}
+                />
+            </ScrollView>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    colorsContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        marginVertical: 10,
-    },
-    colorButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        marginHorizontal: 5,
-    },
-    selectedColorButton: {
-        borderWidth: 2,
-        borderColor: 'black',
+    imageContainer: {
+        alignItems: 'center',
+        marginVertical: 20
     },
     logo: {
-        width: 200,
-        height: 200,
+        width: 150,
+        height: 150,
         resizeMode: 'contain',
-    }
-    
+        borderRadius: 10,
+    },
+    citiesList: {
+        backgroundColor: 'white',
+        gap: 5,
+        marginTop: 5,
+        width: '100%',
+    },
+    city: {
+        padding: 11,
+        borderWidth: 2,
+        borderRadius: 8,
+        borderColor: colors.secondary,
+    },
+    colorsContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginVertical: 5,
+    },
+    colorButton: {
+        width: 45,
+        height: 45,
+        borderRadius: 8,
+    },
+    selectedColorButton: {
+        width: 39,
+        height: 39,
+        borderWidth: 3,
+        borderColor: 'white',
+        borderRadius: 5,
+    },
+    checkIcon: {
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: [{ translateX: -10 }, { translateY: -10 }], // 10 étant la moitié de 20, la taille de l'icone
+        color: 'white'
+    },
 });
 
 export default CreateTeamForm;
