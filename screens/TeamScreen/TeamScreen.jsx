@@ -132,74 +132,90 @@ function TeamScreen() {
 
 
     const deleteTeam = async () => {
-        try {
-            const invitationsSnapshot = await getDocs(collection(db, 'invitations'));
-            const invitationsToUpdate = [];
-            invitationsSnapshot.forEach((doc) => {
-                const invitationData = doc.data();
-                if (invitationData.clubId === teamId && invitationData.state === 'pending') {
-                    invitationsToUpdate.push({ ref: doc.ref, data: { state: 'expired' } });
-                }
-            });
-
-            await Promise.all(invitationsToUpdate.map(async (invitation) => {
-                await updateDoc(invitation.ref, invitation.data);
-            }));
-
-            if (teamData.players && teamData.players.length > 0) {
-                await Promise.all(teamData.players.map(async (playerId) => {
-                    const userRef = doc(db, 'utilisateurs', playerId);
-                    const userDoc = await getDoc(userRef);
-                    if (userDoc.exists()) {
-                        const userData = userDoc.data();
-                        if (userData.accountType === 'player') {
-                            await updateDoc(userRef, {
-                                team: null,
+        Alert.alert(
+            "Confirmer la suppression",
+            "Êtes-vous sûr de vouloir supprimer cette équipe ? Cette action est irréversible.",
+            [
+                {
+                    text: "Annuler",
+                    style: "cancel"
+                },
+                {
+                    text: "Supprimer",
+                    onPress: async () => {
+                        try {
+                            const invitationsSnapshot = await getDocs(collection(db, 'invitations'));
+                            const invitationsToUpdate = [];
+                            invitationsSnapshot.forEach((doc) => {
+                                const invitationData = doc.data();
+                                if (invitationData.clubId === teamId && invitationData.state === 'pending') {
+                                    invitationsToUpdate.push({ ref: doc.ref, data: { state: 'expired' } });
+                                }
                             });
+    
+                            await Promise.all(invitationsToUpdate.map(async (invitation) => {
+                                await updateDoc(invitation.ref, invitation.data);
+                            }));
+    
+                            if (teamData.players && teamData.players.length > 0) {
+                                await Promise.all(teamData.players.map(async (playerId) => {
+                                    const userRef = doc(db, 'utilisateurs', playerId);
+                                    const userDoc = await getDoc(userRef);
+                                    if (userDoc.exists()) {
+                                        const userData = userDoc.data();
+                                        if (userData.accountType === 'player') {
+                                            await updateDoc(userRef, {
+                                                team: null,
+                                            });
+                                        }
+                                    }
+                                }));
+                            }
+    
+                            if (teamData.coach_id) {
+                                const coachRef = doc(db, 'utilisateurs', teamData.coach_id);
+                                const coachDoc = await getDoc(coachRef);
+                                if (coachDoc.exists()) {
+                                    const coachData = coachDoc.data();
+                                    const teamIndex = coachData.teams.indexOf(teamId);
+                                    if (teamIndex !== -1) {
+                                        const updatedTeams = [...coachData.teams];
+                                        updatedTeams.splice(teamIndex, 1);
+                                        await updateDoc(coachRef, {
+                                            teams: updatedTeams,
+                                        });
+                                    }
+                                }
+                            }
+    
+                            const teamRef = doc(db, 'equipes', teamId);
+                            await updateDoc(teamRef, {
+                                active: false,
+                            });
+    
+                            const newTeams = user.teams.filter(team => team !== teamId);
+                            const updatedUserData = {
+                                ...user,
+                                teams: newTeams,
+                            };
+                            await setUser(updatedUserData);
+    
+                            navigation.dispatch(
+                                CommonActions.reset({
+                                    index: 0,
+                                    routes: [{ name: 'HomeScreen', params: { teamRefresh: true } }],
+                                })
+                            );
+    
+                        } catch (error) {
+                            console.error("Une erreur s'est produite lors de la suppression de l'équipe :", error);
                         }
-                    }
-                }));
-            }
-
-            if (teamData.coach_id) {
-                const coachRef = doc(db, 'utilisateurs', teamData.coach_id);
-                const coachDoc = await getDoc(coachRef);
-                if (coachDoc.exists()) {
-                    const coachData = coachDoc.data();
-                    const teamIndex = coachData.teams.indexOf(teamId);
-                    if (teamIndex !== -1) {
-                        const updatedTeams = [...coachData.teams];
-                        updatedTeams.splice(teamIndex, 1);
-                        await updateDoc(coachRef, {
-                            teams: updatedTeams,
-                        });
-                    }
+                    },
+                    style: "destructive"
                 }
-            }
-
-            const teamRef = doc(db, 'equipes', teamId);
-            await updateDoc(teamRef, {
-                active: false,
-            });
-
-            const newTeams = user.teams.filter(team => team !== teamId);
-            const updatedUserData = {
-                ...user,
-                teams: newTeams,
-            };
-            await setUser(updatedUserData);
-
-            navigation.dispatch(
-                CommonActions.reset({
-                    index: 0,
-                    routes: [{ name: 'HomeScreen', params: { teamRefresh: true } }],
-                })
-            );
-
-        } catch (error) {
-            console.error("Une erreur s'est produite lors de la suppression de l'équipe :", error);
-        }
-    };
+            ]
+        );
+    };    
 
     const leaveTeam = async () => {
         try {

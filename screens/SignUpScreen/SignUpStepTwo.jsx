@@ -1,7 +1,7 @@
 import { View, TextInput, Button, Text, Platform, ScrollView, Dimensions } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import citiesData from '../../data/citiesFR.json';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import styles from './styles';
 import ModalDateTimePicker from 'react-native-modal-datetime-picker';
 import { useSignUp } from '../../context/SignUpContext';
