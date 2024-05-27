@@ -17,6 +17,7 @@ import CustomTextInput from '../components/CustomTextInput';
 import { getTeamName } from '../utils/teams';
 import SquareButtonIcon from '../components/SquareButtonIcon';
 import Foundation from 'react-native-vector-icons/Foundation';
+import { useNavigation } from '@react-navigation/native';
 
 const MatchDetailsScreen = ({ route }) => {
     const { roundIndex, matchIndex, tournamentId } = route.params;
@@ -41,6 +42,7 @@ const MatchDetailsScreen = ({ route }) => {
         const now = new Date();
         return now >= new Date(matchDate);
     };
+    const navigation = useNavigation();
 
     const { user } = useUser();
 
@@ -296,7 +298,9 @@ const MatchDetailsScreen = ({ route }) => {
                                                 style={styles.matchInfoClubImage}
                                             />
                                         ) : (
-                                            <TouchableOpacity>
+                                            <TouchableOpacity onPress={() => {
+                                                navigation.navigate('TeamScreen', { teamId: matchDetails.clubA });
+                                            }}>
                                                 <Image
                                                     source={{ uri: teamLogos.clubA }}
                                                     style={styles.matchInfoClubImage}
@@ -318,7 +322,9 @@ const MatchDetailsScreen = ({ route }) => {
                                                 style={styles.matchInfoClubImage}
                                             />
                                         ) : (
-                                            <TouchableOpacity>
+                                            <TouchableOpacity onPress={() => {
+                                                navigation.navigate('TeamScreen', { teamId: matchDetails.clubB });
+                                            }}>
                                                 <Image
                                                     source={{ uri: teamLogos.clubB }}
                                                     style={styles.matchInfoClubImage}
@@ -329,13 +335,17 @@ const MatchDetailsScreen = ({ route }) => {
                                 </View>
                                 {(matchDetails.clubA || matchDetails.clubB) && (
                                     <View style={styles.matchInfoContainerBottom}>
-                                        <TouchableOpacity>
+                                        <TouchableOpacity onPress={() => {
+                                            navigation.navigate('TeamScreen', { teamId: matchDetails.clubA });
+                                        }}>
                                             <Text style={styles.matchInfoContainerBottomText}>{teamNames[clubA]}</Text>
                                         </TouchableOpacity>
                                         {(matchDetails.penaltyScoreA > 0 || matchDetails.penaltyScoreB > 0) && (
                                             <Text style={styles.penaltiesScore}>({matchDetails.penaltyScoreA} : {matchDetails.penaltyScoreB})</Text>
                                         )}
-                                        <TouchableOpacity>
+                                        <TouchableOpacity onPress={() => {
+                                            navigation.navigate('TeamScreen', { teamId: matchDetails.clubB });
+                                        }}>
                                             <Text style={styles.matchInfoContainerBottomText}>{teamNames[clubB]}</Text>
                                         </TouchableOpacity>
                                     </View>
@@ -575,10 +585,11 @@ const styles = StyleSheet.create({
     },
     matchInfoContainerBottom: {
         flexDirection: 'row',
-        gap: 10,
+        gap: 20,
         justifyContent: 'space-between'
     },
     matchInfoContainerBottomText: {
+        flexWrap: 'wrap',
         fontSize: 14,
         color: 'white',
         fontFamily: fonts.OutfitBold,

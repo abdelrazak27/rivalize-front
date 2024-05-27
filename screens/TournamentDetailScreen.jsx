@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Alert, ScrollView, Modal, Button, TouchableWithoutFeedback, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, Alert, ScrollView, Modal, Image, TouchableOpacity } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import { arrayUnion, doc, getDoc, increment, updateDoc } from 'firebase/firestore';
+import { arrayUnion, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { useUser } from '../context/UserContext';
 import FunctionButton from '../components/FunctionButton';
@@ -15,7 +15,6 @@ import { Label, PrimaryColorText, Subtitle, Title } from '../components/TextComp
 import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { darkenColor } from '../utils/colors';
 import CustomList from '../components/CustomList';
@@ -30,6 +29,8 @@ const TournamentDetailScreen = ({ route, navigation }) => {
     const [modalVisible, setModalVisible] = useState(false);
     const [selectedTeam, setSelectedTeam] = useState(null);
     const [teamNamesModal, setTeamNamesModal] = useState({});
+    const [teamNames, setTeamNames] = useState({});
+    const [teamLogos, setTeamLogos] = useState({});
     const insets = useSafeAreaInsets();
 
     const fetchTeamNamesModal = async (teamIds) => {
@@ -43,7 +44,6 @@ const TournamentDetailScreen = ({ route, navigation }) => {
         setTeamNamesModal(names);
     };
 
-
     const fetchTournament = async () => {
         const docRef = doc(db, 'tournois', tournamentId);
         const docSnap = await getDoc(docRef);
@@ -52,6 +52,19 @@ const TournamentDetailScreen = ({ route, navigation }) => {
             const data = docSnap.data();
             const clubDetails = await fetchClubsDetails(data.participatingClubs || []);
             setTournament({ ...data, clubDetails });
+
+            const names = {};
+            const logos = {};
+            for (const clubId of data.participatingClubs || []) {
+                names[clubId] = await getTeamName(clubId);
+                const teamRef = doc(db, 'equipes', clubId);
+                const teamDoc = await getDoc(teamRef);
+                if (teamDoc.exists()) {
+                    logos[clubId] = teamDoc.data().logo_link;
+                }
+            }
+            setTeamNames(names);
+            setTeamLogos(logos);
         } else {
             console.log('No such document!');
         }
@@ -72,7 +85,6 @@ const TournamentDetailScreen = ({ route, navigation }) => {
             fetchTeamNamesModal(user.teams);
         }
     }, [user.teams]);
-
 
     const updateTournamentState = (newState) => {
         setTournament(prevTournament => ({
@@ -167,6 +179,15 @@ const TournamentDetailScreen = ({ route, navigation }) => {
                 availableSlots: currentAvailableSlots - 1,
             });
 
+            const names = { ...teamNames, [selectedTeam]: await getTeamName(selectedTeam) };
+            setTeamNames(names);
+
+            const teamLogoRef = doc(db, 'equipes', selectedTeam);
+            const teamLogoDoc = await getDoc(teamLogoRef);
+            if (teamLogoDoc.exists()) {
+                const logos = { ...teamLogos, [selectedTeam]: teamLogoDoc.data().logo_link };
+                setTeamLogos(logos);
+            }
 
             Alert.alert('Succès', 'Votre équipe a rejoint le tournoi!');
             console.log('Joining tournament with team ID:', selectedTeam);
@@ -204,6 +225,15 @@ const TournamentDetailScreen = ({ route, navigation }) => {
                 availableSlots: currentAvailableSlots - 1,
             });
 
+            const names = { ...teamNames, [selectedTeam]: await getTeamName(selectedTeam) };
+            setTeamNames(names);
+
+            const teamLogoRef = doc(db, 'equipes', selectedTeam);
+            const teamLogoDoc = await getDoc(teamLogoRef);
+            if (teamLogoDoc.exists()) {
+                const logos = { ...teamLogos, [selectedTeam]: teamLogoDoc.data().logo_link };
+                setTeamLogos(logos);
+            }
 
             Alert.alert('Succès', 'Votre équipe a rejoint le tournoi!');
             console.log('Joining tournament with team ID:', selectedTeam);
@@ -236,6 +266,11 @@ const TournamentDetailScreen = ({ route, navigation }) => {
             matchTime: match.time,
             tournamentId: tournamentId
         });
+    };
+
+    const hasMatchStarted = (matchDate) => {
+        const now = new Date();
+        return now >= new Date(matchDate);
     };
 
     return (
@@ -312,6 +347,8 @@ const TournamentDetailScreen = ({ route, navigation }) => {
                     <Text style={styles.matchsTitle}>Match du tournois</Text>
                 </View>
 
+                {/* todo, faire en fonction de s'il y a un club choisi pour cette équipe ou non */}
+                {/* todo, le score si y a un score */}
                 {tournament.matches.map((round, roundIndex) => (
                     <View key={roundIndex} style={styles.roundContainer}>
                         <Text style={styles.roundTitle}>{round.phase}</Text>
@@ -324,34 +361,55 @@ const TournamentDetailScreen = ({ route, navigation }) => {
                                 locations={[0.3, 1]}
                                 style={{ borderRadius: 10 }}
                             >
-                                {/* todo, faire en fonction de s'il y a un club choisi pour cette équipe ou non */}
-                                {/* todo, le score si y a un score */}
                                 <TouchableOpacity style={styles.matchContainer} onPress={() => handleMatchPress(roundIndex, matchIndex, match)}>
-                                    <View style={styles.matchInfoContainerTop}>
+                                    <View style={[styles.matchInfoContainerTop, (!match.clubA || !match.clubB) ? { paddingVertical: 10, alignItems: 'center' } : { alignItems: 'flex-end' }]}>
                                         <View style={styles.matchInfoClubLeft}>
-                                            <Image
-                                                source={require('../assets/clubTeamEmpty.png')}
-                                                style={styles.matchInfoClubImage}
-                                            />
+                                            {teamLogos[match.clubA] ? (
+                                                <Image
+                                                    source={{ uri: teamLogos[match.clubA] }}
+                                                    style={styles.matchInfoClubImage}
+                                                />
+                                            ) : (
+                                                <Image
+                                                    source={require('../assets/clubTeamEmpty.png')}
+                                                    style={styles.matchInfoClubImage}
+                                                />
+                                            )}
                                         </View>
                                         <View>
-                                            <Text style={styles.matchDate}>{new Date(match.date).toLocaleDateString()}</Text>
-                                            <Text style={styles.matchTime}>{`${new Date(match.date).getHours()}h${new Date(match.date).getMinutes().toString().padStart(2, '0')}`}</Text>
+                                            {hasMatchStarted(match.date) ? (
+                                                <Text style={styles.scoreCountText}>{match.scoreA > 0 ? match.scoreA : 0} : {match.scoreB > 0 ? match.scoreB : 0}</Text>
+                                            ) : (
+                                                <>
+                                                    <Text style={styles.matchDate}>{new Date(match.date).toLocaleDateString()}</Text>
+                                                    <Text style={styles.matchTime}>{`${new Date(match.date).getHours()}h${new Date(match.date).getMinutes().toString().padStart(2, '0')}`}</Text>
+                                                </>
+                                            )}
                                         </View>
                                         <View style={styles.matchInfoClubRight}>
-                                            <Image
-                                                source={require('../assets/clubTeamEmpty.png')}
-                                                style={styles.matchInfoClubImage}
-                                            />
+                                            {teamLogos[match.clubB] ? (
+                                                <Image
+                                                    source={{ uri: teamLogos[match.clubB] }}
+                                                    style={styles.matchInfoClubImage}
+                                                />
+                                            ) : (
+                                                <Image
+                                                    source={require('../assets/clubTeamEmpty.png')}
+                                                    style={styles.matchInfoClubImage}
+                                                />
+                                            )}
                                         </View>
                                     </View>
                                     <View style={styles.matchInfoContainerBottom}>
-                                        <Text style={styles.matchInfoContainerBottomText}>FC TEST</Text>
-                                        <Text style={styles.matchInfoContainerBottomText}>FC TEST</Text>
+                                        {match.clubA && (
+                                            <Text style={styles.matchInfoContainerBottomText}>{teamNames[match.clubA]}</Text>
+                                        )}
+                                        {match.clubB && (
+                                            <Text style={styles.matchInfoContainerBottomText}>{teamNames[match.clubB]}</Text>
+                                        )}
                                     </View>
                                 </TouchableOpacity>
                             </LinearGradient>
-
                         ))}
                     </View>
                 ))}
@@ -546,10 +604,11 @@ const styles = StyleSheet.create({
     },
     matchInfoContainerBottom: {
         flexDirection: 'row',
-        gap: 10,
+        gap: 20,
         justifyContent: 'space-between'
     },
     matchInfoContainerBottomText: {
+        flexWrap: 'wrap',
         fontSize: 14,
         color: 'white',
         fontFamily: fonts.OutfitBold,
@@ -591,6 +650,11 @@ const styles = StyleSheet.create({
     clubsList: {
         flex: 1,
         marginBottom: 15,
+    },
+    scoreCountText: {
+        color: 'white',
+        fontFamily: fonts.OutfitBold,
+        fontSize: 28
     },
 });
 

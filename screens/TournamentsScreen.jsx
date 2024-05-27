@@ -38,7 +38,7 @@ function TournamentsScreen() {
 
     return (
         <SafeAreaView style={globalStyles.container}>
-            <View style={[globalStyles.headerContainer, { paddingBottom: 25, marginBottom: 25 }]}>
+            <View style={[globalStyles.headerContainer, { paddingBottom: 25 }]}>
                 <Title>Les <PrimaryColorText>tournois</PrimaryColorText></Title>
                 <Subtitle>Retrouvez leurs informations en cliquant sur l’un d’eux parmi la liste ci-dessous</Subtitle>
                 {user.accountType === "coach" && (
@@ -87,12 +87,10 @@ function TournamentsScreen() {
                 />
             </View>
 
-            <View style={{ paddingBottom: 10, paddingHorizontal: 30 }}>
-                <Label>Liste des tournois</Label>
-            </View>
             <ScrollView
-                contentContainerStyle={globalStyles.scrollContainer}
+                contentContainerStyle={[globalStyles.scrollContainer, {marginTop: 10}]}
             >
+                <Label>Liste des tournois</Label>
                 {renderSection()}
             </ScrollView>
         </SafeAreaView>
