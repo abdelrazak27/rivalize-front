@@ -305,7 +305,7 @@ const MatchDetailsScreen = ({ route }) => {
                                         )}
                                     </View>
                                     <View>
-                                        {!hasMatchStarted(matchDetails.date) ? (
+                                        {hasMatchStarted(matchDetails.date) ? (
                                             <Text style={styles.scoreCountText}>{scoreA} : {scoreB}</Text>
                                         ) : (
                                             <Text style={styles.vsText}>VS</Text>
