@@ -323,7 +323,7 @@ function ProfileScreen({ route }) {
                                                         </Picker>
                                                     </ScrollView>
                                                 </SafeAreaView>
-                                                <View style={{ paddingHorizontal: 30, gap: 8 }}>
+                                                <View style={{ paddingHorizontal: 30, gap: 8, paddingBottom: 30 }}>
                                                     <FunctionButton title="Inviter" onPress={handleInvitePlayer} />
                                                     <FunctionButton title="Annuler" onPress={() => setModalVisible(false)} variant='primaryOutline' />
                                                 </View>

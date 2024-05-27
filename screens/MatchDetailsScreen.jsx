@@ -1,9 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, View, Text, StyleSheet, Button, Modal, TouchableOpacity, TextInput } from 'react-native';
+import { Alert, View, Text, StyleSheet, Button, Modal, TouchableOpacity, TextInput, ScrollView, Image } from 'react-native';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { useUser } from '../context/UserContext';
 import { Picker } from '@react-native-picker/picker';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import globalStyles from '../styles/globalStyles';
+import { fonts } from '../styles/fonts';
+import colors from '../styles/colors';
+import Spacer from '../components/Spacer';
+import { LinearGradient } from 'expo-linear-gradient';
+import { darkenColor } from '../utils/colors';
+import { Label, PrimaryColorText, Title } from '../components/TextComponents';
+import FunctionButton from '../components/FunctionButton';
+import CustomTextInput from '../components/CustomTextInput';
+import { getTeamName } from '../utils/teams';
+import SquareButtonIcon from '../components/SquareButtonIcon';
+import Foundation from 'react-native-vector-icons/Foundation';
 
 const MatchDetailsScreen = ({ route }) => {
     const { roundIndex, matchIndex, tournamentId } = route.params;
@@ -21,6 +34,13 @@ const MatchDetailsScreen = ({ route }) => {
     const [showPenaltyModal, setShowPenaltyModal] = useState(false);
     const [inputPenaltyScoreA, setInputPenaltyScoreA] = useState('');
     const [inputPenaltyScoreB, setInputPenaltyScoreB] = useState('');
+    const [teamNames, setTeamNames] = useState({});
+    const [teamLogos, setTeamLogos] = useState({ clubA: null, clubB: null });
+    const hasMatchStarted = (matchDate) => {
+        const now = new Date();
+        return now >= new Date(matchDate);
+    };
+    
 
     const { user } = useUser();
 
@@ -33,18 +53,17 @@ const MatchDetailsScreen = ({ route }) => {
     const handlePenaltySubmission = () => {
         const penScoreA = parseInt(inputPenaltyScoreA);
         const penScoreB = parseInt(inputPenaltyScoreB);
-    
+
         if (isNaN(penScoreA) || isNaN(penScoreB)) {
             Alert.alert("Entrée invalide", "Veuillez entrer des scores valides pour les pénalités.");
             return;
         }
-    
+
         const winnerClub = penScoreA > penScoreB ? clubA : clubB;
         setWinner(winnerClub);
         updateMatchWinner(winnerClub, scoreA, scoreB, penScoreA, penScoreB);
         setShowPenaltyModal(false);
     };
-
 
     const handleEndMatch = async () => {
         if (scoreA > scoreB) {
@@ -70,7 +89,7 @@ const MatchDetailsScreen = ({ route }) => {
                 penaltyScoreA: penScoreA,
                 penaltyScoreB: penScoreB
             };
-    
+
             await updateDoc(tournamentRef, {
                 matches: tournamentData.matches
             });
@@ -128,6 +147,16 @@ const MatchDetailsScreen = ({ route }) => {
         }
     };
 
+    
+    const fetchTeamLogo = async (teamId) => {
+        const teamRef = doc(db, 'equipes', teamId);
+        const teamDoc = await getDoc(teamRef);
+        if (teamDoc.exists()) {
+            return teamDoc.data().logo_link;
+        } else {
+            return null;
+        }
+    };    
 
     useEffect(() => {
         const fetchMatchDetails = async () => {
@@ -140,18 +169,39 @@ const MatchDetailsScreen = ({ route }) => {
                 setMatchDetails(match);
                 setTournamentDetails(tournamentData);
                 setIsOwner(tournamentData.createdBy === user.uid);
-
-                setWinner(match.winner || '');
-                setClubA(match.clubA || '');
-                setClubB(match.clubB || '');
+    
+                setWinner(match.winner);
+                setClubA(match.clubA);
+                setClubB(match.clubB);
                 setScoreA(match.scoreA || 0);
                 setScoreB(match.scoreB || 0);
+    
+                if (match.clubA) {
+                    const logoA = await fetchTeamLogo(match.clubA);
+                    setTeamLogos(prevState => ({ ...prevState, clubA: logoA }));
+                }
+                if (match.clubB) {
+                    const logoB = await fetchTeamLogo(match.clubB);
+                    setTeamLogos(prevState => ({ ...prevState, clubB: logoB }));
+                }
             }
         };
-
+    
         fetchMatchDetails();
     }, [roundIndex, matchIndex, tournamentId, user.uid]);
+    
 
+    useEffect(() => {
+        const fetchTeamNames = async () => {
+            const names = {};
+            for (const clubId of tournamentDetails?.participatingClubs || []) {
+                names[clubId] = await getTeamName(clubId);
+            }
+            setTeamNames(names);
+        };
+
+        fetchTeamNames();
+    }, [tournamentDetails]);
 
     const openModal = (team) => {
         setSelectingFor(team);
@@ -194,116 +244,326 @@ const MatchDetailsScreen = ({ route }) => {
         }
     };
 
-
     return (
-        <View style={styles.container}>
-            {matchDetails ? (
-                <>
-                    <Text>Date du match: {new Date(matchDetails.date).toLocaleDateString()}</Text>
-                    <Text>Heure du match: {new Date(matchDetails.time).toLocaleTimeString()}</Text>
-                    <Text>Équipes A : {matchDetails.clubA}</Text>
-                    <Text>Équipes B : {matchDetails.clubB}</Text>
-                    {winner && (
-                        <View>
-                            <Text>Vainqueur : {winner}</Text>
-                            <Text>Pour éviter toute tricherie, le match n'est plus modifiable. Contactez un administrateur en cas d'erreur.</Text>
+        <SafeAreaView style={globalStyles.container}>
+            <View style={{ height: 1, backgroundColor: colors.lightgrey, marginHorizontal: 30 }} />
+            <ScrollView contentContainerStyle={globalStyles.scrollContainer}>
+                {matchDetails ? (
+                    <>
+                        <View style={styles.imageContainer}>
+                            <Image
+                                source={require('../assets/tournament.png')}
+                                style={styles.logo}
+                            />
                         </View>
-                    )}
-                    {isOwner && !winner && (
-                        <>
-                            <Button title="Ajouter Club A" onPress={() => openModal('A')} />
-                            <Button title="Ajouter Club B" onPress={() => openModal('B')} />
-                            <Text>Club A choisi : {clubA}</Text>
-                            <Text>Club B choisi : {clubB}</Text>
-                            <Button title="Sauvegarder les clubs" onPress={saveClubSelection} disabled={!(clubA && clubB)} />
-                            <View>
-                                <Text>Score de l'équipe A : {scoreA}</Text>
-                                <Button title="Ajouter Point A" onPress={incrementScoreA} disabled={!clubA} />
-                                <Button title="Annuler Point A" onPress={decrementScoreA} disabled={!clubA || scoreA === 0} />
-
-                                <Text>Score de l'équipe B : {scoreB}</Text>
-                                <Button title="Ajouter Point B" onPress={incrementScoreB} disabled={!clubB} />
-                                <Button title="Annuler Point B" onPress={decrementScoreB} disabled={!clubB || scoreB === 0} />
-                            </View>
-                            <Button title="Terminer le Match" onPress={handleEndMatch} disabled={!(clubA && clubB)} />
-                            <Modal
-                                animationType="slide"
-                                transparent={true}
-                                visible={showModal}
-                                onRequestClose={() => setShowModal(false)}
-                            >
-                                <View style={styles.modalView}>
-                                    <Text style={styles.modalText}>Choisir Club {selectingFor}</Text>
-                                    <Picker
-                                        selectedValue={selectedClub}
-                                        onValueChange={(itemValue) => setSelectedClub(itemValue)}
-                                        style={styles.picker}
-                                    >
-                                        {tournamentDetails?.participatingClubs?.map(clubId => (
-                                            <Picker.Item key={clubId} label={clubId} value={clubId} />
-                                        ))}
-                                    </Picker>
-                                    <View style={styles.buttonRow}>
-                                        <TouchableOpacity
-                                            style={styles.button}
-                                            onPress={handleValidation}
-                                        >
-                                            <Text style={styles.textStyle}>Valider</Text>
-                                        </TouchableOpacity>
-                                        <TouchableOpacity
-                                            style={styles.button}
-                                            onPress={() => setShowModal(false)}
-                                        >
-                                            <Text style={styles.textStyle}>Annuler</Text>
-                                        </TouchableOpacity>
+                        <Text style={styles.matchName}>Match  {matchIndex + 1}</Text>
+                        <Text style={styles.matchDate}>{new Date(matchDetails.date).toLocaleDateString()}</Text>
+                        <Text style={styles.matchDate}>{`${new Date(matchDetails.time).getHours()}h${new Date(matchDetails.time).getMinutes().toString().padStart(2, '0')}`}</Text>
+                        <Spacer />
+                        <LinearGradient
+                            start={{ x: 0, y: 0.5 }}
+                            end={{ x: 1, y: 0.5 }}
+                            colors={[darkenColor(colors.primary, -20), colors.primary]}
+                            locations={[0.3, 1]}
+                            style={{ borderRadius: 10 }}
+                        >
+                            <View style={styles.matchContainer} onPress={() => handleMatchPress(roundIndex, matchIndex, match)}>
+                                <View style={[styles.matchInfoContainerTop, (!matchDetails.clubA || !matchDetails.clubB) ? { paddingVertical: 10, alignItems: 'center' } : { alignItems: 'flex-end' }]}>
+                                    <View style={styles.matchInfoClubLeft}>
+                                        {!matchDetails.clubA ? (
+                                            <Image
+                                                source={require('../assets/clubTeamEmpty.png')}
+                                                style={styles.matchInfoClubImage}
+                                            />
+                                        ) : (
+                                            <TouchableOpacity>
+                                                <Image
+                                                    source={{ uri: teamLogos.clubA }}
+                                                    style={styles.matchInfoClubImage}
+                                                />
+                                            </TouchableOpacity>
+                                        )}
+                                    </View>
+                                    <View>
+                                        {!hasMatchStarted(matchDetails.date) ? (
+                                            <Text style={styles.scoreCountText}>{scoreA} : {scoreB}</Text>
+                                        ) : (
+                                            <Text style={styles.vsText}>VS</Text>
+                                        )}
+                                    </View>
+                                    <View style={styles.matchInfoClubRight}>
+                                        {!matchDetails.clubB ? (
+                                            <Image
+                                                source={require('../assets/clubTeamEmpty.png')}
+                                                style={styles.matchInfoClubImage}
+                                            />
+                                        ) : (
+                                            <TouchableOpacity>
+                                                <Image
+                                                    source={{ uri: teamLogos.clubB }}
+                                                    style={styles.matchInfoClubImage}
+                                                />
+                                            </TouchableOpacity>
+                                        )}
                                     </View>
                                 </View>
-                            </Modal>
-                            <Modal
-                                visible={showPenaltyModal}
-                                animationType="slide"
-                                transparent={true}
-                                onRequestClose={() => setShowPenaltyModal(false)}
-                            >
-                                <View style={styles.modalView}>
-                                    <Text style={styles.modalText}>Entrez les scores de pénalty</Text>
-                                    <TextInput
-                                        style={styles.input}
-                                        onChangeText={setInputPenaltyScoreA}
-                                        value={inputPenaltyScoreA}
-                                        placeholder="Score A"
-                                        keyboardType="numeric"
+                                {(matchDetails.clubA || matchDetails.clubB) && (
+                                    <View style={styles.matchInfoContainerBottom}>
+                                        <TouchableOpacity>
+                                            <Text style={styles.matchInfoContainerBottomText}>{teamNames[clubA]}</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity>
+                                            <Text style={styles.matchInfoContainerBottomText}>{teamNames[clubB]}</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                )}
+                            </View>
+                        </LinearGradient>
+
+                        {winner && (
+                            <View style={{ paddingTop: 25, gap: 10 }}>
+                                <Text style={styles.victoryText}>Victoire pour {winner}</Text>
+                                <Text style={[styles.victoryText, { color: colors.secondary }]}>Pour éviter toute tricherie, le match n'est plus modifiable. Contactez un administrateur en cas d'erreur.</Text>
+                            </View>
+                        )}
+
+                        {isOwner && !winner && (
+                            <>
+                                {(matchDetails.clubA || matchDetails.clubB) && (
+                                    <>
+                                        <View style={{ flexDirection: 'row', gap: 10, paddingVertical: 10, justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <View style={{ flexDirection: 'row', gap: 10 }}>
+                                                <SquareButtonIcon
+                                                    onPress={incrementScoreA}
+                                                    IconComponent={Foundation}
+                                                    iconName="plus"
+                                                    iconSize={19}
+                                                    isFocused={clubA}
+                                                    disabled={!clubA}
+                                                    iconColor={colors.primary}
+                                                    height={40}
+                                                    width={40}
+                                                />
+                                                <SquareButtonIcon
+                                                    onPress={decrementScoreA}
+                                                    IconComponent={Foundation}
+                                                    iconName="minus"
+                                                    iconSize={19}
+                                                    isFocused={clubA || scoreA !== 0}
+                                                    disabled={!clubA || scoreA === 0}
+                                                    iconColor={colors.primary}
+                                                    height={40}
+                                                    width={40}
+                                                />
+                                            </View>
+                                            <Text style={styles.scoreText}>SCORE</Text>
+                                            <View style={{ flexDirection: 'row', gap: 10 }}>
+                                                <SquareButtonIcon
+                                                    onPress={incrementScoreB}
+                                                    IconComponent={Foundation}
+                                                    iconName="plus"
+                                                    iconSize={19}
+                                                    isFocused={clubA}
+                                                    disabled={!clubA}
+                                                    iconColor={colors.primary}
+                                                    height={40}
+                                                    width={40}
+                                                />
+                                                <SquareButtonIcon
+                                                    onPress={decrementScoreB}
+                                                    IconComponent={Foundation}
+                                                    iconName="minus"
+                                                    iconSize={19}
+                                                    isFocused={clubB || scoreB !== 0}
+                                                    disabled={!clubB || scoreB === 0}
+                                                    iconColor={colors.primary}
+                                                    height={40}
+                                                    width={40}
+                                                />
+                                            </View>
+                                        </View>
+                                        <FunctionButton
+                                            title="Terminer le match"
+                                            onPress={handleEndMatch}
+                                            disabled={!(clubA && clubB)}
+                                        />
+                                    </>
+                                )}
+                                <Spacer />
+                                <Label>Mise à jour des clubs</Label>
+                                <View style={{ flexDirection: 'row', gap: 10, paddingTop: 10 }}>
+                                    <View style={{ flex: 1 }}>
+                                        <FunctionButton
+                                            title={!matchDetails.clubA ? "Ajouter le club A" : "Modifier le club A"}
+                                            onPress={() => openModal('A')}
+                                        />
+                                    </View>
+                                    <View style={{ flex: 1 }}>
+                                        <FunctionButton
+                                            title={!matchDetails.clubB ? "Ajouter le club B" : "Modifier le club B"}
+                                            onPress={() => openModal('B')}
+                                        />
+                                    </View>
+                                </View>
+                                <View style={{ paddingVertical: 20, gap: 10 }}>
+                                    <CustomTextInput
+                                        label="Club A choisi"
+                                        value={teamNames[clubA] ? teamNames[clubA] : "N/A"}
+                                        readOnly
                                     />
-                                    <TextInput
-                                        style={styles.input}
-                                        onChangeText={setInputPenaltyScoreB}
-                                        value={inputPenaltyScoreB}
-                                        placeholder="Score B"
-                                        keyboardType="numeric"
+                                    <CustomTextInput
+                                        label="Club B choisi"
+                                        value={teamNames[clubB] ? teamNames[clubB] : "N/A"}
+                                        readOnly
                                     />
-                                    <Button
-                                        title="Soumettre les scores"
-                                        onPress={handlePenaltySubmission}
+                                    <FunctionButton
+                                        title="Sauvegarder"
+                                        onPress={saveClubSelection}
+                                        disabled={!(clubA || clubB)}
                                     />
                                 </View>
-                            </Modal>
 
-                        </>
-                    )}
-                </>
-            ) : (
-                <Text>Chargement des détails du match...</Text>
-            )}
-        </View>
+                                <Modal
+                                    animationType="slide"
+                                    transparent={true}
+                                    visible={showModal}
+                                    onRequestClose={() => setShowModal(false)}
+                                >
+                                    <View style={globalStyles.modal}>
+                                        <SafeAreaView style={globalStyles.container}>
+                                            <View style={globalStyles.headerContainer}>
+                                                <Title>Choisissez <PrimaryColorText>l'équipe {selectingFor}</PrimaryColorText>,</Title>
+                                            </View>
+
+                                            <ScrollView
+                                                contentContainerStyle={globalStyles.scrollContainer}
+                                            >
+                                                <Picker
+                                                    selectedValue={selectedClub}
+                                                    onValueChange={(itemValue) => setSelectedClub(itemValue)}
+                                                >
+                                                    <Picker.Item label="Choisir l'équipe" value="" />
+                                                    {tournamentDetails?.participatingClubs?.map(clubId => (
+                                                        <Picker.Item key={clubId} label={teamNames[clubId]} value={clubId} />
+                                                    ))}
+                                                </Picker>
+                                            </ScrollView>
+                                        </SafeAreaView>
+                                        <View style={{ paddingHorizontal: 30, gap: 8, paddingBottom: 30 }}>
+                                            <FunctionButton title="Valider" onPress={handleValidation} />
+                                            <FunctionButton title="Annuler" onPress={() => setShowModal(false)} variant='primaryOutline' />
+                                        </View>
+                                    </View>
+                                </Modal>
+
+                                <Modal
+                                    visible={showPenaltyModal}
+                                    animationType="slide"
+                                    transparent={true}
+                                    onRequestClose={() => setShowPenaltyModal(false)}
+                                >
+                                    <View style={styles.modalView}>
+                                        <Text style={styles.modalText}>Entrez les scores de pénalty</Text>
+                                        <TextInput
+                                            style={styles.input}
+                                            onChangeText={setInputPenaltyScoreA}
+                                            value={inputPenaltyScoreA}
+                                            placeholder="Score A"
+                                            keyboardType="numeric"
+                                        />
+                                        <TextInput
+                                            style={styles.input}
+                                            onChangeText={setInputPenaltyScoreB}
+                                            value={inputPenaltyScoreB}
+                                            placeholder="Score B"
+                                            keyboardType="numeric"
+                                        />
+                                        <Button
+                                            title="Soumettre les scores"
+                                            onPress={handlePenaltySubmission}
+                                        />
+                                    </View>
+                                </Modal>
+                            </>
+                        )}
+                    </>
+                ) : (
+                    <Text>Chargement des détails du match...</Text>
+                )}
+            </ScrollView>
+        </SafeAreaView>
     );
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 20,
-        justifyContent: 'center',
-        alignItems: 'center'
+    imageContainer: {
+        alignItems: 'center',
+        marginTop: 20
+    },
+    logo: {
+        width: 150,
+        height: 150,
+        resizeMode: 'contain',
+        borderRadius: 10,
+    },
+    matchName: {
+        textTransform: 'uppercase',
+        color: colors.primary,
+        fontSize: 25,
+        fontFamily: fonts.OutfitBold,
+        textAlign: 'center'
+    },
+    matchDate: {
+        fontFamily: fonts.OutfitBold,
+        fontSize: 15,
+        color: colors.secondary,
+        textAlign: 'center'
+    },
+    matchContainer: {
+        paddingVertical: 15,
+        paddingHorizontal: 20,
+        borderRadius: 10,
+    },
+    matchInfoContainerTop: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    matchInfoClubImage: {
+        width: 50,
+        height: 50,
+        resizeMode: 'contain',
+        borderRadius: 10,
+    },
+    matchInfoClubLeft: {
+        paddingHorizontal: 10
+    },
+    matchInfoClubRight: {
+        paddingHorizontal: 10
+    },
+    matchInfoContainerBottom: {
+        flexDirection: 'row',
+        gap: 10,
+        justifyContent: 'space-between'
+    },
+    matchInfoContainerBottomText: {
+        fontSize: 14,
+        color: 'white',
+        fontFamily: fonts.OutfitBold,
+        paddingTop: 10,
+        paddingHorizontal: 10,
+    },
+    vsText: {
+        textAlign: 'center',
+        color: "white",
+        fontFamily: fonts.OutfitBold,
+        textTransform: 'uppercase',
+        fontSize: 30
+    },
+    victoryText: {
+        fontSize: 16,
+        fontFamily: fonts.OutfitBold,
+        color: colors.primary,
+        textAlign: 'center',
     },
     modalView: {
         margin: 20,
@@ -352,7 +612,16 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
         borderRadius: 5
     },
-
+    scoreText: {
+        color: colors.primary,
+        fontFamily: fonts.OutfitBold,
+        fontSize: 28
+    },
+    scoreCountText: {
+        color: 'white',
+        fontFamily: fonts.OutfitBold,
+        fontSize: 28
+    }
 });
 
 export default MatchDetailsScreen;

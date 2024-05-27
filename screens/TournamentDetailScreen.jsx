@@ -334,7 +334,7 @@ const TournamentDetailScreen = ({ route, navigation }) => {
                                                 style={styles.matchInfoClubImage}
                                             />
                                         </View>
-                                        <View style={styles.matchInfoTexts}>
+                                        <View>
                                             <Text style={styles.matchDate}>{new Date(match.date).toLocaleDateString()}</Text>
                                             <Text style={styles.matchTime}>{`${new Date(match.date).getHours()}h${new Date(match.date).getMinutes().toString().padStart(2, '0')}`}</Text>
                                         </View>
@@ -376,7 +376,7 @@ const TournamentDetailScreen = ({ route, navigation }) => {
                 {user.accountType === 'coach' && !isTournamentStarted() && tournament.availableSlots > 0 && (
                     <>
                         {user.teams.length > 0 ? (
-                            <View style={{ position: 'relative', paddingVertical: 15 }}>
+                            <View style={{ position: 'relative', paddingTop: 15 }}>
                                 <FunctionButton
                                     title="Rejoindre le tournoi"
                                     onPress={() => setModalVisible(true)}
@@ -438,11 +438,13 @@ const TournamentDetailScreen = ({ route, navigation }) => {
                     </>
                 )}
                 {((user.uid === tournament.createdBy) && (new Date() < new Date(tournament.startDate))) && (
-                    <FunctionButton
-                        title="Annuler le tournoi"
-                        onPress={deleteTournament}
-                        variant='error'
-                    />
+                    <View style={{ paddingTop: 15 }}>
+                        <FunctionButton
+                            title="Annuler le tournoi"
+                            onPress={deleteTournament}
+                            variant='error'
+                        />
+                    </View>
                 )}
             </ScrollView>
         </SafeAreaView>
