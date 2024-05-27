@@ -1,12 +1,22 @@
 import { useState, useEffect } from 'react';
-import { Text, TextInput, View, Button, StyleSheet, ScrollView, Switch, Alert } from 'react-native';
+import { Text, TextInput, View, Button, StyleSheet, ScrollView, Switch, Alert, Image, TouchableOpacity } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { doc, setDoc } from 'firebase/firestore';
 import { useNavigation } from '@react-navigation/native';
 import { db } from '../firebaseConfig';
 import uuid from 'uuid';
 import citiesData from '../data/citiesFR.json';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import globalStyles from '../styles/globalStyles';
+import { Label, PrimaryColorText, Title } from '../components/TextComponents';
+import CustomTextInput from '../components/CustomTextInput';
+import colors from '../styles/colors';
+import { fonts } from '../styles/fonts';
+import Spacer from '../components/Spacer';
+import { LinearGradient } from 'expo-linear-gradient';
+import { darkenColor } from '../utils/colors';
+import FunctionButton from '../components/FunctionButton';
 
 const categories = [
     'U6', 'U6 F', 'U7', 'U7 F', 'U8', 'U8 F', 'U9', 'U9 F', 'U10', 'U10 F',
@@ -53,6 +63,9 @@ function CreateTournamentFormScreen({ route }) {
     const navigation = useNavigation();
     const [searchQuery, setSearchQuery] = useState('');
     const [filteredCities, setFilteredCities] = useState([]);
+    const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+    const [isTimePickerVisible, setTimePickerVisibility] = useState(false);
+    const [currentMatch, setCurrentMatch] = useState({ roundIndex: 0, matchIndex: 0 });
 
     const [tournamentDetails, setTournamentDetails] = useState({
         id: '',
@@ -81,24 +94,26 @@ function CreateTournamentFormScreen({ route }) {
                     name === 'availableSlots' ? value : updatedDetails.availableSlots,
                     name === 'returnMatches' ? value : updatedDetails.returnMatches
                 );
-                updateTournamentDates(updatedDetails.matches); 
+                updateTournamentDates(updatedDetails.matches);
             }
             return updatedDetails;
         });
     };
 
-    const handleMatchDateChange = (roundIndex, matchIndex, selectedDate) => {
+    const handleMatchDateChange = (selectedDate) => {
         const newMatches = [...tournamentDetails.matches];
-        newMatches[roundIndex].matches[matchIndex].date = selectedDate || newMatches[roundIndex].matches[matchIndex].date;
+        newMatches[currentMatch.roundIndex].matches[currentMatch.matchIndex].date = selectedDate || newMatches[currentMatch.roundIndex].matches[currentMatch.matchIndex].date;
         handleChange('matches', newMatches);
         updateTournamentDates(newMatches);
+        setDatePickerVisibility(false);
     };
 
-    const handleMatchTimeChange = (roundIndex, matchIndex, selectedTime) => {
+    const handleMatchTimeChange = (selectedTime) => {
         const newMatches = [...tournamentDetails.matches];
-        newMatches[roundIndex].matches[matchIndex].time = selectedTime || newMatches[roundIndex].matches[matchIndex].time;
+        newMatches[currentMatch.roundIndex].matches[currentMatch.matchIndex].time = selectedTime || newMatches[currentMatch.roundIndex].matches[currentMatch.matchIndex].time;
         handleChange('matches', newMatches);
         updateTournamentDates(newMatches);
+        setTimePickerVisibility(false);
     };
 
     const updateTournamentDates = (matches) => {
@@ -106,8 +121,8 @@ function CreateTournamentFormScreen({ route }) {
         const allMatchTimes = matches.flatMap(round => round.matches.map(match => match.time));
 
         const startDate = new Date(Math.min(...allMatchDates));
-        
-        const combinedEndDateTimes = matches.flatMap(round => 
+
+        const combinedEndDateTimes = matches.flatMap(round =>
             round.matches.map(match => new Date(match.date.getFullYear(), match.date.getMonth(), match.date.getDate(), match.time.getHours(), match.time.getMinutes()))
         );
 
@@ -187,115 +202,193 @@ function CreateTournamentFormScreen({ route }) {
         return someDate.getDate() === today.getDate() && someDate.getMonth() === today.getMonth() && someDate.getFullYear() === today.getFullYear();
     };
 
+    const showDatePicker = (roundIndex, matchIndex) => {
+        setCurrentMatch({ roundIndex, matchIndex });
+        setDatePickerVisibility(true);
+    };
+
+    const showTimePicker = (roundIndex, matchIndex) => {
+        setCurrentMatch({ roundIndex, matchIndex });
+        setTimePickerVisibility(true);
+    };
+
     return (
-        <ScrollView style={styles.container}>
-            <Text>Créer un tournoi</Text>
-            <TextInput
-                placeholder="Nom du tournoi *"
-                value={tournamentDetails.name}
-                onChangeText={(text) => handleChange('name', text)}
-            />
-            <View style={styles.cities}>
-                <TextInput
-                    placeholder="Rechercher une ville *"
-                    value={tournamentDetails.place ? tournamentDetails.place : searchQuery}
-                    onChangeText={(text) => {
-                        setSearchQuery(text);
-                        handleChange('place', text);
-                        filterCities(text);
-                    }}
-                />
-                {filteredCities.length > 0 && (
-                    <View style={styles.citiesList}>
-                        {Array.from(new Set(filteredCities.map(city => city.Nom_commune)))
-                            .map((nomCommune, index) => (
-                                <Text
-                                    key={index}
-                                    onPress={() => {
-                                        handleChange('place', nomCommune);
-                                        setFilteredCities([]);
-                                        setSearchQuery(nomCommune);
-                                    }}
-                                    style={{ padding: 10 }}
-                                >
-                                    {nomCommune}
-                                </Text>
-                            ))}
-                    </View>
-                )}
+        <SafeAreaView style={globalStyles.container}>
+            <View style={globalStyles.headerContainerWithNoBorderBottom}>
+                <Title>Créez <PrimaryColorText>votre tournoi</PrimaryColorText></Title>
             </View>
-            <Text>Nombre de joueurs par équipe :</Text>
-            <Picker
-                selectedValue={tournamentDetails.playersPerTeam}
-                onValueChange={(itemValue) => handleChange('playersPerTeam', itemValue)}
+            <ScrollView
+                contentContainerStyle={globalStyles.scrollContainer}
             >
-                <Picker.Item label="3v3" value="3" />
-                <Picker.Item label="4v4" value="4" />
-                <Picker.Item label="5v5" value="5" />
-                <Picker.Item label="11v11" value="11" />
-            </Picker>
-            <Text>Niveau :</Text>
-            <Picker
-                selectedValue={tournamentDetails.category}
-                onValueChange={(itemValue) => handleChange('category', itemValue)}
-            >
-                {categories.map((category, index) => (
-                    <Picker.Item key={index} label={category} value={category} />
-                ))}
-            </Picker>
-            <Text>Genre : {tournamentDetails.gender === 'F' ? 'Féminin' : 'Masculin'}</Text>
-            <Text>Nombre de places disponibles :</Text>
-            <Picker
-                selectedValue={tournamentDetails.availableSlots}
-                onValueChange={(itemValue) => handleChange('availableSlots', itemValue)}
-            >
-                <Picker.Item label="4 équipes" value="4" />
-                <Picker.Item label="8 équipes" value="8" />
-                <Picker.Item label="16 équipes" value="16" />
-                <Picker.Item label="32 équipes" value="32" />
-            </Picker>
-            <Text>Matchs retours :</Text>
-            <Switch
-                value={tournamentDetails.returnMatches}
-                onValueChange={(value) => handleChange('returnMatches', value)}
-            />
-            {tournamentDetails.matches.map((round, roundIndex) => (
-                <View key={roundIndex} style={styles.roundContainer}>
-                    <Text>{round.phase}</Text>
-                    {round.matches.map((match, matchIndex) => (
-                        <View key={matchIndex} style={styles.matchContainer}>
-                            <Text>Match {matchIndex + 1}</Text>
-                            <Text>Date :</Text>
-                            <DateTimePicker
-                                value={match.date}
-                                mode="date"
-                                display="default"
-                                onChange={(event, selectedDate) => handleMatchDateChange(roundIndex, matchIndex, selectedDate)}
-                                minimumDate={new Date()}
-                            />
-                            <Text>Heure :</Text>
-                            <DateTimePicker
-                                value={match.time}
-                                mode="time"
-                                display="default"
-                                onChange={(event, selectedTime) => handleMatchTimeChange(roundIndex, matchIndex, selectedTime)}
-                                minimumDate={isToday(match.date) ? new Date() : undefined}
-                            />
-                        </View>
-                    ))}
+                <CustomTextInput
+                    label="Nom du tournoi"
+                    placeholder="Saisissez le nom du tournoi"
+                    value={tournamentDetails.name}
+                    onChangeText={(text) => handleChange('name', text)}
+                />
+                <View style={{ paddingTop: 15 }}>
+                    <Label>Catégorie</Label>
+                    <Picker
+                        selectedValue={tournamentDetails.category}
+                        onValueChange={(itemValue) => handleChange('category', itemValue)}
+                    >
+                        {categories.map((category, index) => (
+                            <Picker.Item key={index} label={category} value={category} />
+                        ))}
+                    </Picker>
                 </View>
-            ))}
-            <Text>Temps de jeu :</Text>
-            <Picker
-                selectedValue={tournamentDetails.gameDuration}
-                onValueChange={(itemValue) => handleChange('gameDuration', itemValue)}
-            >
-                <Picker.Item label="30 minutes" value="30 minutes" />
-                <Picker.Item label="60 minutes" value="60 minutes" />
-                <Picker.Item label="90 minutes" value="90 minutes" />
-            </Picker>
-            <Button title="Soumettre" onPress={handleSubmit} />
-        </ScrollView>
+                <View style={styles.cities}>
+                    <CustomTextInput
+                        label="Ville"
+                        placeholder="Cherchez votre ville"
+                        value={tournamentDetails.place ? tournamentDetails.place : searchQuery}
+                        onChangeText={(text) => {
+                            setSearchQuery(text);
+                            handleChange('place', text);
+                            filterCities(text);
+                        }}
+                    />
+                    {filteredCities.length > 0 && (
+                        <View style={styles.citiesList}>
+                            {Array.from(new Set(filteredCities.map(city => city.Nom_commune)))
+                                .map((nomCommune, index) => (
+                                    <Text
+                                        key={index}
+                                        onPress={() => {
+                                            handleChange('place', nomCommune);
+                                            setFilteredCities([]);
+                                            setSearchQuery(nomCommune);
+                                        }}
+                                        style={styles.city}
+                                    >
+                                        {nomCommune}
+                                    </Text>
+                                ))}
+                        </View>
+                    )}
+                </View>
+                <View style={{ paddingTop: 15 }}>
+                    <Label>Temps de jeu</Label>
+                    <Picker
+                        selectedValue={tournamentDetails.gameDuration}
+                        onValueChange={(itemValue) => handleChange('gameDuration', itemValue)}
+                    >
+                        <Picker.Item label="30 minutes" value="30 minutes" />
+                        <Picker.Item label="60 minutes" value="60 minutes" />
+                        <Picker.Item label="90 minutes" value="90 minutes" />
+                    </Picker>
+                </View>
+                <View style={{ paddingTop: 15 }}>
+                    <Label>Nombre de joueurs par équipe</Label>
+                    <Picker
+                        selectedValue={tournamentDetails.playersPerTeam}
+                        onValueChange={(itemValue) => handleChange('playersPerTeam', itemValue)}
+                    >
+                        <Picker.Item label="3v3" value="3" />
+                        <Picker.Item label="4v4" value="4" />
+                        <Picker.Item label="5v5" value="5" />
+                        <Picker.Item label="11v11" value="11" />
+                    </Picker>
+                </View>
+                <View style={{ paddingTop: 15 }}>
+                    <Label>Nombre de places</Label>
+                    <Picker
+                        selectedValue={tournamentDetails.availableSlots}
+                        onValueChange={(itemValue) => handleChange('availableSlots', itemValue)}
+                    >
+                        <Picker.Item label="4 équipes" value="4" />
+                        <Picker.Item label="8 équipes" value="8" />
+                        <Picker.Item label="16 équipes" value="16" />
+                        <Picker.Item label="32 équipes" value="32" />
+                    </Picker>
+                </View>
+                <View style={styles.checkboxContainer}>
+                    <Switch
+                        value={tournamentDetails.returnMatches}
+                        onValueChange={(value) => handleChange('returnMatches', value)}
+                        trackColor={{ true: colors.primary }}
+                        style={{ transform: [{ scaleX: 0.9 }, { scaleY: 0.9 }] }}
+                    />
+                    <Text style={[styles.textCheckbox, { color: tournamentDetails.returnMatches ? colors.primary : colors.secondary }]}>
+                        Matchs retours
+                    </Text>
+                </View>
+                <Spacer top={10}/>
+                <View style={styles.matchsContainer}>
+                    <Text style={styles.matchsTitle}>Matchs</Text>
+                </View>
+                {tournamentDetails.matches.map((round, roundIndex) => (
+                    <View key={roundIndex} style={styles.roundContainer}>
+                        <Text style={styles.roundTitle}>{round.phase}</Text>
+                        {round.matches.map((match, matchIndex) => (
+                            <LinearGradient
+                                key={matchIndex}
+                                start={{ x: 0, y: 0.5 }}
+                                end={{ x: 1, y: 0.5 }}
+                                colors={[darkenColor(colors.primary, -20), colors.primary]}
+                                locations={[0.3, 1]}
+                                style={{ borderRadius: 10 }}
+                            >
+                                
+                                <View key={matchIndex} style={styles.matchContainer}>
+                                    <View style={styles.matchInfoClubLeft}>
+                                        <Image
+                                            source={require('../assets/clubTeamEmpty.png')}
+                                            style={styles.matchInfoClubImage}
+                                        />
+                                    </View>
+                                    <View style={styles.matchInfoClubMid}>
+                                        <Text style={styles.matchInfoClubMidText}>Match  {matchIndex + 1}</Text>
+                                        <TouchableOpacity onPress={() => showDatePicker(roundIndex, matchIndex)} style={styles.datePickerContainer}>
+                                            <Text style={styles.datePickerText}>
+                                                {match.date.toLocaleDateString()}
+                                            </Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity onPress={() => showTimePicker(roundIndex, matchIndex)} style={styles.datePickerContainer}>
+                                            <Text style={styles.datePickerText}>
+                                                {`${match.time.getHours()}:${match.time.getMinutes().toString().padStart(2, '0')}`}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                    <View style={styles.matchInfoClubRight}>
+                                        <Image
+                                            source={require('../assets/clubTeamEmpty.png')}
+                                            style={styles.matchInfoClubImage}
+                                        />
+                                    </View>
+                                </View>
+                            </LinearGradient>
+                        ))}
+                    </View>
+                ))}
+                <Spacer />
+                <FunctionButton
+                    title="Créer mon tournoi"
+                    onPress={handleSubmit}
+                />
+                <DateTimePickerModal
+                    isVisible={isDatePickerVisible}
+                    mode="date"
+                    onConfirm={handleMatchDateChange}
+                    onCancel={() => setDatePickerVisibility(false)}
+                    minimumDate={new Date()}
+                    headerTextIOS="Choisissez une date"
+                    confirmTextIOS="Confirmer"
+                    cancelTextIOS="Annuler"
+                />
+                <DateTimePickerModal
+                    isVisible={isTimePickerVisible}
+                    mode="time"
+                    onConfirm={handleMatchTimeChange}
+                    onCancel={() => setTimePickerVisibility(false)}
+                    minimumDate={new Date()}
+                    headerTextIOS="Choisissez une heure"
+                    confirmTextIOS="Confirmer"
+                    cancelTextIOS="Annuler"
+                    minuteInterval={5}
+                />
+            </ScrollView>
+        </SafeAreaView>
     );
 }
 
@@ -309,9 +402,15 @@ const styles = StyleSheet.create({
     },
     citiesList: {
         backgroundColor: 'white',
-        borderWidth: 1,
-        borderColor: '#ddd',
-        maxHeight: 150,
+        gap: 5,
+        marginTop: 5,
+        width: '100%',
+    },
+    city: {
+        padding: 11,
+        borderWidth: 2,
+        borderRadius: 8,
+        borderColor: colors.secondary,
     },
     roundContainer: {
         marginBottom: 20,
@@ -322,6 +421,75 @@ const styles = StyleSheet.create({
     },
     matchContainer: {
         marginBottom: 10,
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        alignItems: 'center',
+        flexDirection: 'row',
+        justifyContent: 'space-between'
+    },
+    checkboxContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 15,
+        gap: 15,
+    },
+    textCheckbox: {
+        fontSize: 16,
+        fontFamily: fonts.OutfitSemiBold,
+        color: colors.secondary
+    },
+    matchsContainer: {
+        borderRadius: 10,
+    },
+    matchsTitle: {
+        fontSize: 16,
+        textTransform: 'uppercase',
+        fontFamily: fonts.OutfitBold,
+        color: colors.primary,
+        textAlign: 'center',
+    },
+    roundContainer: {
+        marginVertical: 15,
+        gap: 20,
+    },
+    roundTitle: {
+        fontSize: 14,
+        textAlign: 'center',
+        fontFamily: fonts.OutfitSemiBold,
+        color: colors.darkgrey
+    },
+    matchInfoClubLeft: {
+        paddingHorizontal: 10
+    },
+    matchInfoClubRight: {
+        paddingHorizontal: 10
+    },
+    matchInfoClubImage: {
+        width: 50,
+        height: 50,
+        resizeMode: 'contain',
+        borderRadius: 10,
+    },
+    matchInfoClubMid: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 5,
+    },
+    matchInfoClubMidText: {
+        color: 'white',
+        fontFamily: fonts.OutfitBold,
+        textTransform: 'uppercase',
+    },
+    datePickerContainer: {
+        backgroundColor: 'white',
+        paddingHorizontal: 10,
+        borderRadius: 8
+    },
+    datePickerText: {
+        color: 'black',
+        fontFamily: fonts.OutfitBold,
+        fontSize: 16,
+        paddingVertical: 5,
     }
 });
 
