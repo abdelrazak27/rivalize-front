@@ -46,6 +46,14 @@ const TournamentDetailScreen = ({ route, navigation }) => {
         setTeamNamesModal(names);
     };
 
+    const isUserCoachOfParticipatingTeam = () => {
+        if (!tournament || !user || user.accountType !== 'coach') return false;
+        if(user.accountType === 'coach') {
+            return user.teams.some(teamId => tournament.participatingClubs.includes(teamId));
+        }
+    };
+    
+
     const fetchTournament = async () => {
         const docRef = doc(db, 'tournois', tournamentId);
         const docSnap = await getDoc(docRef);
@@ -284,15 +292,18 @@ const TournamentDetailScreen = ({ route, navigation }) => {
                 </View>
                 <Text style={styles.tournamentName}>{tournament.name}</Text>
                 <Text style={styles.tournamentPlaces}>Place(s) disponible(s) : {tournament.availableSlots}</Text>
-                {/* TODO : uniquement les coachs participants */}
-                <View style={{ paddingTop: 20 }}>
-                    <FunctionButton
-                        title="Conversation du tournoi"
-                        onPress={() => openChatModal(tournamentId)}
-                    />
-                </View>
-                <Spacer />
 
+                {user.uid === tournament.createdBy || isUserCoachOfParticipatingTeam() ? (
+                    <View style={{ paddingTop: 20 }}>
+                        <FunctionButton
+                            title="Conversation du tournoi"
+                            onPress={() => openChatModal(tournamentId)}
+                        />
+                    </View>
+                ) : null}
+
+
+                <Spacer />
                 <Label>Informations du tournoi</Label>
                 <View style={styles.teamInfoContainer}>
                     <View style={styles.teamInfoItemContainer}>
@@ -346,8 +357,6 @@ const TournamentDetailScreen = ({ route, navigation }) => {
                     <Text style={styles.matchsTitle}>Match du tournois</Text>
                 </View>
 
-                {/* todo, faire en fonction de s'il y a un club choisi pour cette équipe ou non */}
-                {/* todo, le score si y a un score */}
                 {tournament.matches.map((round, roundIndex) => (
                     <View key={roundIndex} style={styles.roundContainer}>
                         <Text style={styles.roundTitle}>{round.phase}</Text>
