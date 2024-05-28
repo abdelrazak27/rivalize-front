@@ -1,17 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { GiftedChat } from 'react-native-gifted-chat';
 import { collection, query, onSnapshot, addDoc, serverTimestamp } from "firebase/firestore";
-import { useUser } from '../context/UserContext';
 import { db } from '../firebaseConfig';
-import { useNavigation } from '@react-navigation/native';
+import { View, Text, ActivityIndicator, StyleSheet, LogBox } from 'react-native';
+import { useUser } from '../context/UserContext';
 
 function ChatScreen({ route }) {
     const { tournamentId } = route.params;
     const [messages, setMessages] = useState([]);
     const { user } = useUser();
-    const navigation = useNavigation();
+
+    LogBox.ignoreLogs([
+        'Avatar: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.'
+    ]);
 
     useEffect(() => {
+        if (!user) return;
+
         const messagesCollection = collection(db, "tournois", tournamentId, "messages");
         const q = query(messagesCollection);
 
@@ -28,13 +33,15 @@ function ChatScreen({ route }) {
         });
 
         return () => unsubscribe();
-    }, [tournamentId]);
+    }, [tournamentId, user]);
 
     const appendMessages = (messages) => {
         setMessages((previousMessages) => GiftedChat.append(previousMessages, messages));
     };
 
     const onSend = async (messages = []) => {
+        if (!user) return;
+
         const writes = messages.map(m => addDoc(collection(db, "tournois", tournamentId, "messages"), {
             ...m,
             user: {
@@ -46,22 +53,39 @@ function ChatScreen({ route }) {
         await Promise.all(writes);
     };
 
-    const handleAvatarPress = (user) => {
-        navigation.navigate('ProfileScreen', { userId: user._id });
-    };
+    if (!user) {
+        return (
+            <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#0000ff" />
+                <Text>Chargement de l'utilisateur...</Text>
+            </View>
+        );
+    }
 
     return (
-        <GiftedChat
-            messages={messages}
-            onSend={messages => onSend(messages)}
-            user={{
-                _id: user.uid,
-                name: `${user.firstname} ${user.lastname}`
-            }}
-            onPressAvatar={user => handleAvatarPress(user)}
-            renderUsernameOnMessage={true}
-        />
+        <View style={styles.container}>
+            <GiftedChat
+                messages={messages}
+                onSend={messages => onSend(messages)}
+                user={{
+                    _id: user.uid,
+                    name: `${user.firstname} ${user.lastname}`
+                }}
+                renderUsernameOnMessage={true}
+            />
+        </View>
     );
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+});
 
 export default ChatScreen;
