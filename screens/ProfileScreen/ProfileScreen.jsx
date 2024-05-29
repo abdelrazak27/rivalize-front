@@ -17,6 +17,8 @@ import { CommonActions, useNavigation } from '@react-navigation/native';
 import colors from '../../styles/colors';
 import { getTeamName } from '../../utils/teams';
 import ItemList from '../../components/ItemList';
+import { useLoading } from '../../context/LoadingContext';
+import LoadingOverlay from '../LoadingOverlay';
 
 function ProfileScreen({ route }) {
     const { userId } = route.params;
@@ -30,9 +32,11 @@ function ProfileScreen({ route }) {
     const isCurrentUserProfile = user.uid === userId;
     const navigation = useNavigation();
     const [requestedClubName, setRequestedClubName] = useState('');
+    const { setIsLoading } = useLoading();
 
     useEffect(() => {
         const fetchRequestedClubName = async () => {
+            setIsLoading(true);
             if (user && user.requestedJoinClubId) {
                 const requestRef = doc(db, 'requests_join_club', user.requestedJoinClubId);
                 const requestDoc = await getDoc(requestRef);
@@ -45,6 +49,7 @@ function ProfileScreen({ route }) {
                     }
                 }
             }
+            setIsLoading(false);
         };
 
         fetchRequestedClubName();
@@ -102,7 +107,9 @@ function ProfileScreen({ route }) {
     }, [userId, user.teams, playerDetails]);
 
     const handleInvitePlayer = async () => {
+        setIsLoading(true);
         if (!selectedTeam) {
+            setIsLoading(false);
             Alert.alert("Erreur", "Veuillez sélectionner un club.");
             return;
         }
@@ -137,10 +144,11 @@ function ProfileScreen({ route }) {
             setAvailableTeams(prev => prev.filter(team => team.id !== selectedTeam));
 
             setSelectedTeam('');
-
+            setIsLoading(false);
             Alert.alert("Invitation envoyée", "L'invitation a été envoyée avec succès.");
             setModalVisible(false);
         } catch (error) {
+            setIsLoading(false);
             console.error("Erreur lors de l'envoi de l'invitation :", error);
             Alert.alert("Erreur", "Une erreur est survenue lors de l'envoi de l'invitation.");
         }
@@ -163,7 +171,9 @@ function ProfileScreen({ route }) {
     };
 
     const handleCancelRequest = async () => {
+        setIsLoading(true);
         if (!user.requestedJoinClubId) {
+            setIsLoading(false);
             Alert.alert("Aucune demande active", "Vous n'avez pas de demande active à annuler.");
             return;
         }
@@ -176,13 +186,20 @@ function ProfileScreen({ route }) {
             await updateDoc(userRef, { requestedJoinClubId: null });
 
             setUser(prevState => ({ ...prevState, requestedJoinClubId: null }));
-
+            setIsLoading(false);
             Alert.alert("Demande annulée", "Votre demande pour rejoindre le club a été annulée avec succès.");
         } catch (error) {
+            setIsLoading(false);
             console.error("Erreur lors de l'annulation de la demande :", error);
             Alert.alert("Erreur", "Une erreur est survenue lors de l'annulation de la demande.");
         }
     };
+
+    if(!playerDetails) {
+        return (
+            <LoadingOverlay visible={true} />
+        )
+    }
 
     return (
         <SafeAreaView style={globalStyles.container}>
@@ -199,7 +216,7 @@ function ProfileScreen({ route }) {
                     <ScrollView
                         contentContainerStyle={globalStyles.scrollContainer}
                     >
-                        {playerDetails ? (
+                        {playerDetails && (
                             <>
                                 {isCurrentUserProfile && (
                                     <View style={styles.section}>
@@ -372,8 +389,6 @@ function ProfileScreen({ route }) {
                                     </>
                                 )}
                             </>
-                        ) : (
-                            <Text>Chargement...</Text>
                         )}
                     </ScrollView>
                 </>
