@@ -28,6 +28,7 @@ function HomeScreen({ route }) {
 
     useEffect(() => {
         const fetchRequestedClubName = async () => {
+            setIsLoading(true);
             if (user && user.requestedJoinClubId) {
                 const requestRef = doc(db, 'requests_join_club', user.requestedJoinClubId);
                 const requestDoc = await getDoc(requestRef);
@@ -40,6 +41,7 @@ function HomeScreen({ route }) {
                     }
                 }
             }
+            setIsLoading(false);
         };
 
         fetchRequestedClubName();

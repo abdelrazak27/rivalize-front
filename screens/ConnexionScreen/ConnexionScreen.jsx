@@ -1,7 +1,7 @@
-import { BackHandler, Text, Alert, StyleSheet, View, Button, ScrollView } from 'react-native'
+import { BackHandler, Text, Alert, StyleSheet, View, Button, ScrollView } from 'react-native';
 import { useEffect, useState } from 'react';
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
-import app from '../../firebaseConfig';
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
+import app, { db } from '../../firebaseConfig';
 import { useUser } from '../../context/UserContext';
 import { doc, getDoc, getFirestore } from 'firebase/firestore';
 import { CommonActions, useNavigation } from '@react-navigation/native';
@@ -16,8 +16,13 @@ import { useLoading } from '../../context/LoadingContext';
 
 const auth = getAuth(app);
 
-
 function ConnexionScreen() {
+    const { setIsLoading } = useLoading();
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const { user, setUser } = useUser();
+    const navigation = useNavigation();
+
     useEffect(() => {
         const backHandler = BackHandler.addEventListener(
             'hardwareBackPress',
@@ -26,13 +31,31 @@ function ConnexionScreen() {
 
         return () => backHandler.remove();
     }, []);
-    
-    const { setIsLoading } = useLoading();
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const { setUser } = useUser();
-    const db = getFirestore(app);
-    const navigation = useNavigation();
+
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, async (userFound) => {
+            if (userFound && !user) {
+                setIsLoading(true);
+                const userRef = doc(db, "utilisateurs", userFound.uid);
+                const userSnap = await getDoc(userRef);
+                if (userSnap.exists()) {
+                    const userData = { uid: userFound.uid, email: userFound.email, ...userSnap.data() };
+                    setUser(userData);
+                    setIsLoading(false);
+                    navigation.dispatch(
+                        CommonActions.reset({
+                            index: 0,
+                            routes: [{ name: 'HomeScreen', params: { noAnimation: true } }],
+                        })
+                    );
+                } else {
+                    setIsLoading(false);
+                    Alert.alert('Erreur', 'Une erreur est survenue dans la récupération des données.');
+                }
+            }
+        });
+        return unsubscribe;
+    }, []);
 
     const handleSignIn = () => {
         setIsLoading(true);
@@ -48,7 +71,7 @@ function ConnexionScreen() {
                     navigation.dispatch(
                         CommonActions.reset({
                             index: 0,
-                            routes: [{ name: 'HomeScreen' }],
+                            routes: [{ name: 'HomeScreen', params: { noAnimation: true } }],
                         })
                     );
                 } else {
@@ -64,137 +87,53 @@ function ConnexionScreen() {
             });
     };
 
-    // TODO : à retirer pour la version finale
     const handleSignInForce = (type) => {
+        setIsLoading(true);
+        let email = "";
+        let password = "";
         if (type === "player") {
-            setIsLoading(true);
-            signInWithEmailAndPassword(auth, "player@rivalize.fr", "@Player1")
-                .then(async (userCredentials) => {
-                    const user = userCredentials.user;
-                    const userRef = doc(db, "utilisateurs", user.uid);
-                    const userSnap = await getDoc(userRef);
-                    if (userSnap.exists()) {
-                        const userData = { uid: user.uid, email: user.email, ...userSnap.data() };
-                        setUser(userData);
-                        setIsLoading(false);
-                        navigation.dispatch(
-                            CommonActions.reset({
-                                index: 0,
-                                routes: [{ name: 'HomeScreen' }],
-                            })
-                        );
-                    } else {
-                        setIsLoading(false);
-                        Alert.alert('Erreur de connexion', 'Une erreur est survenue dans la récupération des données.');
-                    }
-                })
-                .catch((error) => {
+            email = "player@rivalize.fr";
+            password = "@Player1";
+        } else if (type === "player2") {
+            email = "player2@rivalize.fr";
+            password = "@Player2";
+        } else if (type === "coach") {
+            email = "coach@rivalize.fr";
+            password = "@Coach11";
+        } else if (type === "coach2") {
+            email = "coach2@rivalize.fr";
+            password = "@Coach22";
+        } else if (type === "visitor") {
+            email = "visitor@rivalize.fr";
+            password = "@Visitor1";
+        }
+
+        signInWithEmailAndPassword(auth, email, password)
+            .then(async (userCredentials) => {
+                const user = userCredentials.user;
+                const userRef = doc(db, "utilisateurs", user.uid);
+                const userSnap = await getDoc(userRef);
+                if (userSnap.exists()) {
+                    const userData = { uid: user.uid, email: user.email, ...userSnap.data() };
+                    setUser(userData);
                     setIsLoading(false);
-                    const errorCode = error.code;
-                    const errorMessage = getErrorMessage(errorCode);
-                    Alert.alert('Erreur de connexion', errorMessage);
-                });
-        }
-        if (type === "player2") {
-            signInWithEmailAndPassword(auth, "player2@rivalize.fr", "@Player2")
-                .then(async (userCredentials) => {
-                    const user = userCredentials.user;
-                    const userRef = doc(db, "utilisateurs", user.uid);
-                    const userSnap = await getDoc(userRef);
-                    if (userSnap.exists()) {
-                        const userData = { uid: user.uid, email: user.email, ...userSnap.data() };
-                        setUser(userData);
-                        navigation.dispatch(
-                            CommonActions.reset({
-                                index: 0,
-                                routes: [{ name: 'HomeScreen' }],
-                            })
-                        );
-                    } else {
-                        Alert.alert('Erreur de connexion', 'Une erreur est survenue dans la récupération des données.');
-                    }
-                })
-                .catch((error) => {
-                    const errorCode = error.code;
-                    const errorMessage = getErrorMessage(errorCode);
-                    Alert.alert('Erreur de connexion', errorMessage);
-                });
-        }
-        if (type === "coach") {
-            signInWithEmailAndPassword(auth, "coach@rivalize.fr", "@Coach11")
-                .then(async (userCredentials) => {
-                    const user = userCredentials.user;
-                    const userRef = doc(db, "utilisateurs", user.uid);
-                    const userSnap = await getDoc(userRef);
-                    if (userSnap.exists()) {
-                        const userData = { uid: user.uid, email: user.email, ...userSnap.data() };
-                        setUser(userData);
-                        navigation.dispatch(
-                            CommonActions.reset({
-                                index: 0,
-                                routes: [{ name: 'HomeScreen' }],
-                            })
-                        );
-                    } else {
-                        Alert.alert('Erreur de connexion', 'Une erreur est survenue dans la récupération des données.');
-                    }
-                })
-                .catch((error) => {
-                    const errorCode = error.code;
-                    const errorMessage = getErrorMessage(errorCode);
-                    Alert.alert('Erreur de connexion', errorMessage);
-                });
-        }
-        if (type === "coach2") {
-            signInWithEmailAndPassword(auth, "coach2@rivalize.fr", "@Coach22")
-                .then(async (userCredentials) => {
-                    const user = userCredentials.user;
-                    const userRef = doc(db, "utilisateurs", user.uid);
-                    const userSnap = await getDoc(userRef);
-                    if (userSnap.exists()) {
-                        const userData = { uid: user.uid, email: user.email, ...userSnap.data() };
-                        setUser(userData);
-                        navigation.dispatch(
-                            CommonActions.reset({
-                                index: 0,
-                                routes: [{ name: 'HomeScreen' }],
-                            })
-                        );
-                    } else {
-                        Alert.alert('Erreur de connexion', 'Une erreur est survenue dans la récupération des données.');
-                    }
-                })
-                .catch((error) => {
-                    const errorCode = error.code;
-                    const errorMessage = getErrorMessage(errorCode);
-                    Alert.alert('Erreur de connexion', errorMessage);
-                });
-        }
-        if (type === "visitor") {
-            signInWithEmailAndPassword(auth, "visitor@rivalize.fr", "@Visitor1")
-                .then(async (userCredentials) => {
-                    const user = userCredentials.user;
-                    const userRef = doc(db, "utilisateurs", user.uid);
-                    const userSnap = await getDoc(userRef);
-                    if (userSnap.exists()) {
-                        const userData = { uid: user.uid, email: user.email, ...userSnap.data() };
-                        setUser(userData);
-                        navigation.dispatch(
-                            CommonActions.reset({
-                                index: 0,
-                                routes: [{ name: 'HomeScreen' }],
-                            })
-                        );
-                    } else {
-                        Alert.alert('Erreur de connexion', 'Une erreur est survenue dans la récupération des données.');
-                    }
-                })
-                .catch((error) => {
-                    const errorCode = error.code;
-                    const errorMessage = getErrorMessage(errorCode);
-                    Alert.alert('Erreur de connexion', errorMessage);
-                });
-        }
+                    navigation.dispatch(
+                        CommonActions.reset({
+                            index: 0,
+                            routes: [{ name: 'HomeScreen', params: { noAnimation: true } }],
+                        })
+                    );
+                } else {
+                    setIsLoading(false);
+                    Alert.alert('Erreur de connexion', 'Une erreur est survenue dans la récupération des données.');
+                }
+            })
+            .catch((error) => {
+                setIsLoading(false);
+                const errorCode = error.code;
+                const errorMessage = getErrorMessage(errorCode);
+                Alert.alert('Erreur de connexion', errorMessage);
+            });
     };
 
     const getErrorMessage = (errorCode) => {
@@ -217,7 +156,6 @@ function ConnexionScreen() {
                 return 'Une erreur est survenue. Veuillez réessayer.';
         }
     };
-    
 
     const isButtonDisabled = email.length === 0 || password.length === 0;
 
@@ -248,7 +186,7 @@ function ConnexionScreen() {
                     <Text style={styles.orText}>ou</Text>
                     <RedirectLinkButton routeName="SignUpScreen" title="S'inscrire" variant='primaryOutline' />
                 </View>
-            
+
                 <Button title="Se connecter en tant que joueur" onPress={() => handleSignInForce("player")} />
                 <Button title="Se connecter en tant que joueurBis" onPress={() => handleSignInForce("player2")} />
                 <Button title="Se connecter en tant que coach" onPress={() => handleSignInForce("coach")} />

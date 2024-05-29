@@ -139,7 +139,14 @@ function App() {
                 animationEnabled: false,
               }}
             />
-            <Stack.Screen name="HomeScreen" component={HomeScreen} options={{ headerLeft: null }} />
+            <Stack.Screen
+              name="HomeScreen"
+              component={HomeScreen}
+              options={({ route }) => ({
+                headerLeft: null,
+                animationEnabled: route.params && route.params.noAnimation ? false : true,
+              })}
+            />
             <Stack.Screen name="SignUpScreen" component={SignUpScreen} />
             <Stack.Screen name="SignUpComplete" component={SignUpComplete} options={{ headerLeft: null, headerRight: null }} />
             <Stack.Screen name="CreateTeamScreen" component={CreateTeamScreen} />
