@@ -275,35 +275,45 @@ const MatchDetailsScreen = ({ route }) => {
     };
 
     const saveClubSelection = async () => {
-        if (clubA && clubB) {
+        if (clubA || clubB) {
             setIsLoading(true);
             const tournamentRef = doc(db, 'tournois', tournamentId);
             const tournamentSnap = await getDoc(tournamentRef);
             if (tournamentSnap.exists()) {
                 const tournamentData = tournamentSnap.data();
-
+    
                 tournamentData.matches[roundIndex].matches[matchIndex] = {
                     ...tournamentData.matches[roundIndex].matches[matchIndex],
-                    clubA: clubA,
-                    clubB: clubB
+                    clubA: clubA || null,
+                    clubB: clubB || null
                 };
-
+    
                 try {
                     await updateDoc(tournamentRef, {
                         matches: tournamentData.matches
                     });
                     
-                    const [nameA, nameB] = await Promise.all([getTeamName(clubA), getTeamName(clubB)]);
-                    const [logoA, logoB] = await Promise.all([fetchTeamLogo(clubA), fetchTeamLogo(clubB)]);
+                    const nameA = clubA ? await getTeamName(clubA) : null;
+                    const nameB = clubB ? await getTeamName(clubB) : null;
+                    const logoA = clubA ? await fetchTeamLogo(clubA) : null;
+                    const logoB = clubB ? await fetchTeamLogo(clubB) : null;
                     
-                    setTeamNames(prevNames => ({ ...prevNames, [clubA]: nameA, [clubB]: nameB }));
-                    setTeamLogos({ clubA: logoA, clubB: logoB });
+                    setTeamNames(prevNames => ({
+                        ...prevNames,
+                        ...(clubA && { [clubA]: nameA }),
+                        ...(clubB && { [clubB]: nameB })
+                    }));
+                    setTeamLogos(prevLogos => ({
+                        ...prevLogos,
+                        ...(clubA && { clubA: logoA }),
+                        ...(clubB && { clubB: logoB })
+                    }));
                     setMatchDetails(prevDetails => ({
                         ...prevDetails,
                         clubA,
                         clubB
                     }));
-
+    
                     setIsLoading(false);
                     Alert.alert("Succès", "Les détails du match ont été mis à jour avec succès.", [{ text: "OK" }]);
                 } catch (error) {
@@ -312,8 +322,11 @@ const MatchDetailsScreen = ({ route }) => {
                     Alert.alert("Erreur", "Échec de la mise à jour du match.", [{ text: "Réessayer" }]);
                 }
             }
+        } else {
+            Alert.alert("Erreur", "Veuillez sélectionner au moins une équipe.");
         }
     };
+    
 
     return (
         <SafeAreaView style={globalStyles.container}>

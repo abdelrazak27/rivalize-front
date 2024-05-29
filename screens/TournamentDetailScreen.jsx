@@ -103,6 +103,14 @@ const TournamentDetailScreen = ({ route, navigation }) => {
         }
     }, [user.teams]);
 
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('focus', () => {
+            fetchTournament();
+        });
+
+        return unsubscribe;
+    }, [navigation]);
+
     const updateTournamentState = (newState) => {
         setTournament((prevTournament) => ({
             ...prevTournament,
