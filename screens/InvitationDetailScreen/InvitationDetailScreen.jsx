@@ -58,8 +58,8 @@ function InvitationDetailScreen() {
 
             if (userDoc.data().team) {
                 Alert.alert(
-                    "Changement d'équipe",
-                    "Accepter cette invitation vous fera quitter votre équipe actuelle. Voulez-vous continuer ?",
+                    "Changement de club",
+                    "Accepter cette invitation vous fera quitter votre club actuel. Voulez-vous continuer ?",
                     [
                         {
                             text: "Annuler",
@@ -67,6 +67,7 @@ function InvitationDetailScreen() {
                         },
                         {
                             text: "Continuer",
+                            style: "destructive",
                             onPress: async () => {
                                 await updateInvitationAndUser(userRef, invitationRef);
                             }
@@ -78,7 +79,7 @@ function InvitationDetailScreen() {
             }
         } else {
             await updateDoc(invitationRef, { state: newState });
-            Alert.alert("Invitation refusée.");
+            Alert.alert("Invitation refusée");
 
             navigation.dispatch(
                 CommonActions.reset({
@@ -113,7 +114,7 @@ function InvitationDetailScreen() {
         };
         await setUser(updatedUserData);
 
-        Alert.alert("Invitation acceptée !");
+        Alert.alert("Invitation acceptée");
         navigation.dispatch(
             CommonActions.reset({
                 index: 0,
@@ -156,7 +157,7 @@ function InvitationDetailScreen() {
                                 />
                                 {hasTeam && (
                                     <Text style={[styles.textInfos, { fontSize: 14, color: colors.error, textAlign: 'center' }]}>
-                                        Attention : Vous faites déjà parti d'une équipe. Accepter cette invitation vous fera quitter votre équipe actuelle.
+                                        Attention : Vous faites déjà parti d'un club. Accepter cette invitation vous fera quitter votre club actuel.
                                     </Text>
                                 )}
                             </View>

@@ -133,14 +133,23 @@ function CreateTournamentFormScreen({ route }) {
     };
 
     const validateFields = () => {
+        const fieldLabels = {
+            name: 'Nom du tournoi',
+            place: 'Commune',
+            playersPerTeam: 'Nombre de joueurs par équipe',
+            category: 'Catégorie',
+            availableSlots: 'Nombre de places',
+            gameDuration: 'Temps de jeu'
+        };
+    
         const requiredFields = ['name', 'place', 'playersPerTeam', 'category', 'availableSlots', 'gameDuration'];
         for (const field of requiredFields) {
             if (!tournamentDetails[field]) {
-                return `Le champ "${field}" est obligatoire.`;
+                return `Le champ "${fieldLabels[field]}" est obligatoire.`;
             }
         }
         return null;
-    };
+    };    
 
     const handleSubmit = async () => {
         const validationError = validateFields();
@@ -239,8 +248,8 @@ function CreateTournamentFormScreen({ route }) {
                 </View>
                 <View style={styles.cities}>
                     <CustomTextInput
-                        label="Ville"
-                        placeholder="Cherchez votre ville"
+                        label="Commune"
+                        placeholder="Cherchez votre commune"
                         value={tournamentDetails.place ? tournamentDetails.place : searchQuery}
                         onChangeText={(text) => {
                             setSearchQuery(text);

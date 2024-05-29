@@ -152,14 +152,14 @@ function CreateTeamForm({ user }) {
                 teams: arrayUnion(teamId)
             });
         } catch (error) {
-            console.error("Erreur lors de l'ajout de l'équipe :", error);
+            console.error("Erreur lors de l'ajout du club :", error);
         }
     };
 
     const handleSaveTeam = async () => {
 
         if (user.accountType !== 'coach') {
-            Alert.alert("Erreur", "La création d'équipe n'est disponible que pour les coachs.")
+            Alert.alert("Erreur", "La création de clubs n'est disponible que pour les coachs.")
             return false;
         }
 
@@ -176,12 +176,12 @@ function CreateTeamForm({ user }) {
 
         if (teamDetails.city.trim() && !citiesData.some((city) =>
             city.Nom_commune.toLowerCase() === teamDetails.city.toLowerCase().trim())) {
-            Alert.alert("Erreur", "Veuillez sélectionner une ville valide de la liste. Si elle n'est pas présente, vous pouvez indiquer une ville voisine.");
+            Alert.alert("Erreur", "Veuillez sélectionner une commune valide de la liste. Si elle n'est pas présente, vous pouvez indiquer une commune voisine.");
             return;
         }
 
         if (!nameRegex.test(teamDetails.name)) {
-            Alert.alert("Erreur", "Merci d'indiquer un nom de club valide");
+            Alert.alert("Erreur", "Merci d'indiquer un nom de club valide.");
             return false;
         }
 
@@ -205,7 +205,7 @@ function CreateTeamForm({ user }) {
                 await setDoc(teamRef, teamDatas);
                 await addTeamToUser(user.uid, team_id);
 
-                Alert.alert("Succès", "L'équipe a été enregistrée avec succès.");
+                Alert.alert("Succès", "Le club a été enregistré avec succès.");
 
                 navigation.dispatch(
                     CommonActions.reset({
@@ -221,7 +221,7 @@ function CreateTeamForm({ user }) {
             }
         } catch (error) {
             console.error("Une erreur est survenue :", error);
-            Alert.alert("Erreur", "Une erreur est survenue lors de l'enregistrement de l'équipe.");
+            Alert.alert("Erreur", "Une erreur est survenue lors de l'enregistrement du club.");
         }
     };
 
@@ -340,7 +340,7 @@ function CreateTeamForm({ user }) {
 
                 <Spacer />
                 <FunctionButton
-                    title="Créer l'équipe"
+                    title="Créer le club"
                     onPress={handleSaveTeam}
                 />
             </ScrollView>

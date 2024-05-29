@@ -38,13 +38,20 @@ const MatchDetailsScreen = ({ route }) => {
     const [inputPenaltyScoreB, setInputPenaltyScoreB] = useState('');
     const [teamNames, setTeamNames] = useState({});
     const [teamLogos, setTeamLogos] = useState({ clubA: null, clubB: null });
-    const hasMatchStarted = (matchDate) => {
-        const now = new Date();
-        return now >= new Date(matchDate);
-    };
-    const navigation = useNavigation();
 
+    const navigation = useNavigation();
     const { user } = useUser();
+
+    const hasMatchStarted = (matchDate, matchTime) => {
+        const now = new Date();
+
+        const dateParts = matchDate.split('T')[0];
+        const timeParts = matchTime.split('T')[1];
+
+        const matchDateTimeString = `${dateParts}T${timeParts}`;
+        const matchDateTime = new Date(matchDateTimeString);
+        return now >= matchDateTime;
+    };
 
     const requestPenaltyScores = () => {
         setInputPenaltyScoreA('');
@@ -52,12 +59,16 @@ const MatchDetailsScreen = ({ route }) => {
         setShowPenaltyModal(true);
     };
 
+    const canManageMatch = () => {
+        return hasMatchStarted(matchDetails.date, matchDetails.time) && matchDetails.clubA && matchDetails.clubB;
+    };
+
     const handlePenaltySubmission = () => {
         const penScoreA = parseInt(inputPenaltyScoreA);
         const penScoreB = parseInt(inputPenaltyScoreB);
 
         if (isNaN(penScoreA) || isNaN(penScoreB)) {
-            Alert.alert("Entrée invalide", "Veuillez entrer des scores valides pour les pénalités.");
+            Alert.alert("Entrée invalide", "Veuillez entrer des scores valides pour le résultat des tirs au but.");
             return;
         }
 
@@ -97,10 +108,10 @@ const MatchDetailsScreen = ({ route }) => {
                 matches: tournamentData.matches
             });
 
-            if(penScoreA > 0 || penScoreB > 0) {
-                Alert.alert("Match terminé", `Le vainqueur est ${winnerClubName} avec un score final de ${finalScoreA}-${finalScoreB} et un score de pénalité de ${penScoreA}-${penScoreB}.`, [{ text: "OK" }]);
+            if (penScoreA > 0 || penScoreB > 0) {
+                Alert.alert("Match terminé", `${winnerClubName} remporte le match avec un score final de ${finalScoreA}-${finalScoreB} et un score de tirs au but de ${penScoreA}-${penScoreB}.`, [{ text: "OK" }]);
             } else {
-                Alert.alert("Match terminé", `Le vainqueur est ${winnerClubName} avec un score final de ${finalScoreA}-${finalScoreB}.`, [{ text: "OK" }]);
+                Alert.alert("Match terminé", `${winnerClubName} remporte le match avec un score final de ${finalScoreA}-${finalScoreB}.`, [{ text: "OK" }]);
             }
 
         } catch (error) {
@@ -235,22 +246,22 @@ const MatchDetailsScreen = ({ route }) => {
             const tournamentSnap = await getDoc(tournamentRef);
             if (tournamentSnap.exists()) {
                 const tournamentData = tournamentSnap.data();
-    
+
                 tournamentData.matches[roundIndex].matches[matchIndex] = {
                     ...tournamentData.matches[roundIndex].matches[matchIndex],
                     clubA: clubA,
                     clubB: clubB
                 };
-    
+
                 try {
                     await updateDoc(tournamentRef, {
                         matches: tournamentData.matches
                     });
-                    Alert.alert("Succès", "Les détails du match, y compris les scores, ont été mis à jour avec succès.", [{ text: "OK" }]);
-    
+                    Alert.alert("Succès", "Les détails du match ont été mis à jour avec succès.", [{ text: "OK" }]);
+
                     const [nameA, nameB] = await Promise.all([getTeamName(clubA), getTeamName(clubB)]);
                     const [logoA, logoB] = await Promise.all([fetchTeamLogo(clubA), fetchTeamLogo(clubB)]);
-    
+
                     setTeamNames(prevNames => ({ ...prevNames, [clubA]: nameA, [clubB]: nameB }));
                     setTeamLogos({ clubA: logoA, clubB: logoB });
                     setMatchDetails(prevDetails => ({
@@ -260,12 +271,12 @@ const MatchDetailsScreen = ({ route }) => {
                     }));
                 } catch (error) {
                     console.error("Failed to update the match:", error);
-                    Alert.alert("Erreur", "Échec de la mise à jour des détails du match.", [{ text: "Réessayer" }]);
+                    Alert.alert("Erreur", "Échec de la mise à jour du match.", [{ text: "Réessayer" }]);
                 }
             }
         }
     };
-    
+
     return (
         <SafeAreaView style={globalStyles.container}>
             <View style={{ height: 1, backgroundColor: colors.lightgrey, marginHorizontal: 30 }} />
@@ -309,7 +320,7 @@ const MatchDetailsScreen = ({ route }) => {
                                         )}
                                     </View>
                                     <View>
-                                        {hasMatchStarted(matchDetails.date) ? (
+                                        {hasMatchStarted(matchDetails.date, matchDetails.time) ? (
                                             <Text style={styles.scoreCountText}>{scoreA} : {scoreB}</Text>
                                         ) : (
                                             <Text style={styles.vsText}>VS</Text>
@@ -362,7 +373,7 @@ const MatchDetailsScreen = ({ route }) => {
 
                         {isOwner && !winner && (
                             <>
-                                {(matchDetails.clubA || matchDetails.clubB) && (
+                                {canManageMatch() ? (
                                     <>
                                         <View style={{ flexDirection: 'row', gap: 10, paddingVertical: 10, justifyContent: 'space-between', alignItems: 'center' }}>
                                             <View style={{ flexDirection: 'row', gap: 10 }}>
@@ -421,41 +432,55 @@ const MatchDetailsScreen = ({ route }) => {
                                             disabled={!(clubA && clubB)}
                                         />
                                     </>
+                                ) : (
+                                    <Text style={styles.infoText}>
+                                        Veuillez enregistrer deux clubs et attendre le début du match pour pouvoir le gérer.
+                                    </Text>
                                 )}
                                 <Spacer />
                                 <Label>Mise à jour des clubs</Label>
-                                <View style={{ flexDirection: 'row', gap: 10, paddingTop: 10 }}>
-                                    <View style={{ flex: 1 }}>
-                                        <FunctionButton
-                                            title={!matchDetails.clubA ? "Ajouter le club A" : "Modifier le club A"}
-                                            onPress={() => openModal('A')}
-                                        />
-                                    </View>
-                                    <View style={{ flex: 1 }}>
-                                        <FunctionButton
-                                            title={!matchDetails.clubB ? "Ajouter le club B" : "Modifier le club B"}
-                                            onPress={() => openModal('B')}
-                                        />
-                                    </View>
-                                </View>
-                                <View style={{ paddingVertical: 20, gap: 10 }}>
-                                    <CustomTextInput
-                                        label="Club A choisi"
-                                        value={teamNames[clubA] ? teamNames[clubA] : "N/A"}
-                                        readOnly
-                                    />
-                                    <CustomTextInput
-                                        label="Club B choisi"
-                                        value={teamNames[clubB] ? teamNames[clubB] : "N/A"}
-                                        readOnly
-                                    />
-                                    <FunctionButton
-                                        title="Sauvegarder"
-                                        onPress={saveClubSelection}
-                                        disabled={!(clubA || clubB)}
-                                    />
-                                </View>
-
+                                {(matchDetails.clubA || matchDetails.clubB) && (
+                                    <Text style={styles.infoText}>
+                                        Il n'est pas possible de modifier un club après que le match ait débuté.
+                                    </Text>
+                                )}
+                                {(!canManageMatch() || !matchDetails.clubA || !matchDetails.clubB) && (
+                                    <>
+                                        <View style={{ flexDirection: 'row', gap: 10, paddingTop: 10 }}>
+                                            <View style={{ flex: 1 }}>
+                                                <FunctionButton
+                                                    title={!matchDetails.clubA ? "Ajouter le club A" : "Modifier le club A"}
+                                                    onPress={() => openModal('A')}
+                                                    disabled={!!matchDetails.clubA && hasMatchStarted(matchDetails.date, matchDetails.time)}
+                                                />
+                                            </View>
+                                            <View style={{ flex: 1 }}>
+                                                <FunctionButton
+                                                    title={!matchDetails.clubB ? "Ajouter le club B" : "Modifier le club B"}
+                                                    onPress={() => openModal('B')}
+                                                    disabled={!!matchDetails.clubB && hasMatchStarted(matchDetails.date, matchDetails.time)}
+                                                />
+                                            </View>
+                                        </View>
+                                        <View style={{ paddingVertical: 20, gap: 10 }}>
+                                            <CustomTextInput
+                                                label="Club A choisi"
+                                                value={teamNames[clubA] ? teamNames[clubA] : "N/A"}
+                                                readOnly
+                                            />
+                                            <CustomTextInput
+                                                label="Club B choisi"
+                                                value={teamNames[clubB] ? teamNames[clubB] : "N/A"}
+                                                readOnly
+                                            />
+                                            <FunctionButton
+                                                title="Sauvegarder"
+                                                onPress={saveClubSelection}
+                                                disabled={!(clubA || clubB)}
+                                            />
+                                        </View>
+                                    </>
+                                )}
                                 <Modal
                                     animationType="slide"
                                     transparent={true}
@@ -465,7 +490,7 @@ const MatchDetailsScreen = ({ route }) => {
                                     <View style={globalStyles.modal}>
                                         <SafeAreaView style={globalStyles.container}>
                                             <View style={globalStyles.headerContainer}>
-                                                <Title>Choisissez <PrimaryColorText>l'équipe {selectingFor}</PrimaryColorText>,</Title>
+                                                <Title>Choisissez <PrimaryColorText>le club {selectingFor}</PrimaryColorText>,</Title>
                                             </View>
 
                                             <ScrollView
@@ -475,10 +500,12 @@ const MatchDetailsScreen = ({ route }) => {
                                                     selectedValue={selectedClub}
                                                     onValueChange={(itemValue) => setSelectedClub(itemValue)}
                                                 >
-                                                    <Picker.Item label="Choisir l'équipe" value="" />
-                                                    {tournamentDetails?.participatingClubs?.map(clubId => (
-                                                        <Picker.Item key={clubId} label={teamNames[clubId]} value={clubId} />
-                                                    ))}
+                                                    <Picker.Item label="Choisir un club" value="" />
+                                                    {tournamentDetails?.participatingClubs
+                                                        ?.filter(clubId => clubId !== (selectingFor === 'A' ? clubB : clubA))
+                                                        .map(clubId => (
+                                                            <Picker.Item key={clubId} label={teamNames[clubId]} value={clubId} />
+                                                        ))}
                                                 </Picker>
                                             </ScrollView>
                                         </SafeAreaView>
@@ -497,9 +524,9 @@ const MatchDetailsScreen = ({ route }) => {
                                 >
                                     <View style={globalStyles.modal}>
                                         <SafeAreaView style={globalStyles.container}>
-                                        <View style={globalStyles.headerContainer}>
-                                            <Title>Indiquez les <PrimaryColorText>scores de tirs au but</PrimaryColorText>,</Title>
-                                        </View>
+                                            <View style={globalStyles.headerContainer}>
+                                                <Title>Indiquez les <PrimaryColorText>scores de tirs au but</PrimaryColorText>,</Title>
+                                            </View>
                                             <ScrollView
                                                 contentContainerStyle={globalStyles.scrollContainer}
                                             >
@@ -670,6 +697,13 @@ const styles = StyleSheet.create({
         color: colors.lightgrey,
         fontSize: 14,
         fontFamily: fonts.OutfitBold
+    },
+    infoText: {
+        color: colors.secondary,
+        fontFamily: fonts.OutfitSemiBold,
+        fontSize: 16,
+        textAlign: 'center',
+        paddingVertical: 10,
     },
 });
 

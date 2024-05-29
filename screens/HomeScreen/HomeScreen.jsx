@@ -91,7 +91,7 @@ function HomeScreen({ route }) {
 
             setUser(prevState => ({ ...prevState, requestedJoinClubId: null }));
 
-            Alert.alert("Demande annulée", "Votre demande pour rejoindre l'équipe a été annulée avec succès.");
+            Alert.alert("Demande annulée", "Votre demande pour rejoindre le club a été annulée avec succès.");
         } catch (error) {
             console.error("Erreur lors de l'annulation de la demande :", error);
             Alert.alert("Erreur", "Une erreur est survenue lors de l'annulation de la demande.");
@@ -104,8 +104,8 @@ function HomeScreen({ route }) {
                 {user.accountType === 'coach' && (
                     user.teams && user.teams.length > 0 ? (
                         <View style={styles.section}>
-                            <Text style={styles.sectionTitle}>Mes équipes</Text>
-                            <Text style={styles.sectionSubtitle}>Retrouvez toutes les informations de vos équipes dont vous avez besoin.</Text>
+                            <Text style={styles.sectionTitle}>Mes clubs</Text>
+                            <Text style={styles.sectionSubtitle}>Retrouvez toutes les informations de vos clubs dont vous avez besoin.</Text>
                             <CustomList>
                                 {user.teams.map((team, index) => (
                                     <View key={index}>
@@ -117,7 +117,7 @@ function HomeScreen({ route }) {
                             </CustomList>
                             <View style={{ paddingTop: 3 }}>
                                 <FunctionButton
-                                    title="Créer une nouvelle équipe"
+                                    title="Créer un nouveau club"
                                     onPress={() => {
                                         navigation.navigate('CreateTeamScreen');
                                     }}
@@ -127,10 +127,10 @@ function HomeScreen({ route }) {
                         </View>
                     ) : (
                         <View style={styles.section}>
-                            <Text style={styles.sectionTitle}>Mes équipes</Text>
-                            <Text style={styles.sectionSubtitle}>Vous n’avez enregistré aucune équipe. Vous pouvez créer votre première équipe en cliquant ci-dessous.</Text>
+                            <Text style={styles.sectionTitle}>Mes clubs</Text>
+                            <Text style={styles.sectionSubtitle}>Vous n’avez enregistré aucun club. Vous pouvez créer votre premier club en cliquant ci-dessous.</Text>
                             <FunctionButton
-                                title="Créer une nouvelle équipe"
+                                title="Créer un nouveau club"
                                 onPress={() => {
                                     navigation.navigate('CreateTeamScreen');
                                 }}
@@ -143,8 +143,8 @@ function HomeScreen({ route }) {
                 {user.accountType === 'player' && (
                     user.team ? (
                         <View style={styles.section}>
-                            <Text style={styles.sectionTitle}>Mon équipe</Text>
-                            <Text style={styles.sectionSubtitle}>Retrouvez toutes les informations de votre équipe dont vous avez besoin.</Text>
+                            <Text style={styles.sectionTitle}>Mon club</Text>
+                            <Text style={styles.sectionSubtitle}>Retrouvez toutes les informations de votre club dont vous avez besoin.</Text>
                             <ItemList text={teamNames[user.team] || "..."} onPress={() => {
                                 navigation.navigate('TeamScreen', { teamId: user.team });
                             }} />
@@ -152,8 +152,8 @@ function HomeScreen({ route }) {
                         </View>
                     ) : (
                         <View style={styles.section}>
-                            <Text style={styles.sectionTitle}>Mon équipe</Text>
-                            <Text style={styles.sectionSubtitle}>Vous n’êtes enregistré dans aucune équipe. Parlez-en à votre coach pour y être invité et participer à de nombreux tournois.</Text>
+                            <Text style={styles.sectionTitle}>Mon club</Text>
+                            <Text style={styles.sectionSubtitle}>Vous n’êtes enregistré dans aucun club. Parlez-en à votre coach pour y être invité et participer à de nombreux tournois.</Text>
                             <Spacer top={20} />
                         </View >
                     )
@@ -193,11 +193,11 @@ function HomeScreen({ route }) {
                             <Spacer />
                         </View>
                         <View style={styles.section}>
-                            <Text style={styles.sectionTitle}>Équipes</Text>
-                            <Text style={styles.sectionSubtitle}>Retrouvez toutes les équipes et leurs informations</Text>
+                            <Text style={styles.sectionTitle}>Clubs</Text>
+                            <Text style={styles.sectionSubtitle}>Retrouvez tous les clubs et leurs informations</Text>
                             <RedirectLinkButton
                                 routeName="TeamsScreen"
-                                title="Voir les équipes"
+                                title="Voir les clubs"
                             />
                             <Spacer />
                         </View>

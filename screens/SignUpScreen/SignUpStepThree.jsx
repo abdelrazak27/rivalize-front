@@ -131,12 +131,12 @@ const SignUpStepThree = ({ onPrevious, onSignUpSuccess }) => {
                             const nameRegex = /^[a-zA-ZàâäéèêëïîôöùûüçÀÂÄÉÈÊËÏÎÔÖÙÛÜÇ' -]+$/;
 
                             if (fieldsToValidate.includes('playerNumber') && !regexTwoDigits.test(userDetails.playerNumber)) {
-                                Alert.alert('Erreur', 'Votre numéro du joueur doit contenir deux chiffres.');
+                                Alert.alert('Erreur', 'Veuillez saisir un numéro du joueur à deux chiffres.');
                                 return;
                             }
 
                             if (fieldsToValidate.includes('playerName') && !nameRegex.test(userDetails.playerName)) {
-                                Alert.alert('Erreur', 'Votre nom du joueur est invalide.');
+                                Alert.alert('Erreur', 'Veuillez saisir un nom du joueur valide.');
                                 return;
                             }
 

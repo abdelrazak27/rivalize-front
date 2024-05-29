@@ -17,7 +17,6 @@ import TournamentsScreen from './screens/TournamentsScreen';
 import TeamsScreen from './screens/TeamsScreen';
 import UsersScreen from './screens/UsersScreen';
 import CreateTournamentFormScreen from './screens/CreateTournamentFormScreen';
-// import EditTournamentFormScreen from './screens/EditTournamentFormScreen';
 import TournamentDetailScreen from './screens/TournamentDetailScreen';
 import RequestJoinTeamDetailScreen from './screens/RequestJoinTeamDetailScreen';
 import MatchDetailsScreen from './screens/MatchDetailsScreen';
@@ -73,15 +72,31 @@ function App() {
                     <SquareButtonIcon
                       onPress={async () => {
                         try {
-                          Alert.alert("Déconnexion", "Vous avez été déconnecté avec succès.");
-                          navigation.dispatch(
-                            CommonActions.reset({
-                              index: 0,
-                              routes: [{ name: 'ConnexionScreen' }],
-                            })
+                          Alert.alert(
+                            "Déconnexion",
+                            "Êtes-vous sûr de vouloir vous déconnecter ?",
+                            [
+                              {
+                                text: "Annuler",
+                                onPress: () => {},
+                                style: "cancel"
+                              },
+                              {
+                                text: "Déconnexion",
+                                onPress: async () => {
+                                  navigation.dispatch(
+                                    CommonActions.reset({
+                                      index: 0,
+                                      routes: [{ name: 'ConnexionScreen' }],
+                                    })
+                                  );
+                                  await setUser(null);
+                                  await signOut(auth);
+                                },
+                                style: "destructive"
+                              }
+                            ]
                           );
-                          await setUser(null);
-                          await signOut(auth);
                         } catch (error) {
                           console.log(error);
                           Alert.alert("Erreur", "Une erreur est survenue lors de la déconnexion.");
@@ -133,7 +148,6 @@ function App() {
             <Stack.Screen name="TournamentsScreen" component={TournamentsScreen} />
             <Stack.Screen name="TournamentDetailScreen" component={TournamentDetailScreen} />
             <Stack.Screen name="CreateTournamentFormScreen" component={CreateTournamentFormScreen} />
-            {/* <Stack.Screen name="EditTournamentFormScreen" component={EditTournamentFormScreen} /> */}
             <Stack.Screen name="TeamsScreen" component={TeamsScreen} />
             <Stack.Screen name="RequestJoinTeamDetailScreen" component={RequestJoinTeamDetailScreen} />
             <Stack.Screen name="UsersScreen" component={UsersScreen} />

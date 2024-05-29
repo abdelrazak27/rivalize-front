@@ -190,10 +190,23 @@ function ConnexionScreen() {
         switch (errorCode) {
             case 'auth/invalid-email':
                 return 'L\'adresse email saisie n\'est pas valide.';
+            case 'auth/user-disabled':
+                return 'Ce compte a été désactivé.';
+            case 'auth/user-not-found':
+                return 'Aucun utilisateur trouvé avec cet email.';
+            case 'auth/wrong-password':
+                return 'Le mot de passe est incorrect.';
+            case 'auth/network-request-failed':
+                return 'La connexion a échoué. Veuillez vérifier votre connexion Internet.';
+            case 'auth/too-many-requests':
+                return 'Trop de tentatives de connexion. Veuillez réessayer plus tard.';
+            case 'auth/operation-not-allowed':
+                return 'Cette opération n\'est pas autorisée. Veuillez contacter le support.';
             default:
-                return 'Email ou mot de passe incorrect.';
+                return 'Une erreur est survenue. Veuillez réessayer.';
         }
     };
+    
 
     const isButtonDisabled = email.length === 0 || password.length === 0;
 

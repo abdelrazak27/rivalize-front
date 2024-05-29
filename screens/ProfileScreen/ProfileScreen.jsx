@@ -103,7 +103,7 @@ function ProfileScreen({ route }) {
 
     const handleInvitePlayer = async () => {
         if (!selectedTeam) {
-            Alert.alert("Erreur", "Veuillez sélectionner une équipe.");
+            Alert.alert("Erreur", "Veuillez sélectionner un club.");
             return;
         }
 
@@ -123,7 +123,7 @@ function ProfileScreen({ route }) {
 
         const notificationDetails = {
             userId: userId,
-            message: `Vous êtes invité à rejoindre l'équipe ${teamName}`,
+            message: `Vous êtes invité à rejoindre le club ${teamName}`,
             hasBeenRead: false,
             timestamp: Timestamp.now(),
             type: "invitation",
@@ -177,7 +177,7 @@ function ProfileScreen({ route }) {
 
             setUser(prevState => ({ ...prevState, requestedJoinClubId: null }));
 
-            Alert.alert("Demande annulée", "Votre demande pour rejoindre l'équipe a été annulée avec succès.");
+            Alert.alert("Demande annulée", "Votre demande pour rejoindre le club a été annulée avec succès.");
         } catch (error) {
             console.error("Erreur lors de l'annulation de la demande :", error);
             Alert.alert("Erreur", "Une erreur est survenue lors de l'annulation de la demande.");
@@ -223,7 +223,7 @@ function ProfileScreen({ route }) {
                                             <CustomTextInput label="Âge" value={calculateAge(playerDetails.birthday)} readOnly />
                                         </View>
                                         <View style={{ flex: 1 }}>
-                                            <CustomTextInput label="Ville" value={playerDetails.city ? playerDetails.city : "Non renseigné"} readOnly />
+                                            <CustomTextInput label="Commune" value={playerDetails.city ? playerDetails.city : "Non renseigné"} readOnly />
                                         </View>
                                     </View>
                                     <Spacer top={12} />
@@ -243,7 +243,7 @@ function ProfileScreen({ route }) {
                                             </View>
                                             <CustomTextInput label="Licence" value={playerDetails.licenceNumber} readOnly />
                                             <View>
-                                                <Label color={colors.secondary}>Équipe</Label>
+                                                <Label color={colors.secondary}>Club</Label>
                                                 <ItemList
                                                     text={playerDetails.team ? teamName : "N/A"}
                                                     onPress={() => {
@@ -258,7 +258,7 @@ function ProfileScreen({ route }) {
                                     {playerDetails.accountType === 'coach' && (
                                         <>
                                             <CustomTextInput label="Licence" value={playerDetails.licenceNumber} readOnly />
-                                            <Label color={colors.secondary}>Équipes</Label>
+                                            <Label color={colors.secondary}>Clubs</Label>
                                             {teamNames && teamNames.length > 0 ? (
                                                 <View>
                                                     <View style={{ gap: 5 }}>
@@ -306,7 +306,7 @@ function ProfileScreen({ route }) {
                                             <View style={globalStyles.modal}>
                                                 <SafeAreaView style={globalStyles.container}>
                                                     <View style={globalStyles.headerContainer}>
-                                                        <Title>Choisissez <PrimaryColorText>une équipe</PrimaryColorText>,</Title>
+                                                        <Title>Choisissez <PrimaryColorText>un club</PrimaryColorText>,</Title>
                                                     </View>
 
                                                     <ScrollView
@@ -316,7 +316,7 @@ function ProfileScreen({ route }) {
                                                             selectedValue={selectedTeam}
                                                             onValueChange={(itemValue) => setSelectedTeam(itemValue)}
                                                         >
-                                                            <Picker.Item label="Choisir l'équipe" value="" />
+                                                            <Picker.Item label="Choisir le club" value="" />
                                                             {availableTeams.map((team) => (
                                                                 <Picker.Item key={team.id} label={team.name} value={team.id} />
                                                             ))}
@@ -332,22 +332,38 @@ function ProfileScreen({ route }) {
                                     </>
                                 )}
                                 {user.accountType === 'coach' && availableTeams.length === 0 && playerDetails.accountType === "player" && playerDetails.team === null && (
-                                    <FunctionButton title="Aucun club possédé compatible" onPress={() => setModalVisible(true)} disabled />
+                                    <FunctionButton title="Aucun club possédé est compatible" onPress={() => setModalVisible(true)} disabled />
                                 )}
                                 {isCurrentUserProfile && (
                                     <>
                                         <Spacer top={12} />
                                         <FunctionButton title="Se déconnecter" onPress={async () => {
                                             try {
-                                                Alert.alert("Déconnexion", "Vous avez été déconnecté avec succès.");
-                                                navigation.dispatch(
-                                                    CommonActions.reset({
-                                                        index: 0,
-                                                        routes: [{ name: 'ConnexionScreen' }],
-                                                    })
+                                                Alert.alert(
+                                                    "Déconnexion",
+                                                    "Êtes-vous sûr de vouloir vous déconnecter ?",
+                                                    [
+                                                        {
+                                                            text: "Annuler",
+                                                            onPress: () => { },
+                                                            style: "cancel"
+                                                        },
+                                                        {
+                                                            text: "Déconnexion",
+                                                            onPress: async () => {
+                                                                navigation.dispatch(
+                                                                    CommonActions.reset({
+                                                                        index: 0,
+                                                                        routes: [{ name: 'ConnexionScreen' }],
+                                                                    })
+                                                                );
+                                                                await setUser(null);
+                                                                await signOut(auth);
+                                                            },
+                                                            style: "destructive"
+                                                        }
+                                                    ]
                                                 );
-                                                await setUser(null);
-                                                await signOut(auth);
                                             } catch (error) {
                                                 console.log(error);
                                                 Alert.alert("Erreur", "Une erreur est survenue lors de la déconnexion.");

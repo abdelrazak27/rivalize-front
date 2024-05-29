@@ -150,7 +150,7 @@ function EditTeamScreen({ route }) {
 
     const handleSaveChanges = () => {
         if (user.accountType !== 'coach') {
-            Alert.alert("Erreur", "La modification d'équipe n'est disponible que pour le coach.");
+            Alert.alert("Erreur", "La modification de clubs n'est disponible que pour le coach.");
             return false;
         }
     
@@ -166,12 +166,12 @@ function EditTeamScreen({ route }) {
     
         if (city.trim() && !citiesData.some((cityData) =>
             cityData.Nom_commune.toLowerCase() === city.toLowerCase().trim())) {
-            Alert.alert("Erreur", "Veuillez sélectionner une ville valide de la liste. Si elle n'est pas présente, vous pouvez indiquer une ville voisine.");
+            Alert.alert("Erreur", "Veuillez sélectionner une commune valide de la liste. Si elle n'est pas présente, vous pouvez indiquer une commune voisine.");
             return;
         }
     
         if (!nameRegex.test(name)) {
-            Alert.alert("Erreur", "Merci d'indiquer un nom de club valide.");
+            Alert.alert("Erreur", "Veuillez indiquer un nom de club valide.");
             return;
         }
     

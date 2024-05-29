@@ -139,7 +139,7 @@ const TournamentDetailScreen = ({ route, navigation }) => {
 
     const confirmJoin = async () => {
         if (!selectedTeam) {
-            Alert.alert('Erreur', 'Aucune équipe sélectionnée');
+            Alert.alert('Erreur', 'Merci de bien vouloir sélectionner un club.');
             return;
         }
 
@@ -148,7 +148,7 @@ const TournamentDetailScreen = ({ route, navigation }) => {
             const teamSnap = await getDoc(teamRef);
 
             if (!teamSnap.exists()) {
-                Alert.alert('Erreur', 'Équipe non trouvée');
+                Alert.alert('Erreur', 'Club introuvable');
                 return;
             }
 
@@ -156,7 +156,7 @@ const TournamentDetailScreen = ({ route, navigation }) => {
 
             // Assez de joueurs ?
             if (teamData.players.length < tournament.playersPerTeam) {
-                Alert.alert('Erreur', `L'équipe doit avoir au moins ${tournament.playersPerTeam} joueurs.`);
+                Alert.alert('Erreur', `Le club doit avoir au moins ${tournament.playersPerTeam} joueurs.`);
                 return;
             }
 
@@ -164,7 +164,7 @@ const TournamentDetailScreen = ({ route, navigation }) => {
             const teamCategory = teamData.category;
 
             if (teamCategory !== tournament.category) {
-                Alert.alert('Erreur', 'La catégorie ou le genre de l\'équipe ne correspond pas à celui du tournoi.');
+                Alert.alert('Erreur', 'La catégorie ou le genre du club ne correspond pas à celui du tournoi.');
                 return;
             }
 
@@ -176,7 +176,7 @@ const TournamentDetailScreen = ({ route, navigation }) => {
 
             // Déjà participant ?
             if (tournament.participatingClubs?.includes(selectedTeam)) {
-                Alert.alert('Erreur', 'Cette équipe participe déjà au tournoi.');
+                Alert.alert('Erreur', 'Ce club participe déjà au tournoi.');
                 return;
             }
 
@@ -199,13 +199,13 @@ const TournamentDetailScreen = ({ route, navigation }) => {
                 setTeamLogos(logos);
             }
 
-            Alert.alert('Succès', 'Votre équipe a rejoint le tournoi!');
+            Alert.alert('Succès', 'Votre club a rejoint le tournoi.');
             console.log('Joining tournament with team ID:', selectedTeam);
             setModalVisible(false);
             fetchTournament();
         } catch (error) {
             console.error('Erreur lors de la tentative de rejoindre le tournoi:', error);
-            Alert.alert('Erreur', 'Une erreur est survenue lors de la tentative de rejoindre le tournoi.');
+            Alert.alert('Erreur', 'Une erreur est survenue lors de la tentative pour rejoindre le tournoi.');
         }
     };
 
@@ -213,7 +213,7 @@ const TournamentDetailScreen = ({ route, navigation }) => {
     // TODO : à retirer pour version finale
     const confirmJoinForce = async () => {
         if (!selectedTeam) {
-            Alert.alert('Erreur', 'Aucune équipe sélectionnée');
+            Alert.alert('Erreur', 'Aucune club n\'est sélectionné.');
             return;
         }
 
@@ -222,7 +222,7 @@ const TournamentDetailScreen = ({ route, navigation }) => {
             const teamSnap = await getDoc(teamRef);
 
             if (!teamSnap.exists()) {
-                Alert.alert('Erreur', 'Équipe non trouvée');
+                Alert.alert('Erreur', 'Club introuvable.');
                 return;
             }
 
@@ -245,7 +245,7 @@ const TournamentDetailScreen = ({ route, navigation }) => {
                 setTeamLogos(logos);
             }
 
-            Alert.alert('Succès', 'Votre équipe a rejoint le tournoi!');
+            Alert.alert('Succès', 'Votre club a rejoint le tournoi.');
             console.log('Joining tournament with team ID:', selectedTeam);
             setModalVisible(false);
             fetchTournament();
@@ -278,9 +278,15 @@ const TournamentDetailScreen = ({ route, navigation }) => {
         });
     };
 
-    const hasMatchStarted = (matchDate) => {
+    const hasMatchStarted = (matchDate, matchTime) => {
         const now = new Date();
-        return now >= new Date(matchDate);
+    
+        const dateParts = matchDate.split('T')[0];
+        const timeParts = matchTime.split('T')[1];
+    
+        const matchDateTimeString = `${dateParts}T${timeParts}`;
+        const matchDateTime = new Date(matchDateTimeString);
+        return now >= matchDateTime;
     };
 
     return (
@@ -386,13 +392,13 @@ const TournamentDetailScreen = ({ route, navigation }) => {
                                             )}
                                         </View>
                                         <View>
-                                            {hasMatchStarted(match.date) ? (
+                                            {hasMatchStarted(match.date, match.time) ? (
                                                 <Text style={styles.scoreCountText}>{match.scoreA > 0 ? match.scoreA : 0} : {match.scoreB > 0 ? match.scoreB : 0}</Text>
                                             ) : (
                                                 <>
                                                     <Text style={styles.matchDate}>{new Date(match.date).toLocaleDateString()}</Text>
                                                     <Text style={styles.matchTime}>
-                                                        {`${new Date(match.date).getHours()}h${new Date(match.date).getMinutes().toString().padStart(2, '0')}`}
+                                                        {`${new Date(match.time).getHours()}h${new Date(match.time).getMinutes().toString().padStart(2, '0')}`}
                                                     </Text>
                                                 </>
                                             )}
@@ -455,9 +461,9 @@ const TournamentDetailScreen = ({ route, navigation }) => {
                                         <View style={styles.modalView}>
                                             <View style={styles.modalHeader}>
                                                 <Title>
-                                                    Choisissez une <PrimaryColorText>équipe</PrimaryColorText>
+                                                    Choisissez un <PrimaryColorText>club</PrimaryColorText>
                                                 </Title>
-                                                <Subtitle>Quelle équipe sera à la hauteur de ce tournoi ?</Subtitle>
+                                                <Subtitle>Quel club sera à la hauteur de ce tournoi ?</Subtitle>
                                             </View>
                                             <ScrollView style={styles.clubsList}>
                                                 <Picker
@@ -474,7 +480,7 @@ const TournamentDetailScreen = ({ route, navigation }) => {
                                                 </Picker>
 
                                                 <Text style={[styles.textInfos, { textAlign: 'center' }]}>
-                                                    Si une équipe n'apparaît pas c'est qu'elle participe déjà au tournoi
+                                                    Si un club n'apparaît pas c'est qu'il participe déjà au tournoi
                                                 </Text>
                                             </ScrollView>
 
@@ -488,7 +494,7 @@ const TournamentDetailScreen = ({ route, navigation }) => {
                                 </Modal>
                             </View>
                         ) : (
-                            <Text>Vous n'avez pas d'équipe.</Text>
+                            <Text>Vous n'avez pas de club.</Text>
                         )}
                     </>
                 )}

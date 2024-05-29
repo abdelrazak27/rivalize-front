@@ -85,19 +85,19 @@ function TeamsScreen() {
 
     const getTeamSectionTitle = () => {
         if (user.teams && user.teams.length > 1) {
-            return "Mes équipes";
+            return "Mes clubs";
         }
-        return "Mon équipe";
+        return "Mon club";
     };
 
     return (
         <SafeAreaView style={globalStyles.container}>
             <View style={[globalStyles.headerContainer, { paddingBottom: 25, marginBottom: 25 }]}>
-                <Title>Les <PrimaryColorText>équipes</PrimaryColorText></Title>
+                <Title>Les <PrimaryColorText>clubs</PrimaryColorText></Title>
                 <Subtitle>Retrouvez leurs informations en cliquant sur l’une d’elles parmi la liste ci-dessous</Subtitle>
                 <View style={{ height: 15 }}></View>
                 <CustomTextInput
-                    label="Rechercher une équipe par son nom"
+                    label="Rechercher un club par son nom"
                     placeholder="Recherche par nom de club..."
                     value={searchQuery}
                     onChangeText={filterTeams}
@@ -123,7 +123,7 @@ function TeamsScreen() {
                 </View>
                 <Spacer />
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Toutes les équipes</Text>
+                    <Text style={styles.sectionTitle}>Tous les clubs</Text>
                     <View style={{ paddingTop: 10 }}>
                         <CustomList>
                             {filteredTeams.length > 0 ? (

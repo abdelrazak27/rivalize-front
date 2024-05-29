@@ -46,7 +46,7 @@ function RequestJoinTeamDetailScreen() {
         const userRef = doc(db, 'utilisateurs', requestDetails.userId);
         const userDoc = await getDoc(userRef);
         if (!userDoc.exists()) {
-            Alert.alert("Erreur", "Profil utilisateur non trouvé.");
+            Alert.alert("Erreur", "Profil utilisateur introuvable.");
             return;
         }
 
@@ -54,7 +54,7 @@ function RequestJoinTeamDetailScreen() {
         const teamRef = doc(db, 'equipes', requestDetails.clubId);
         const teamDoc = await getDoc(teamRef);
         if (!teamDoc.exists()) {
-            Alert.alert("Erreur", "Détails du club non trouvés.");
+            Alert.alert("Erreur", "Club introuvable.");
             return;
         }
 
@@ -81,7 +81,7 @@ function RequestJoinTeamDetailScreen() {
             };
             await setDoc(acceptNotificationRef, acceptNotificationDetails);
 
-            Alert.alert("Demande acceptée", `Le joueur a été ajouté au club ${teamData.name}.`);
+            Alert.alert("Demande acceptée", `Le joueur a été ajouté au club ${teamData.name} avec succès.`);
         } else {
             await updateDoc(userRef, { requestedJoinClubId: null });
             await updateDoc(requestRef, { state: newState });

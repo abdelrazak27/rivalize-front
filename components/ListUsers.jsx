@@ -38,7 +38,7 @@ function ListUsers({ arrayList, navigation, setTeamData, teamId }) {
         try {
             Alert.alert(
                 "Confirmation",
-                "Voulez-vous vraiment exclure ce joueur de l'équipe ?",
+                "Voulez-vous vraiment exclure ce joueur du club ?",
                 [
                     {
                         text: "Annuler",
@@ -46,6 +46,7 @@ function ListUsers({ arrayList, navigation, setTeamData, teamId }) {
                     },
                     {
                         text: "Exclure",
+                        style: "destructive",
                         onPress: async () => {
                             const notificationId = uuid.v4();
                             const userRef = doc(db, "utilisateurs", userId);

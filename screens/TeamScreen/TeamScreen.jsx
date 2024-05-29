@@ -65,18 +65,18 @@ function TeamScreen() {
 
     const requestJoinTeam = async () => {
         if (user.team) {
-            Alert.alert("Rejoindre l'équipe", "Vous appartenez déjà à une équipe. Veuillez d'abord quitter votre équipe actuelle.");
+            Alert.alert("Rejoindre le club", "Vous appartenez déjà à un club. Veuillez d'abord quitter votre club actuel.");
             return;
         }
 
         if (user.requestedJoinClubId) {
-            Alert.alert("Demande en cours", "Vous avez déjà une demande en cours pour rejoindre une équipe. Veuillez annuler cette demande avant d'en soumettre une nouvelle.");
+            Alert.alert("Demande en cours", "Vous avez déjà une demande en cours pour rejoindre un club. Veuillez annuler cette demande avant d'en soumettre une nouvelle.");
             return;
         }
 
         Alert.alert(
-            "Demande de rejoindre l'équipe",
-            "Voulez-vous vraiment envoyer une demande pour rejoindre cette équipe ?",
+            "Demande de rejoindre le club",
+            "Voulez-vous vraiment envoyer une demande pour rejoindre ce club ?",
             [
                 {
                     text: "Annuler",
@@ -103,7 +103,7 @@ function TeamScreen() {
                             const notificationRef = doc(db, 'notifications', notificationId);
                             const notificationDetails = {
                                 userId: teamData.coach_id,
-                                message: `${user.firstname} ${user.lastname} souhaite rejoindre votre équipe : ${teamData.name}`,
+                                message: `${user.firstname} ${user.lastname} souhaite rejoindre votre club : ${teamData.name}`,
                                 hasBeenRead: false,
                                 timestamp: Timestamp.now(),
                                 type: "request_join_club",
@@ -118,7 +118,7 @@ function TeamScreen() {
 
                             setUser({ ...user, requestedJoinClubId: requestJoinClubId });
 
-                            Alert.alert("Demande envoyée", "Votre demande pour rejoindre l'équipe a été envoyée.");
+                            Alert.alert("Demande envoyée", "Votre demande pour rejoindre le club a été envoyée.");
                         } catch (error) {
                             console.error("Erreur lors de l'envoi de la demande :", error);
                             Alert.alert("Erreur", "Une erreur est survenue lors de l'envoi de la demande.");
@@ -134,7 +134,7 @@ function TeamScreen() {
     const deleteTeam = async () => {
         Alert.alert(
             "Confirmer la suppression",
-            "Êtes-vous sûr de vouloir supprimer cette équipe ? Cette action est irréversible.",
+            "Êtes-vous sûr de vouloir supprimer ce club ? Cette action est irréversible.",
             [
                 {
                     text: "Annuler",
@@ -208,7 +208,7 @@ function TeamScreen() {
                             );
     
                         } catch (error) {
-                            console.error("Une erreur s'est produite lors de la suppression de l'équipe :", error);
+                            console.error("Une erreur s'est produite lors de la suppression du club :", error);
                         }
                     },
                     style: "destructive"
@@ -220,8 +220,8 @@ function TeamScreen() {
     const leaveTeam = async () => {
         try {
             Alert.alert(
-                "Quitter l'équipe",
-                "Êtes-vous sûr de vouloir quitter cette équipe ?",
+                "Quitter le club",
+                "Êtes-vous sûr de vouloir quitter ce club ?",
                 [
                     {
                         text: "Annuler",
@@ -229,6 +229,7 @@ function TeamScreen() {
                     },
                     {
                         text: "Quitter",
+                        style: "destructive",
                         onPress: async () => {
                             const userRef = doc(db, 'utilisateurs', user.uid);
                             await updateDoc(userRef, {
@@ -259,7 +260,7 @@ function TeamScreen() {
                             };
                             await setUser(updatedUserData);
 
-                            Alert.alert("Vous avez quitté l'équipe.");
+                            Alert.alert("Vous avez quitté le club.");
 
                             navigation.dispatch(
                                 CommonActions.reset({
@@ -272,7 +273,7 @@ function TeamScreen() {
                 ]
             );
         } catch (error) {
-            console.error("Une erreur s'est produite lors de la sortie de l'équipe :", error);
+            console.error("Une erreur s'est produite lors de la sortie du club :", error);
         }
     };
 
@@ -330,7 +331,7 @@ function TeamScreen() {
                                     {!teamData.players.includes(user.uid) && !user.requestedJoinClubId ? (
                                         <View style={{ paddingTop: 15 }}>
                                             <FunctionButton
-                                                title="Rejoindre l'équipe"
+                                                title="Rejoindre le club"
                                                 onPress={requestJoinTeam}
                                             />
                                         </View>
@@ -339,13 +340,13 @@ function TeamScreen() {
                                             <>
                                                 <View style={{ paddingTop: 15 }}>
                                                     <FunctionButton
-                                                        title="Rejoindre l'équipe"
+                                                        title="Rejoindre le club"
                                                         onPress={requestJoinTeam}
                                                         disabled
                                                     />
                                                 </View>
                                                 <Text style={[styles.textInfos, { paddingTop: 10, textAlign: 'center' }]}>
-                                                    Vous avez déjà demandé à rejoindre une équipe, annulez votre demande depuis la page d'accueil pour pouvoir rejoindre cette équipe.
+                                                    Vous avez déjà demandé à rejoindre un club, annulez votre demande depuis la page d'accueil pour pouvoir rejoindre ce club.
                                                 </Text>
                                             </>
                                         )
@@ -355,7 +356,7 @@ function TeamScreen() {
                             {isCurrentCoach && (
                                 <View style={{ paddingTop: 15 }}>
                                     <RedirectLinkButton
-                                        title="Modifier les informations de l'équipe"
+                                        title="Modifier les informations du club"
                                         routeName='EditTeamScreen'
                                         params={{ teamData: teamData }}
                                     />
@@ -403,7 +404,7 @@ function TeamScreen() {
                         )}
                         <Spacer />
                         <View style={{ paddingBottom: 25 }}>
-                            <Label>Joueurs de l'équipe  {teamData.players.length > 0 && (`(${teamData.players.length} membre${(teamData.players.length > 1) ? "s" : ""})`)}</Label>
+                            <Label>Joueurs du club  {teamData.players.length > 0 && (`(${teamData.players.length} membre${(teamData.players.length > 1) ? "s" : ""})`)}</Label>
                             {teamData.players.length > 0 ? (
                                 <Text style={styles.textInfos}>Retrouvez leurs informations en cliquant sur l’un d’eux parmi la liste ci-dessous</Text>
                             ) : (
@@ -416,7 +417,7 @@ function TeamScreen() {
                             <>
                                 <Spacer />
                                 <FunctionButton
-                                    title="Quitter l'équipe"
+                                    title="Quitter le club"
                                     onPress={leaveTeam}
                                 />
                             </>
@@ -426,7 +427,7 @@ function TeamScreen() {
                             <>
                                 <Spacer />
                                 <FunctionButton
-                                    title="Supprimer l'équipe"
+                                    title="Supprimer le club"
                                     onPress={deleteTeam}
                                     variant="error"
                                 />
@@ -436,7 +437,7 @@ function TeamScreen() {
                     </ScrollView>
                 </>
             ) : (
-                <Text>Aucune donnée de l'équipe disponible</Text>
+                <Text>Aucune donnée du club n'est disponible</Text>
             )}
         </SafeAreaView>
     );

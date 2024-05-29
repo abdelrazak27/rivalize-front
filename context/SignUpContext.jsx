@@ -83,7 +83,7 @@ export const SignUpProvider = ({ children }) => {
 
         const missingField = requiredFields.find(field => !userDetails[field]);
         if (missingField) {
-            Alert.alert('Erreur', `Veuillez remplir tous les champs obligatoires (marqués d'une étoile).`);
+            Alert.alert('Erreur', `Veuillez remplir tous les champs obligatoires.`);
             return false;
         }
 
@@ -114,19 +114,19 @@ export const SignUpProvider = ({ children }) => {
         if (step === 2) {
             const nameRegex = /^[a-zA-ZàâäéèêëïîôöùûüçÀÂÄÉÈÊËÏÎÔÖÙÛÜÇ' -]+$/;
             if (!nameRegex.test(userDetails.firstname)) {
-                Alert.alert("Erreur", "Merci d'indiquer un prénom valide");
+                Alert.alert("Erreur", "Merci d'indiquer un prénom valide.");
                 return false;
             }
             if (!nameRegex.test(userDetails.lastname)) {
-                Alert.alert("Erreur", "Merci d'indiquer un nom valide");
+                Alert.alert("Erreur", "Merci d'indiquer un nom valide.");
                 return false;
             }
             if (userDetails.birthday && calculateAge(userDetails.birthday) < 5) {
-                Alert.alert("Erreur", "L'âge minimum pour être inscrit est de 5 ans.");
+                Alert.alert("Erreur", "L'âge minimum pour s'inscrire est de 5 ans.");
                 return false;
             }
             if (userDetails.city.trim() && !citiesData.some((city) => city.Nom_commune.toLowerCase() === userDetails.city.toLowerCase().trim())) {
-                Alert.alert("Erreur", "Veuillez sélectionner une ville valide de la liste. Si elle n'est pas présente, vous pouvez indiquer une ville voisine.");
+                Alert.alert("Erreur", "Veuillez sélectionner une commune valide de la liste. Si elle n'est pas présente, vous pouvez indiquer une commune voisine.");
                 return false;
             }
         }
