@@ -244,13 +244,16 @@ const MatchDetailsScreen = ({ route }) => {
 
     useEffect(() => {
         const fetchTeamNames = async () => {
-            setIsLoading(true);
-            const names = {};
-            for (const clubId of tournamentDetails?.participatingClubs || []) {
-                names[clubId] = await getTeamName(clubId);
+            if(tournamentDetails?.participatingClubs) {
+                setIsLoading(true);
+                const names = {};
+                const participatingClubs = tournamentDetails.participatingClubs;
+                for (const clubId of participatingClubs) {
+                    names[clubId] = await getTeamName(clubId);
+                }
+                setIsLoading(false);
+                setTeamNames(names);
             }
-            setTeamNames(names);
-            setIsLoading(false);
         };
 
         fetchTeamNames();
