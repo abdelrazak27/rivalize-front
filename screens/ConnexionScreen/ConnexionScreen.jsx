@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Subtitle, Title } from '../../components/TextComponents';
 import colors from '../../styles/colors';
 import { fonts } from '../../styles/fonts';
+import LoadingOverlay from '../LoadingOverlay';
 
 const auth = getAuth(app);
 
@@ -25,7 +26,8 @@ function ConnexionScreen() {
 
         return () => backHandler.remove();
     }, []);
-
+    
+    const [isLoading, setIsLoading] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const { setUser } = useUser();
@@ -33,6 +35,7 @@ function ConnexionScreen() {
     const navigation = useNavigation();
 
     const handleSignIn = () => {
+        setIsLoading(true);
         signInWithEmailAndPassword(auth, email, password)
             .then(async (userCredentials) => {
                 const user = userCredentials.user;
@@ -41,6 +44,7 @@ function ConnexionScreen() {
                 if (userSnap.exists()) {
                     const userData = { uid: user.uid, email: user.email, ...userSnap.data() };
                     setUser(userData);
+                    setIsLoading(false);
                     navigation.dispatch(
                         CommonActions.reset({
                             index: 0,
@@ -48,18 +52,22 @@ function ConnexionScreen() {
                         })
                     );
                 } else {
+                    setIsLoading(false);
                     Alert.alert('Erreur de connexion', 'Une erreur est survenue dans la récupération des données.');
                 }
             })
             .catch((error) => {
+                setIsLoading(false);
                 const errorCode = error.code;
                 const errorMessage = getErrorMessage(errorCode);
                 Alert.alert('Erreur de connexion', errorMessage);
             });
     };
 
+    // TODO : à retirer pour la version finale
     const handleSignInForce = (type) => {
         if (type === "player") {
+            setIsLoading(true);
             signInWithEmailAndPassword(auth, "player@rivalize.fr", "@Player1")
                 .then(async (userCredentials) => {
                     const user = userCredentials.user;
@@ -68,6 +76,7 @@ function ConnexionScreen() {
                     if (userSnap.exists()) {
                         const userData = { uid: user.uid, email: user.email, ...userSnap.data() };
                         setUser(userData);
+                        setIsLoading(false);
                         navigation.dispatch(
                             CommonActions.reset({
                                 index: 0,
@@ -75,10 +84,12 @@ function ConnexionScreen() {
                             })
                         );
                     } else {
+                        setIsLoading(false);
                         Alert.alert('Erreur de connexion', 'Une erreur est survenue dans la récupération des données.');
                     }
                 })
                 .catch((error) => {
+                    setIsLoading(false);
                     const errorCode = error.code;
                     const errorMessage = getErrorMessage(errorCode);
                     Alert.alert('Erreur de connexion', errorMessage);
@@ -212,6 +223,7 @@ function ConnexionScreen() {
 
     return (
         <SafeAreaView style={styles.container}>
+            <LoadingOverlay visible={isLoading} />
             <Title>Bienvenue,</Title>
             <Subtitle>Connectez-vous pour continuer l'aventure</Subtitle>
 
