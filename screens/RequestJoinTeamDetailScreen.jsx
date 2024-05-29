@@ -28,20 +28,18 @@ function RequestJoinTeamDetailScreen() {
 
     useEffect(() => {
         const fetchRequest = async () => {
-            setIsLoading(true);
             const requestDoc = await getDoc(requestRef);
             if (requestDoc.exists()) {
+                setIsLoading(true);
                 const requestData = requestDoc.data();
                 setRequestDetails(requestData);
+                setIsLoading(false);
 
                 const playerName = await getPlayerNameById(requestData.userId);
                 setPlayerName(playerName);
 
                 const teamName = await getTeamName(requestData.clubId)
                 setClubName(teamName);
-                setIsLoading(false);
-            } else {
-                setIsLoading(false);
             }
         };
 
@@ -117,42 +115,45 @@ function RequestJoinTeamDetailScreen() {
 
     return (
         <SafeAreaView style={globalStyles.container}>
-            <View style={globalStyles.headerContainerWithNoBorderBottom}>
-                <Title>Oh, une <PrimaryColorText>invitation</PrimaryColorText></Title>
-                <Subtitle>Il semblerait qu'un joueur souahite être invité à rejoindre l'un de vos clubs</Subtitle>
-            </View>
-
-            <View
-                style={{ marginTop: 50, paddingHorizontal: 30 }}
-            >
-                {requestDetails && (
-                    <View>
-                        <Title><PrimaryColorText>{playerName}</PrimaryColorText> demande à rejoindre <PrimaryColorText>{clubName}</PrimaryColorText></Title>
-                        {requestDetails.state === 'pending' ? (
-                            <View style={styles.buttons}>
-                                <FunctionButton
-                                    title="Accepter"
-                                    onPress={() => handleRequestResponse('accepted')}
-                                />
-                                <FunctionButton
-                                    title="Refuser"
-                                    onPress={() => handleRequestResponse('rejected')}
-                                    variant='primaryOutline'
-                                />
-                                <FunctionButton
-                                    title="Voir le profil du joueur"
-                                    onPress={() => navigation.navigate('ProfileScreen', { userId: requestDetails.userId })}
-                                    variant='secondaryOutline'
-                                />
-                            </View>
-                        ) : requestDetails.state === 'canceled' ? (
-                            <Text style={styles.textInfos}>Cette demande a été annulée.</Text>
-                        ) : (
-                            <Text style={styles.textInfos}>Cette demande a déjà été traitée.</Text>
-                        )}
+            {requestDetails && playerName && clubName && (
+                <>
+                    <View style={globalStyles.headerContainerWithNoBorderBottom}>
+                        <Title>Oh, une <PrimaryColorText>invitation</PrimaryColorText></Title>
+                        <Subtitle>Il semblerait qu'un joueur souahite être invité à rejoindre l'un de vos clubs</Subtitle>
                     </View>
-                )}
-            </View>
+
+                    <View
+                        style={{ marginTop: 50, paddingHorizontal: 30 }}
+                    >
+
+                        <View>
+                            <Title><PrimaryColorText>{playerName}</PrimaryColorText> demande à rejoindre <PrimaryColorText>{clubName}</PrimaryColorText></Title>
+                            {requestDetails.state === 'pending' ? (
+                                <View style={styles.buttons}>
+                                    <FunctionButton
+                                        title="Accepter"
+                                        onPress={() => handleRequestResponse('accepted')}
+                                    />
+                                    <FunctionButton
+                                        title="Refuser"
+                                        onPress={() => handleRequestResponse('rejected')}
+                                        variant='primaryOutline'
+                                    />
+                                    <FunctionButton
+                                        title="Voir le profil du joueur"
+                                        onPress={() => navigation.navigate('ProfileScreen', { userId: requestDetails.userId })}
+                                        variant='secondaryOutline'
+                                    />
+                                </View>
+                            ) : requestDetails.state === 'canceled' ? (
+                                <Text style={styles.textInfos}>Cette demande a été annulée.</Text>
+                            ) : (
+                                <Text style={styles.textInfos}>Cette demande a déjà été traitée.</Text>
+                            )}
+                        </View>
+                    </View>
+                </>
+            )}
         </SafeAreaView>
     );
 }
