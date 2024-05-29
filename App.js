@@ -33,12 +33,15 @@ import { signOut } from 'firebase/auth';
 import { auth } from './firebaseConfig';
 import { ChatModalProvider, useChatModal } from './context/ChatModalContext';
 import ChatModal from './components/ChatModal';
+import { LoadingProvider, useLoading } from './context/LoadingContext';
+import LoadingOverlay from './screens/LoadingOverlay';
 
 const Stack = createStackNavigator();
 
 function App() {
   const { user, setUser } = useUser();
   const { isChatModalVisible, tournamentId, closeChatModal } = useChatModal();
+  const { isLoading } = useLoading();
 
   return (
     <View style={styles.container}>
@@ -78,7 +81,7 @@ function App() {
                             [
                               {
                                 text: "Annuler",
-                                onPress: () => {},
+                                onPress: () => { },
                                 style: "cancel"
                               },
                               {
@@ -156,6 +159,7 @@ function App() {
         </KeyboardAwareScrollView>
       </NavigationContainer>
       <ChatModal visible={isChatModalVisible} onClose={closeChatModal} tournamentId={tournamentId} />
+      <LoadingOverlay visible={isLoading} />
     </View>
   );
 }
@@ -164,7 +168,9 @@ export default function MainApp() {
   return (
     <UserProvider>
       <ChatModalProvider>
-        <App />
+        <LoadingProvider>
+          <App />
+        </LoadingProvider>
       </ChatModalProvider>
     </UserProvider>
   );

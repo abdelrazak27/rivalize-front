@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, View, StyleSheet, Text } from 'react-native';
+import { Modal, View, StyleSheet, Text, ActivityIndicator } from 'react-native';
 import ChatScreen from '../screens/ChatScreen';
 import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -13,6 +13,7 @@ import { db } from '../firebaseConfig';
 const ChatModalContent = ({ onClose, tournamentId }) => {
     const insets = useSafeAreaInsets();
     const [tournamentName, setTournamentName] = useState('');
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchTournamentName = async () => {
@@ -23,12 +24,19 @@ const ChatModalContent = ({ onClose, tournamentId }) => {
             } else {
                 console.log('No such document!');
             }
+            setLoading(false);
         };
 
         if (tournamentId) {
             fetchTournamentName();
         }
     }, [tournamentId]);
+
+    if (loading) {
+        return (
+            <ActivityIndicator size="large" style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}/>
+        )
+    }
 
     return (
         <SafeAreaView style={[styles.modalView]}>
@@ -51,7 +59,7 @@ const ChatModal = ({ visible, onClose, tournamentId }) => {
     return (
         <Modal
             animationType="fade"
-            transparent={false} 
+            transparent={false}
             visible={visible}
             onRequestClose={onClose}
         >
@@ -80,7 +88,7 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         marginHorizontal: 30,
     },
-    headerTitle:{
+    headerTitle: {
         color: colors.primary,
         fontFamily: fonts.OutfitBold,
         fontSize: 18,

@@ -12,7 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Subtitle, Title } from '../../components/TextComponents';
 import colors from '../../styles/colors';
 import { fonts } from '../../styles/fonts';
-import LoadingOverlay from '../LoadingOverlay';
+import { useLoading } from '../../context/LoadingContext';
 
 const auth = getAuth(app);
 
@@ -27,7 +27,7 @@ function ConnexionScreen() {
         return () => backHandler.remove();
     }, []);
     
-    const [isLoading, setIsLoading] = useState(false);
+    const { setIsLoading } = useLoading();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const { setUser } = useUser();
@@ -223,7 +223,6 @@ function ConnexionScreen() {
 
     return (
         <SafeAreaView style={styles.container}>
-            <LoadingOverlay visible={isLoading} />
             <Title>Bienvenue,</Title>
             <Subtitle>Connectez-vous pour continuer l'aventure</Subtitle>
 
