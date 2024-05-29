@@ -12,6 +12,7 @@ import { Label } from "./TextComponents";
 import colors from "../styles/colors";
 import { fonts } from "../styles/fonts";
 import FunctionButton from "./FunctionButton";
+import { useLoading } from "../context/LoadingContext";
 
 function InvitePlayers({ arrayList }) {
     const [players, setPlayers] = useState([]);
@@ -22,9 +23,11 @@ function InvitePlayers({ arrayList }) {
     const navigation = useNavigation();
     const route = useRoute();
     const { teamId } = route.params;
+    const { setIsLoading } = useLoading();
 
     useEffect(() => {
         const fetchInvitations = async () => {
+            setIsLoading(true);
             const invitationsQuery = query(collection(db, "invitations"), where("clubId", "==", teamId), where("state", "==", "pending"));
             const querySnapshot = await getDocs(invitationsQuery);
             const invitedUids = [];
@@ -32,6 +35,7 @@ function InvitePlayers({ arrayList }) {
                 invitedUids.push(doc.data().invitedUid);
             });
             setInvitedPlayerUids(invitedUids);
+            setIsLoading(false);
         };
 
         fetchInvitations();
@@ -170,7 +174,6 @@ function InvitePlayers({ arrayList }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-
     },
     input: {
         height: 40,

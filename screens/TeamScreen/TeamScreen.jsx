@@ -19,26 +19,26 @@ import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
 import { LinearGradient } from "expo-linear-gradient";
 import { darkenColor } from "../../utils/colors";
 import { Label } from "../../components/TextComponents";
+import { useLoading } from "../../context/LoadingContext";
 
 function TeamScreen() {
     const { user, setUser } = useUser();
+    const { setIsLoading } = useLoading();
     const route = useRoute();
     const { teamId } = route.params;
     const navigation = useNavigation();
 
     const [teamData, setTeamData] = useState(null);
     const [coachData, setCoachData] = useState(null);
-    const [isLoading, setIsLoading] = useState(true);
     const [isCurrentCoach, setIsCurrentCoach] = useState(false);
 
     const fetchTeamDetails = async () => {
+        setIsLoading(true);
         const teamRef = doc(db, 'equipes', teamId);
         const teamDoc = await getDoc(teamRef);
         if (teamDoc.exists()) {
             setTeamData(teamDoc.data());
             await getCoachInfo(teamDoc.data().coach_id);
-        } else {
-            setIsLoading(false);
         }
     };
 
@@ -129,8 +129,6 @@ function TeamScreen() {
         );
     };
 
-
-
     const deleteTeam = async () => {
         Alert.alert(
             "Confirmer la suppression",
@@ -152,11 +150,11 @@ function TeamScreen() {
                                     invitationsToUpdate.push({ ref: doc.ref, data: { state: 'expired' } });
                                 }
                             });
-    
+
                             await Promise.all(invitationsToUpdate.map(async (invitation) => {
                                 await updateDoc(invitation.ref, invitation.data);
                             }));
-    
+
                             if (teamData.players && teamData.players.length > 0) {
                                 await Promise.all(teamData.players.map(async (playerId) => {
                                     const userRef = doc(db, 'utilisateurs', playerId);
@@ -171,7 +169,7 @@ function TeamScreen() {
                                     }
                                 }));
                             }
-    
+
                             if (teamData.coach_id) {
                                 const coachRef = doc(db, 'utilisateurs', teamData.coach_id);
                                 const coachDoc = await getDoc(coachRef);
@@ -187,26 +185,26 @@ function TeamScreen() {
                                     }
                                 }
                             }
-    
+
                             const teamRef = doc(db, 'equipes', teamId);
                             await updateDoc(teamRef, {
                                 active: false,
                             });
-    
+
                             const newTeams = user.teams.filter(team => team !== teamId);
                             const updatedUserData = {
                                 ...user,
                                 teams: newTeams,
                             };
                             await setUser(updatedUserData);
-    
+
                             navigation.dispatch(
                                 CommonActions.reset({
                                     index: 0,
                                     routes: [{ name: 'HomeScreen', params: { teamRefresh: true } }],
                                 })
                             );
-    
+
                         } catch (error) {
                             console.error("Une erreur s'est produite lors de la suppression du club :", error);
                         }
@@ -215,7 +213,7 @@ function TeamScreen() {
                 }
             ]
         );
-    };    
+    };
 
     const leaveTeam = async () => {
         try {
@@ -277,18 +275,10 @@ function TeamScreen() {
         }
     };
 
-    if (isLoading) {
-        return (
-            <View style={styles.centered}>
-                <ActivityIndicator size="large" />
-            </View>
-        );
-    }
-
     return (
         <SafeAreaView style={globalStyles.container}>
             <View style={{ height: 1, backgroundColor: colors.lightgrey, marginHorizontal: 30 }} />
-            {teamData ? (
+            {teamData && coachData && user ? (
                 <>
                     <ScrollView contentContainerStyle={globalStyles.scrollContainer}>
                         <View>
@@ -320,7 +310,7 @@ function TeamScreen() {
                                 <View style={{ paddingHorizontal: '20%', paddingTop: 15 }}>
                                     <RedirectLinkButtonMini
                                         routeName='ProfileScreen'
-                                        params={{ userId: coachData.id }}
+                                        params={{ userId: coachData?.id }}
                                         title="Voir son profil"
                                         variant="secondary"
                                     />
@@ -364,7 +354,6 @@ function TeamScreen() {
                             )}
                             <Spacer />
                         </View>
-
 
                         <View style={styles.teamInfoContainer}>
                             <View style={{ gap: 20 }}>
@@ -433,7 +422,6 @@ function TeamScreen() {
                                 />
                             </>
                         )}
-
                     </ScrollView>
                 </>
             ) : (
@@ -458,6 +446,7 @@ const styles = StyleSheet.create({
         height: 150,
         resizeMode: 'contain',
         borderRadius: 10,
+        backgroundColor: colors.lightgrey
     },
     teamName: {
         textTransform: 'uppercase',

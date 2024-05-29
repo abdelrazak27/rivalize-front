@@ -12,6 +12,7 @@ import { getPlayerNameById } from '../utils/users';
 import { getTeamName } from '../utils/teams';
 import { fonts } from '../styles/fonts';
 import colors from '../styles/colors';
+import { useLoading } from '../context/LoadingContext';
 
 function RequestJoinTeamDetailScreen() {
     const route = useRoute();
@@ -21,11 +22,13 @@ function RequestJoinTeamDetailScreen() {
     const [requestDetails, setRequestDetails] = useState(null);
     const [playerName, setPlayerName] = useState('');
     const [clubName, setClubName] = useState('');
+    const { setIsLoading } = useLoading();
 
     const requestRef = doc(db, 'requests_join_club', requestJoinClubId);
 
     useEffect(() => {
         const fetchRequest = async () => {
+            setIsLoading(true);
             const requestDoc = await getDoc(requestRef);
             if (requestDoc.exists()) {
                 const requestData = requestDoc.data();
@@ -36,6 +39,9 @@ function RequestJoinTeamDetailScreen() {
 
                 const teamName = await getTeamName(requestData.clubId)
                 setClubName(teamName);
+                setIsLoading(false);
+            } else {
+                setIsLoading(false);
             }
         };
 
@@ -43,9 +49,11 @@ function RequestJoinTeamDetailScreen() {
     }, [requestJoinClubId]);
 
     const handleRequestResponse = async (newState) => {
+        setIsLoading(true);
         const userRef = doc(db, 'utilisateurs', requestDetails.userId);
         const userDoc = await getDoc(userRef);
         if (!userDoc.exists()) {
+            setIsLoading(false);
             Alert.alert("Erreur", "Profil utilisateur introuvable.");
             return;
         }
@@ -54,6 +62,7 @@ function RequestJoinTeamDetailScreen() {
         const teamRef = doc(db, 'equipes', requestDetails.clubId);
         const teamDoc = await getDoc(teamRef);
         if (!teamDoc.exists()) {
+            setIsLoading(false);
             Alert.alert("Erreur", "Club introuvable.");
             return;
         }
@@ -62,6 +71,7 @@ function RequestJoinTeamDetailScreen() {
 
         if (newState === 'accepted') {
             if (userData.team) {
+                setIsLoading(false);
                 Alert.alert("Erreur", "L'utilisateur appartient déjà à un autre club.");
                 return;
             }
@@ -81,6 +91,7 @@ function RequestJoinTeamDetailScreen() {
             };
             await setDoc(acceptNotificationRef, acceptNotificationDetails);
 
+            setIsLoading(false);
             Alert.alert("Demande acceptée", `Le joueur a été ajouté au club ${teamData.name} avec succès.`);
         } else {
             await updateDoc(userRef, { requestedJoinClubId: null });
@@ -97,6 +108,7 @@ function RequestJoinTeamDetailScreen() {
             };
             await setDoc(rejectNotificationRef, rejectNotificationDetails);
 
+            setIsLoading(false);
             Alert.alert("Demande refusée", `Vous avez refusé la demande du joueur pour rejoindre le club ${teamData.name}.`);
         }
 
@@ -140,7 +152,6 @@ function RequestJoinTeamDetailScreen() {
                         )}
                     </View>
                 )}
-                {!requestDetails && <Text>Chargement des détails de la demande...</Text>}
             </View>
         </SafeAreaView>
     );

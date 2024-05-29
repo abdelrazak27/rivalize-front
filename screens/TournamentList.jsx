@@ -8,14 +8,16 @@ import CustomList from '../components/CustomList';
 import ItemList from '../components/ItemList';
 import { fonts } from '../styles/fonts';
 import colors from '../styles/colors';
+import { useLoading } from '../context/LoadingContext';
 
 const TournamentList = ({ refresh, state, showMyTournaments, userId, searchQuery }) => {
     const { user } = useUser();
     const [tournaments, setTournaments] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [filteredTournaments, setFilteredTournaments] = useState([]);
     const navigation = useNavigation();
+    const { setIsLoading } = useLoading();
 
-    const filterTournamentsByStateAndName = (loadedTournaments) => {
+    const filterTournamentsByStateAndName = (loadedTournaments, searchQuery) => {
         const now = new Date();
         let filteredByState = [];
 
@@ -55,7 +57,7 @@ const TournamentList = ({ refresh, state, showMyTournaments, userId, searchQuery
     };
 
     const fetchTournaments = async () => {
-        setLoading(true);
+        setIsLoading(true);
         try {
             const userTeamIds = getUserTeamIds();
             let queries = [];
@@ -82,35 +84,32 @@ const TournamentList = ({ refresh, state, showMyTournaments, userId, searchQuery
             }
 
             loadedTournaments = loadedTournaments.filter((v, i, a) => a.findIndex(t => (t.id === v.id)) === i);
+            loadedTournaments.sort((a, b) => b.startDate - a.startDate);
+            setTournaments(loadedTournaments);
 
-            const filteredTournaments = filterTournamentsByStateAndName(loadedTournaments);
-            filteredTournaments.sort((a, b) => b.startDate - a.startDate);
-            setTournaments(filteredTournaments);
+            const filteredTournaments = filterTournamentsByStateAndName(loadedTournaments, searchQuery);
+            setFilteredTournaments(filteredTournaments);
         } catch (error) {
             console.error("Error fetching tournaments: ", error);
         } finally {
-            setLoading(false);
+            setIsLoading(false);
         }
     };
 
     useEffect(() => {
         fetchTournaments();
-    }, [refresh, searchQuery]);
+    }, [refresh]);
+
+    useEffect(() => {
+        const filteredTournaments = filterTournamentsByStateAndName(tournaments, searchQuery);
+        setFilteredTournaments(filteredTournaments);
+    }, [searchQuery, state, tournaments]);
 
     const handlePress = (tournamentId) => {
         navigation.navigate('TournamentDetailScreen', { tournamentId });
     };
 
-    if (loading) {
-        return (
-            <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#0000ff" />
-                <Text>Chargement des tournois...</Text>
-            </View>
-        );
-    }
-
-    if (tournaments.length === 0) {
+    if (filteredTournaments.length === 0) {
         return (
             <View style={styles.loadingContainer}>
                 {searchQuery.length > 0 ? (
@@ -129,7 +128,7 @@ const TournamentList = ({ refresh, state, showMyTournaments, userId, searchQuery
 
     return (
         <CustomList>
-            {tournaments.map(tournament => (
+            {filteredTournaments.map(tournament => (
                 <ItemList 
                     key={tournament.id} 
                     text={

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import uuid from 'react-native-uuid';
 import * as ImagePicker from 'expo-image-picker';
@@ -20,6 +20,7 @@ import FunctionButton from '../../components/FunctionButton';
 import { LinearGradient } from 'expo-linear-gradient';
 import { darkenColor } from '../../utils/colors';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import { useLoading } from '../../context/LoadingContext';
 
 function CreateTeamForm({ user }) {
     const team_id = uuid.v4();
@@ -28,6 +29,7 @@ function CreateTeamForm({ user }) {
     const [filteredCities, setFilteredCities] = useState([]);
     const nameRegex = /^[a-zA-ZàâäéèêëïîôöùûüçÀÂÄÉÈÊËÏÎÔÖÙÛÜÇ' -]+$/;
     const navigation = useNavigation();
+    const { setIsLoading } = useLoading();
 
     const colors = {
         red: '#FF0000',
@@ -127,9 +129,11 @@ function CreateTeamForm({ user }) {
     };
 
     const pickImage = async () => {
+        setIsLoading(true);
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== 'granted') {
             alert('Sorry, we need camera roll permissions to make this work!');
+            setIsLoading(false);
             return;
         }
 
@@ -143,6 +147,7 @@ function CreateTeamForm({ user }) {
         if (!result.canceled && result.assets && result.assets.length > 0) {
             setImageUri(result.assets[0].uri);
         }
+        setIsLoading(false);
     };
 
     const addTeamToUser = async (userId, teamId) => {
@@ -157,9 +162,10 @@ function CreateTeamForm({ user }) {
     };
 
     const handleSaveTeam = async () => {
-
+        setIsLoading(true);
         if (user.accountType !== 'coach') {
             Alert.alert("Erreur", "La création de clubs n'est disponible que pour les coachs.")
+            setIsLoading(false);
             return false;
         }
 
@@ -171,17 +177,20 @@ function CreateTeamForm({ user }) {
 
         if (missingFields.length > 0 || !imageUri.trim()) {
             Alert.alert('Erreur', `Veuillez remplir tous les champs requis.`);
+            setIsLoading(false);
             return;
         }
 
         if (teamDetails.city.trim() && !citiesData.some((city) =>
             city.Nom_commune.toLowerCase() === teamDetails.city.toLowerCase().trim())) {
             Alert.alert("Erreur", "Veuillez sélectionner une commune valide de la liste. Si elle n'est pas présente, vous pouvez indiquer une commune voisine.");
+            setIsLoading(false);
             return;
         }
 
         if (!nameRegex.test(teamDetails.name)) {
             Alert.alert("Erreur", "Merci d'indiquer un nom de club valide.");
+            setIsLoading(false);
             return false;
         }
 
@@ -205,7 +214,7 @@ function CreateTeamForm({ user }) {
                 await setDoc(teamRef, teamDatas);
                 await addTeamToUser(user.uid, team_id);
 
-                Alert.alert("Succès", "Le club a été enregistré avec succès.");
+                // Alert.alert("Succès", "Le club a été enregistré avec succès.");
 
                 navigation.dispatch(
                     CommonActions.reset({
@@ -222,6 +231,8 @@ function CreateTeamForm({ user }) {
         } catch (error) {
             console.error("Une erreur est survenue :", error);
             Alert.alert("Erreur", "Une erreur est survenue lors de l'enregistrement du club.");
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -392,7 +403,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         top: '50%',
         left: '50%',
-        transform: [{ translateX: -10 }, { translateY: -10 }], // 10 étant la moitié de 20, la taille de l'icone
+        transform: [{ translateX: -10 }, { translateY: -10 }],
         color: 'white'
     },
 });

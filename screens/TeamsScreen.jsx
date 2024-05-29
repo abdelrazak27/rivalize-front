@@ -13,6 +13,7 @@ import globalStyles from '../styles/globalStyles';
 import { fonts } from '../styles/fonts';
 import colors from '../styles/colors';
 import Spacer from '../components/Spacer';
+import { useLoading } from '../context/LoadingContext';
 
 function TeamsScreen() {
     const [userTeams, setUserTeams] = useState([]);
@@ -22,6 +23,7 @@ function TeamsScreen() {
     const { user } = useUser();
     const navigation = useNavigation();
     const [lastVisible, setLastVisible] = useState(null);
+    const { setIsLoading } = useLoading();
     const [isMoreLoading, setIsMoreLoading] = useState(false);
     const [allLoaded, setAllLoaded] = useState(false);
 
@@ -35,6 +37,7 @@ function TeamsScreen() {
 
     const fetchTeams = async () => {
         try {
+            setIsLoading(true);
             let q = query(collection(db, 'equipes'), where("active", "==", true), limit(20));
             if (lastVisible) {
                 q = query(collection(db, 'equipes'), where("active", "==", true), startAfter(lastVisible), limit(20));
@@ -57,15 +60,8 @@ function TeamsScreen() {
         } catch (error) {
             console.error("Error fetching teams: ", error);
         } finally {
+            setIsLoading(false);
             setIsMoreLoading(false);
-        }
-    };
-
-
-    const loadMoreTeams = () => {
-        if (!allLoaded && !isMoreLoading) {
-            setIsMoreLoading(true);
-            fetchTeams();
         }
     };
 
@@ -126,7 +122,7 @@ function TeamsScreen() {
                     <Text style={styles.sectionTitle}>Tous les clubs</Text>
                     <View style={{ paddingTop: 10 }}>
                         <CustomList>
-                            {filteredTeams.length > 0 ? (
+                            {filteredTeams.length > 0 && (
                                 filteredTeams.map((team, index) => (
                                     <ItemList
                                         key={index}
@@ -134,7 +130,8 @@ function TeamsScreen() {
                                         onPress={() => handleSelectTeam(team.id)}
                                     />
                                 ))
-                            ) : (
+                            )}
+                            {searchQuery.length === 0 && filteredTeams.length === 0 && (
                                 <Text style={styles.noResultsText}>Aucun club n'existe pour le moment.</Text>
                             )}
                             {isMoreLoading && !allLoaded && (
@@ -152,6 +149,18 @@ function TeamsScreen() {
 }
 
 const styles = StyleSheet.create({
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#fff'
+    },
+    loadingText: {
+        marginTop: 10,
+        fontSize: 18,
+        fontFamily: fonts.OutfitSemiBold,
+        color: colors.primary,
+    },
     container: {
         flex: 1,
         padding: 10,

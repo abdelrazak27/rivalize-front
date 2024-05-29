@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Alert, ScrollView, Modal, Image, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Alert, ScrollView, Modal, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { arrayUnion, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
@@ -22,6 +22,7 @@ import ItemList from '../components/ItemList';
 import { BlurView } from 'expo-blur';
 import { getTeamName } from '../utils/teams';
 import { useChatModal } from '../context/ChatModalContext';
+import { useLoading } from '../context/LoadingContext';
 
 const TournamentDetailScreen = ({ route, navigation }) => {
     const { user } = useUser();
@@ -34,8 +35,10 @@ const TournamentDetailScreen = ({ route, navigation }) => {
     const [teamLogos, setTeamLogos] = useState({});
     const insets = useSafeAreaInsets();
     const { openChatModal } = useChatModal();
+    const { setIsLoading } = useLoading();
 
     const fetchTeamNamesModal = async (teamIds) => {
+        setIsLoading(true);
         const names = {};
         for (const teamId of teamIds) {
             const name = await getTeamName(teamId);
@@ -43,18 +46,20 @@ const TournamentDetailScreen = ({ route, navigation }) => {
                 names[teamId] = name;
             }
         }
+        setIsLoading(false);
         setTeamNamesModal(names);
     };
 
     const isUserCoachOfParticipatingTeam = () => {
         if (!tournament || !user || user.accountType !== 'coach') return false;
-        if(user.accountType === 'coach') {
+        if (user.accountType === 'coach') {
             return user.teams.some(teamId => tournament.participatingClubs.includes(teamId));
         }
     };
-    
+
 
     const fetchTournament = async () => {
+        setIsLoading(true);
         const docRef = doc(db, 'tournois', tournamentId);
         const docSnap = await getDoc(docRef);
 
@@ -75,7 +80,9 @@ const TournamentDetailScreen = ({ route, navigation }) => {
             }
             setTeamNames(names);
             setTeamLogos(logos);
+            setIsLoading(false);
         } else {
+            setIsLoading(false);
             console.log('No such document!');
         }
     };
@@ -104,8 +111,10 @@ const TournamentDetailScreen = ({ route, navigation }) => {
     };
 
     const deleteTournament = async () => {
+        setIsLoading(true);
         const docRef = doc(db, 'tournois', tournamentId);
         await updateDoc(docRef, { isDisabled: true });
+        setIsLoading(false);
         Alert.alert('Succès', 'Le tournoi a été annulé avec succès.', [
             {
                 text: 'OK',
@@ -124,6 +133,7 @@ const TournamentDetailScreen = ({ route, navigation }) => {
     };
 
     const fetchClubsDetails = async (clubIds) => {
+        setIsLoading(true);
         const clubDetails = [];
         for (const id of clubIds) {
             const docRef = doc(db, 'equipes', id);
@@ -134,11 +144,14 @@ const TournamentDetailScreen = ({ route, navigation }) => {
                 console.log('Aucun club trouvé avec l\'id :', id);
             }
         }
+        setIsLoading(false);
         return clubDetails;
     };
 
     const confirmJoin = async () => {
+        setIsLoading(true);
         if (!selectedTeam) {
+            setIsLoading(false);
             Alert.alert('Erreur', 'Merci de bien vouloir sélectionner un club.');
             return;
         }
@@ -148,6 +161,7 @@ const TournamentDetailScreen = ({ route, navigation }) => {
             const teamSnap = await getDoc(teamRef);
 
             if (!teamSnap.exists()) {
+                setIsLoading(false);
                 Alert.alert('Erreur', 'Club introuvable');
                 return;
             }
@@ -156,6 +170,7 @@ const TournamentDetailScreen = ({ route, navigation }) => {
 
             // Assez de joueurs ?
             if (teamData.players.length < tournament.playersPerTeam) {
+                setIsLoading(false);
                 Alert.alert('Erreur', `Le club doit avoir au moins ${tournament.playersPerTeam} joueurs.`);
                 return;
             }
@@ -164,18 +179,21 @@ const TournamentDetailScreen = ({ route, navigation }) => {
             const teamCategory = teamData.category;
 
             if (teamCategory !== tournament.category) {
+                setIsLoading(false);
                 Alert.alert('Erreur', 'La catégorie ou le genre du club ne correspond pas à celui du tournoi.');
                 return;
             }
 
             // Place disponible ?
             if (tournament.availableSlots <= 0) {
+                setIsLoading(false);
                 Alert.alert('Erreur', 'Aucune place disponible pour le tournoi.');
                 return;
             }
 
             // Déjà participant ?
             if (tournament.participatingClubs?.includes(selectedTeam)) {
+                setIsLoading(false);
                 Alert.alert('Erreur', 'Ce club participe déjà au tournoi.');
                 return;
             }
@@ -199,11 +217,13 @@ const TournamentDetailScreen = ({ route, navigation }) => {
                 setTeamLogos(logos);
             }
 
+            setIsLoading(false);
             Alert.alert('Succès', 'Votre club a rejoint le tournoi.');
             console.log('Joining tournament with team ID:', selectedTeam);
             setModalVisible(false);
             fetchTournament();
         } catch (error) {
+            setIsLoading(false);
             console.error('Erreur lors de la tentative de rejoindre le tournoi:', error);
             Alert.alert('Erreur', 'Une erreur est survenue lors de la tentative pour rejoindre le tournoi.');
         }
@@ -212,7 +232,9 @@ const TournamentDetailScreen = ({ route, navigation }) => {
     // FOR TESTS
     // TODO : à retirer pour version finale
     const confirmJoinForce = async () => {
+        setIsLoading(true);
         if (!selectedTeam) {
+            setIsLoading(false);
             Alert.alert('Erreur', 'Aucune club n\'est sélectionné.');
             return;
         }
@@ -222,6 +244,7 @@ const TournamentDetailScreen = ({ route, navigation }) => {
             const teamSnap = await getDoc(teamRef);
 
             if (!teamSnap.exists()) {
+                setIsLoading(false);
                 Alert.alert('Erreur', 'Club introuvable.');
                 return;
             }
@@ -244,12 +267,13 @@ const TournamentDetailScreen = ({ route, navigation }) => {
                 const logos = { ...teamLogos, [selectedTeam]: teamLogoDoc.data().logo_link };
                 setTeamLogos(logos);
             }
-
+            setIsLoading(false);
             Alert.alert('Succès', 'Votre club a rejoint le tournoi.');
             console.log('Joining tournament with team ID:', selectedTeam);
             setModalVisible(false);
             fetchTournament();
         } catch (error) {
+            setIsLoading(false);
             console.error('Erreur lors de la tentative de rejoindre le tournoi:', error);
             Alert.alert('Erreur', 'Une erreur est survenue lors de la tentative de rejoindre le tournoi.');
         }
@@ -258,14 +282,6 @@ const TournamentDetailScreen = ({ route, navigation }) => {
     const handleClubPress = (clubId) => {
         navigation.navigate('TeamScreen', { teamId: clubId });
     };
-
-    if (!tournament) {
-        return (
-            <View style={styles.centered}>
-                <Text>Chargement...</Text>
-            </View>
-        );
-    }
 
     const handleMatchPress = (roundIndex, matchIndex, match) => {
         navigation.navigate('MatchDetailsScreen', {
@@ -280,232 +296,234 @@ const TournamentDetailScreen = ({ route, navigation }) => {
 
     const hasMatchStarted = (matchDate, matchTime) => {
         const now = new Date();
-    
+
         const dateParts = matchDate.split('T')[0];
         const timeParts = matchTime.split('T')[1];
-    
+
         const matchDateTimeString = `${dateParts}T${timeParts}`;
         const matchDateTime = new Date(matchDateTimeString);
         return now >= matchDateTime;
     };
+    if (tournament) {
+        return (
+            <SafeAreaView style={globalStyles.container}>
+                <View style={{ height: 1, backgroundColor: colors.lightgrey, marginHorizontal: 30 }} />
+                <ScrollView contentContainerStyle={globalStyles.scrollContainer}>
+                    <View style={styles.imageContainer}>
+                        <Image source={require('../assets/tournament.png')} style={styles.logo} />
+                    </View>
+                    <Text style={styles.tournamentName}>{tournament.name}</Text>
+                    <Text style={styles.tournamentPlaces}>Place(s) disponible(s) : {tournament.availableSlots}</Text>
 
-    return (
-        <SafeAreaView style={globalStyles.container}>
-            <View style={{ height: 1, backgroundColor: colors.lightgrey, marginHorizontal: 30 }} />
-            <ScrollView contentContainerStyle={globalStyles.scrollContainer}>
-                <View style={styles.imageContainer}>
-                    <Image source={require('../assets/tournament.png')} style={styles.logo} />
-                </View>
-                <Text style={styles.tournamentName}>{tournament.name}</Text>
-                <Text style={styles.tournamentPlaces}>Place(s) disponible(s) : {tournament.availableSlots}</Text>
-
-                {user.uid === tournament.createdBy || isUserCoachOfParticipatingTeam() ? (
-                    <View style={{ paddingTop: 20 }}>
-                        <FunctionButton
-                            title="Conversation du tournoi"
-                            onPress={() => openChatModal(tournamentId)}
-                        />
-                    </View>
-                ) : null}
+                    {user.uid === tournament.createdBy || isUserCoachOfParticipatingTeam() ? (
+                        <View style={{ paddingTop: 20 }}>
+                            <FunctionButton
+                                title="Conversation du tournoi"
+                                onPress={() => openChatModal(tournamentId)}
+                            />
+                        </View>
+                    ) : null}
 
 
-                <Spacer />
-                <Label>Informations du tournoi</Label>
-                <View style={styles.teamInfoContainer}>
-                    <View style={styles.teamInfoItemContainer}>
-                        <View style={{ width: 40, alignItems: 'center' }}>
-                            <FontAwesome6 name="users-rectangle" size={24} color={colors.darkgrey} />
-                        </View>
-                        <Text style={styles.teamInfoItemText}>{tournament.category}</Text>
-                    </View>
-                    <View style={styles.teamInfoItemContainer}>
-                        <View style={{ width: 40, alignItems: 'center' }}>
-                            <FontAwesome name={tournament.gender === 'F' ? 'female' : 'male'} size={24} color={colors.darkgrey} />
-                        </View>
-                        <Text style={styles.teamInfoItemText}>{tournament.gender === 'F' ? 'Féminin' : 'Masculin'}</Text>
-                    </View>
-                    <View style={styles.teamInfoItemContainer}>
-                        <View style={{ width: 40, alignItems: 'center' }}>
-                            <FontAwesome6 name="location-dot" size={24} color={colors.darkgrey} />
-                        </View>
-                        <Text style={styles.teamInfoItemText}>
-                            {tournament.place &&
-                                `${tournament.place.charAt(0).toUpperCase()}${tournament.place.slice(1).toLowerCase()}, France`}
-                        </Text>
-                    </View>
-                    <View style={styles.teamInfoItemContainer}>
-                        <View style={{ width: 40, alignItems: 'center' }}>
-                            <FontAwesome5 name="handshake" size={24} color={colors.darkgrey} />
-                        </View>
-                        <Text style={styles.teamInfoItemText}>{tournament.playersPerTeam} contre {tournament.playersPerTeam}</Text>
-                    </View>
-                    <View style={styles.teamInfoItemContainer}>
-                        <View style={{ width: 40, alignItems: 'center' }}>
-                            <FontAwesome6 name="stopwatch" size={24} color={colors.darkgrey} />
-                        </View>
-                        <Text style={styles.teamInfoItemText}>{tournament.gameDuration} par match</Text>
-                    </View>
-                    <View style={styles.teamInfoItemContainer}>
-                        <View style={{ width: 40, alignItems: 'center' }}>
-                            <FontAwesome6 name="sitemap" size={24} color={colors.darkgrey} />
-                        </View>
-                        <Text style={styles.teamInfoItemText}>{tournament.returnMatches ? 'Avec matchs retour' : 'Sans matchs retour'}</Text>
-                    </View>
-                    <View style={styles.teamInfoItemContainer}>
-                        <View style={{ width: 40, alignItems: 'center' }}>
-                            <FontAwesome6 name="calendar-week" size={24} color={colors.darkgrey} />
-                        </View>
-                        <Text style={styles.teamInfoItemText}>Du {new Date(tournament.startDate).toLocaleDateString()} au {new Date(tournament.endDate).toLocaleDateString()}</Text>
-                    </View>
-                </View>
-                <Spacer />
-                <View style={styles.matchsContainer}>
-                    <Text style={styles.matchsTitle}>Match du tournois</Text>
-                </View>
-
-                {tournament.matches.map((round, roundIndex) => (
-                    <View key={roundIndex} style={styles.roundContainer}>
-                        <Text style={styles.roundTitle}>{round.phase}</Text>
-                        {round.matches.map((match, matchIndex) => (
-                            <LinearGradient
-                                key={matchIndex}
-                                start={{ x: 0, y: 0.5 }}
-                                end={{ x: 1, y: 0.5 }}
-                                colors={[darkenColor(colors.primary, -20), colors.primary]}
-                                locations={[0.3, 1]}
-                                style={{ borderRadius: 10 }}
-                            >
-                                <TouchableOpacity style={styles.matchContainer} onPress={() => handleMatchPress(roundIndex, matchIndex, match)}>
-                                    <View
-                                        style={[
-                                            styles.matchInfoContainerTop,
-                                            !match.clubA || !match.clubB
-                                                ? { paddingVertical: 10, alignItems: 'center' }
-                                                : { alignItems: 'flex-end' },
-                                        ]}
-                                    >
-                                        <View style={styles.matchInfoClubLeft}>
-                                            {teamLogos[match.clubA] ? (
-                                                <Image source={{ uri: teamLogos[match.clubA] }} style={styles.matchInfoClubImage} />
-                                            ) : (
-                                                <Image source={require('../assets/clubTeamEmpty.png')} style={styles.matchInfoClubImage} />
-                                            )}
-                                        </View>
-                                        <View>
-                                            {hasMatchStarted(match.date, match.time) ? (
-                                                <Text style={styles.scoreCountText}>{match.scoreA > 0 ? match.scoreA : 0} : {match.scoreB > 0 ? match.scoreB : 0}</Text>
-                                            ) : (
-                                                <>
-                                                    <Text style={styles.matchDate}>{new Date(match.date).toLocaleDateString()}</Text>
-                                                    <Text style={styles.matchTime}>
-                                                        {`${new Date(match.time).getHours()}h${new Date(match.time).getMinutes().toString().padStart(2, '0')}`}
-                                                    </Text>
-                                                </>
-                                            )}
-                                        </View>
-                                        <View style={styles.matchInfoClubRight}>
-                                            {teamLogos[match.clubB] ? (
-                                                <Image source={{ uri: teamLogos[match.clubB] }} style={styles.matchInfoClubImage} />
-                                            ) : (
-                                                <Image source={require('../assets/clubTeamEmpty.png')} style={styles.matchInfoClubImage} />
-                                            )}
-                                        </View>
-                                    </View>
-                                    <View style={styles.matchInfoContainerBottom}>
-                                        {match.clubA && <Text style={styles.matchInfoContainerBottomText}>{teamNames[match.clubA]}</Text>}
-                                        {match.clubB && <Text style={styles.matchInfoContainerBottomText}>{teamNames[match.clubB]}</Text>}
-                                    </View>
-                                </TouchableOpacity>
-                            </LinearGradient>
-                        ))}
-                    </View>
-                ))}
-                <Spacer top={15} />
-                <Label>Clubs participants</Label>
-                <Text style={styles.textInfos}>Retrouvez leurs informations en cliquant sur l’un d’eux parmi la liste ci-dessous</Text>
-                {tournament.clubDetails.length > 0 ? (
-                    <View style={{ paddingTop: 20 }}>
-                        <CustomList>
-                            {tournament.clubDetails.map((club) => (
-                                <ItemList key={club.id} text={club.name} onPress={() => handleClubPress(club.id)} />
-                            ))}
-                        </CustomList>
-                    </View>
-                ) : (
-                    <Text
-                        style={[
-                            styles.textInfos,
-                            { color: colors.darkgrey, paddingTop: 15, textAlign: 'center' },
-                        ]}
-                    >
-                        Aucun club ne participe actuellement au tournoi
-                    </Text>
-                )}
-                {user.accountType === 'coach' && !isTournamentStarted() && tournament.availableSlots > 0 && (
-                    <>
-                        {user.teams.length > 0 ? (
-                            <View style={{ position: 'relative', paddingTop: 15 }}>
-                                <FunctionButton
-                                    title="Rejoindre le tournoi"
-                                    onPress={() => setModalVisible(true)}
-                                />
-                                <Modal
-                                    animationType="slide"
-                                    transparent={true}
-                                    visible={modalVisible}
-                                    onRequestClose={() => {
-                                        setModalVisible(!modalVisible);
-                                    }}
-                                >
-                                    <BlurView intensity={6} style={[styles.absolute, { top: insets.top + 110 }]}>
-                                        <View style={styles.modalView}>
-                                            <View style={styles.modalHeader}>
-                                                <Title>
-                                                    Choisissez un <PrimaryColorText>club</PrimaryColorText>
-                                                </Title>
-                                                <Subtitle>Quel club sera à la hauteur de ce tournoi ?</Subtitle>
-                                            </View>
-                                            <ScrollView style={styles.clubsList}>
-                                                <Picker
-                                                    selectedValue={selectedTeam}
-                                                    onValueChange={(itemValue) => setSelectedTeam(itemValue)}
-                                                    style={styles.picker}
-                                                >
-                                                    <Picker.Item label="Sélectionner un club" value="nullKey" />
-                                                    {user.teams
-                                                        .filter((teamId) => !tournament.participatingClubs?.includes(teamId))
-                                                        .map((teamId, index) => (
-                                                            <Picker.Item key={index} label={teamNamesModal[teamId] || 'Loading...'} value={teamId} />
-                                                        ))}
-                                                </Picker>
-
-                                                <Text style={[styles.textInfos, { textAlign: 'center' }]}>
-                                                    Si un club n'apparaît pas c'est qu'il participe déjà au tournoi
-                                                </Text>
-                                            </ScrollView>
-
-                                            <View style={styles.modalFooter}>
-                                                <FunctionButton title="Valider" onPress={confirmJoin} disabled={selectedTeam === 'nullKey'} />
-                                                <FunctionButton title="Valider Force" onPress={confirmJoinForce} variant="error" />
-                                                <FunctionButton title="Fermer" onPress={() => setModalVisible(false)} variant="primaryOutline" />
-                                            </View>
-                                        </View>
-                                    </BlurView>
-                                </Modal>
+                    <Spacer />
+                    <Label>Informations du tournoi</Label>
+                    <View style={styles.teamInfoContainer}>
+                        <View style={styles.teamInfoItemContainer}>
+                            <View style={{ width: 40, alignItems: 'center' }}>
+                                <FontAwesome6 name="users-rectangle" size={24} color={colors.darkgrey} />
                             </View>
-                        ) : (
-                            <Text>Vous n'avez pas de club.</Text>
-                        )}
-                    </>
-                )}
-                {user.uid === tournament.createdBy && new Date() < new Date(tournament.startDate) && (
-                    <View style={{ paddingTop: 15 }}>
-                        <FunctionButton title="Annuler le tournoi" onPress={deleteTournament} variant="error" />
+                            <Text style={styles.teamInfoItemText}>{tournament.category}</Text>
+                        </View>
+                        <View style={styles.teamInfoItemContainer}>
+                            <View style={{ width: 40, alignItems: 'center' }}>
+                                <FontAwesome name={tournament.gender === 'F' ? 'female' : 'male'} size={24} color={colors.darkgrey} />
+                            </View>
+                            <Text style={styles.teamInfoItemText}>{tournament.gender === 'F' ? 'Féminin' : 'Masculin'}</Text>
+                        </View>
+                        <View style={styles.teamInfoItemContainer}>
+                            <View style={{ width: 40, alignItems: 'center' }}>
+                                <FontAwesome6 name="location-dot" size={24} color={colors.darkgrey} />
+                            </View>
+                            <Text style={styles.teamInfoItemText}>
+                                {tournament.place &&
+                                    `${tournament.place.charAt(0).toUpperCase()}${tournament.place.slice(1).toLowerCase()}, France`}
+                            </Text>
+                        </View>
+                        <View style={styles.teamInfoItemContainer}>
+                            <View style={{ width: 40, alignItems: 'center' }}>
+                                <FontAwesome5 name="handshake" size={24} color={colors.darkgrey} />
+                            </View>
+                            <Text style={styles.teamInfoItemText}>{tournament.playersPerTeam} contre {tournament.playersPerTeam}</Text>
+                        </View>
+                        <View style={styles.teamInfoItemContainer}>
+                            <View style={{ width: 40, alignItems: 'center' }}>
+                                <FontAwesome6 name="stopwatch" size={24} color={colors.darkgrey} />
+                            </View>
+                            <Text style={styles.teamInfoItemText}>{tournament.gameDuration} par match</Text>
+                        </View>
+                        <View style={styles.teamInfoItemContainer}>
+                            <View style={{ width: 40, alignItems: 'center' }}>
+                                <FontAwesome6 name="sitemap" size={24} color={colors.darkgrey} />
+                            </View>
+                            <Text style={styles.teamInfoItemText}>{tournament.returnMatches ? 'Avec matchs retour' : 'Sans matchs retour'}</Text>
+                        </View>
+                        <View style={styles.teamInfoItemContainer}>
+                            <View style={{ width: 40, alignItems: 'center' }}>
+                                <FontAwesome6 name="calendar-week" size={24} color={colors.darkgrey} />
+                            </View>
+                            <Text style={styles.teamInfoItemText}>Du {new Date(tournament.startDate).toLocaleDateString()} au {new Date(tournament.endDate).toLocaleDateString()}</Text>
+                        </View>
                     </View>
-                )}
-            </ScrollView>
-        </SafeAreaView>
-    );
+                    <Spacer />
+                    <View style={styles.matchsContainer}>
+                        <Text style={styles.matchsTitle}>Match du tournois</Text>
+                    </View>
+
+                    {tournament.matches.map((round, roundIndex) => (
+                        <View key={roundIndex} style={styles.roundContainer}>
+                            <Text style={styles.roundTitle}>{round.phase}</Text>
+                            {round.matches.map((match, matchIndex) => (
+                                <LinearGradient
+                                    key={matchIndex}
+                                    start={{ x: 0, y: 0.5 }}
+                                    end={{ x: 1, y: 0.5 }}
+                                    colors={[darkenColor(colors.primary, -20), colors.primary]}
+                                    locations={[0.3, 1]}
+                                    style={{ borderRadius: 10 }}
+                                >
+                                    <TouchableOpacity style={styles.matchContainer} onPress={() => handleMatchPress(roundIndex, matchIndex, match)}>
+                                        <View
+                                            style={[
+                                                styles.matchInfoContainerTop,
+                                                !match.clubA || !match.clubB
+                                                    ? { paddingVertical: 10, alignItems: 'center' }
+                                                    : { alignItems: 'flex-end' },
+                                            ]}
+                                        >
+                                            <View style={styles.matchInfoClubLeft}>
+                                                {teamLogos[match.clubA] ? (
+                                                    <Image source={{ uri: teamLogos[match.clubA] }} style={styles.matchInfoClubImage} />
+                                                ) : (
+                                                    <Image source={require('../assets/clubTeamEmpty.png')} style={styles.matchInfoClubImage} />
+                                                )}
+                                            </View>
+                                            <View>
+                                                {hasMatchStarted(match.date, match.time) ? (
+                                                    <Text style={styles.scoreCountText}>{match.scoreA > 0 ? match.scoreA : 0} : {match.scoreB > 0 ? match.scoreB : 0}</Text>
+                                                ) : (
+                                                    <>
+                                                        <Text style={styles.matchDate}>{new Date(match.date).toLocaleDateString()}</Text>
+                                                        <Text style={styles.matchTime}>
+                                                            {`${new Date(match.time).getHours()}h${new Date(match.time).getMinutes().toString().padStart(2, '0')}`}
+                                                        </Text>
+                                                    </>
+                                                )}
+                                            </View>
+                                            <View style={styles.matchInfoClubRight}>
+                                                {teamLogos[match.clubB] ? (
+                                                    <Image source={{ uri: teamLogos[match.clubB] }} style={styles.matchInfoClubImage} />
+                                                ) : (
+                                                    <Image source={require('../assets/clubTeamEmpty.png')} style={styles.matchInfoClubImage} />
+                                                )}
+                                            </View>
+                                        </View>
+                                        <View style={styles.matchInfoContainerBottom}>
+                                            {match.clubA && <Text style={styles.matchInfoContainerBottomText}>{teamNames[match.clubA]}</Text>}
+                                            {match.clubB && <Text style={styles.matchInfoContainerBottomText}>{teamNames[match.clubB]}</Text>}
+                                        </View>
+                                    </TouchableOpacity>
+                                </LinearGradient>
+                            ))}
+                        </View>
+                    ))}
+                    <Spacer top={15} />
+                    <Label>Clubs participants</Label>
+                    <Text style={styles.textInfos}>Retrouvez leurs informations en cliquant sur l’un d’eux parmi la liste ci-dessous</Text>
+                    {tournament.clubDetails.length > 0 ? (
+                        <View style={{ paddingTop: 20 }}>
+                            <CustomList>
+                                {tournament.clubDetails.map((club) => (
+                                    <ItemList key={club.id} text={club.name} onPress={() => handleClubPress(club.id)} />
+                                ))}
+                            </CustomList>
+                        </View>
+                    ) : (
+                        <Text
+                            style={[
+                                styles.textInfos,
+                                { color: colors.darkgrey, paddingTop: 15, textAlign: 'center' },
+                            ]}
+                        >
+                            Aucun club ne participe actuellement au tournoi
+                        </Text>
+                    )}
+                    {user.accountType === 'coach' && !isTournamentStarted() && tournament.availableSlots > 0 && (
+                        <>
+                            {user.teams.length > 0 ? (
+                                <View style={{ position: 'relative', paddingTop: 15 }}>
+                                    <FunctionButton
+                                        title="Rejoindre le tournoi"
+                                        onPress={() => setModalVisible(true)}
+                                    />
+                                    <Modal
+                                        animationType="slide"
+                                        transparent={true}
+                                        visible={modalVisible}
+                                        onRequestClose={() => {
+                                            setModalVisible(!modalVisible);
+                                        }}
+                                    >
+                                        <BlurView intensity={6} style={[styles.absolute, { top: insets.top + 110 }]}>
+                                            <View style={styles.modalView}>
+                                                <View style={styles.modalHeader}>
+                                                    <Title>
+                                                        Choisissez un <PrimaryColorText>club</PrimaryColorText>
+                                                    </Title>
+                                                    <Subtitle>Quel club sera à la hauteur de ce tournoi ?</Subtitle>
+                                                </View>
+                                                <ScrollView style={styles.clubsList}>
+                                                    <Picker
+                                                        selectedValue={selectedTeam}
+                                                        onValueChange={(itemValue) => setSelectedTeam(itemValue)}
+                                                        style={styles.picker}
+                                                    >
+                                                        <Picker.Item label="Sélectionner un club" value="nullKey" />
+                                                        {user.teams
+                                                            .filter((teamId) => !tournament.participatingClubs?.includes(teamId))
+                                                            .map((teamId, index) => (
+                                                                <Picker.Item key={index} label={teamNamesModal[teamId] || 'Loading...'} value={teamId} />
+                                                            ))}
+                                                    </Picker>
+
+                                                    <Text style={[styles.textInfos, { textAlign: 'center' }]}>
+                                                        Si un club n'apparaît pas c'est qu'il participe déjà au tournoi
+                                                    </Text>
+                                                </ScrollView>
+
+                                                <View style={styles.modalFooter}>
+                                                    <FunctionButton title="Valider" onPress={confirmJoin} disabled={selectedTeam === 'nullKey'} />
+                                                    <FunctionButton title="Valider Force" onPress={confirmJoinForce} variant="error" />
+                                                    <FunctionButton title="Fermer" onPress={() => setModalVisible(false)} variant="primaryOutline" />
+                                                </View>
+                                            </View>
+                                        </BlurView>
+                                    </Modal>
+                                </View>
+                            ) : (
+                                <Text>Vous n'avez pas de club.</Text>
+                            )}
+                        </>
+                    )}
+                    {user.uid === tournament.createdBy && new Date() < new Date(tournament.startDate) && (
+                        <View style={{ paddingTop: 15 }}>
+                            <FunctionButton title="Annuler le tournoi" onPress={deleteTournament} variant="error" />
+                        </View>
+                    )}
+                </ScrollView>
+            </SafeAreaView>
+        );
+    }
+
 };
 
 const styles = StyleSheet.create({

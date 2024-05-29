@@ -38,7 +38,7 @@ const SignUpStepTwo = ({ onPrevious, onNext }) => {
         setFilteredCities(filtered);
     };
 
-    const isButtonDisabled = userDetails.firstname.length === 0 || userDetails.lastname.length === 0;
+    const isButtonDisabled = userDetails.firstname.length === 0 || userDetails.lastname.length === 0 || userDetails.city.length === 0;
 
     return (
         <SafeAreaView style={styles.container}>

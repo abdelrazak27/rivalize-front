@@ -18,6 +18,7 @@ import { darkenColor } from '../../utils/colors';
 import FunctionButton from '../../components/FunctionButton';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useUser } from '../../context/UserContext';
+import { useLoading } from "../../context/LoadingContext";
 
 function EditTeamScreen({ route }) {
     const navigation = useNavigation();
@@ -33,6 +34,7 @@ function EditTeamScreen({ route }) {
     const [logoLink, setLogoLink] = useState(teamData.logo_link);
     const nameRegex = /^[a-zA-ZàâäéèêëïîôöùûüçÀÂÄÉÈÊËÏÎÔÖÙÛÜÇ' -]+$/;
     const [isModified, setIsModified] = useState(false);
+    const { setIsLoading } = useLoading();
 
     const colors = {
         red: '#FF0000',
@@ -118,23 +120,26 @@ function EditTeamScreen({ route }) {
     };
 
     const pickImage = async () => {
+        setIsLoading(true); 
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== 'granted') {
             alert('Sorry, we need camera roll permissions to make this work!');
+            setIsLoading(false);
             return;
         }
-
+    
         let result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
             aspect: [4, 3],
             quality: 1,
         });
-
+    
         if (!result.canceled && result.assets && result.assets.length > 0) {
             setLogoLink(result.assets[0].uri);
         }
-    };
+        setIsLoading(false);
+    };    
 
     const filterCities = (query) => {
         setSearchQuery(query);
@@ -186,6 +191,7 @@ function EditTeamScreen({ route }) {
     };    
 
     const saveChanges = async () => {
+        setIsLoading(true);
         const teamRef = doc(db, 'equipes', teamData.id);
         try {
             await updateDoc(teamRef, {
@@ -199,6 +205,8 @@ function EditTeamScreen({ route }) {
             navigation.goBack();
         } catch (error) {
             Alert.alert("Erreur", "Une erreur est survenue lors de la mise à jour des informations.");
+        } finally {
+            setIsLoading(false);
         }
     };
 

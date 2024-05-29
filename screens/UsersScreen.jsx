@@ -11,30 +11,37 @@ import CustomList from '../components/CustomList';
 import ItemList from '../components/ItemList';
 import { fonts } from '../styles/fonts';
 import colors from '../styles/colors';
+import { useLoading } from '../context/LoadingContext';
 
 function UsersScreen() {
     const [users, setUsers] = useState([]);
     const [filteredUsers, setFilteredUsers] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
-    const [loading, setLoading] = useState(true);
-    const navigation = useNavigation();
-    const [lastVisible, setLastVisible] = useState(null);
+    const [initialLoading, setInitialLoading] = useState(true);
     const [isMoreLoading, setIsMoreLoading] = useState(false);
+    const [lastVisible, setLastVisible] = useState(null);
     const [allLoaded, setAllLoaded] = useState(false);
+    const navigation = useNavigation();
+    const { setIsLoading } = useLoading();
 
     useEffect(() => {
-        fetchUsers();
+        fetchUsers(true);
     }, []);
 
     useEffect(() => {
         filterUsers(searchQuery);
     }, [searchQuery, users]);
 
-    const fetchUsers = async () => {
-        setLoading(true);
+    const fetchUsers = async (initial = false) => {
+        if (initial) {
+            setIsLoading(true);
+        } else {
+            setIsMoreLoading(true);
+        }
+
         try {
             let q = query(collection(db, 'utilisateurs'), limit(20));
-            if (lastVisible) {
+            if (lastVisible && !initial) {
                 q = query(collection(db, 'utilisateurs'), startAfter(lastVisible), limit(20));
             }
             const querySnapshot = await getDocs(q);
@@ -47,25 +54,18 @@ function UsersScreen() {
             }
             setLastVisible(querySnapshot.docs[querySnapshot.docs.length - 1]);
 
-            if (lastVisible) {
-                setUsers(users.concat(loadedUsers));
-                setFilteredUsers(users.concat(loadedUsers));
-            } else {
+            if (initial) {
                 setUsers(loadedUsers);
                 setFilteredUsers(loadedUsers);
+            } else {
+                setUsers(prevUsers => [...prevUsers, ...loadedUsers]);
+                setFilteredUsers(prevUsers => [...prevUsers, ...loadedUsers]);
             }
         } catch (error) {
             console.error("Error fetching users: ", error);
         } finally {
-            setLoading(false);
+            setIsLoading(false);
             setIsMoreLoading(false);
-        }
-    };
-
-    const loadMoreUsers = () => {
-        if (!allLoaded && !isMoreLoading) {
-            setIsMoreLoading(true);
-            fetchUsers();
         }
     };
 
@@ -86,6 +86,12 @@ function UsersScreen() {
         navigation.navigate('ProfileScreen', { userId });
     };
 
+    const handleLoadMore = () => {
+        if (!allLoaded && !isMoreLoading) {
+            fetchUsers(false);
+        }
+    };
+
     return (
         <SafeAreaView style={globalStyles.container}>
             <View style={[globalStyles.headerContainer, { paddingBottom: 25, marginBottom: 25 }]}>
@@ -101,12 +107,14 @@ function UsersScreen() {
             </View>
             <ScrollView
                 contentContainerStyle={globalStyles.scrollContainer}
+                onScroll={({ nativeEvent }) => {
+                    if (isCloseToBottom(nativeEvent)) {
+                        handleLoadMore();
+                    }
+                }}
+                scrollEventThrottle={400}
             >
-                {loading ? (
-                    <View style={styles.loadingContainer}>
-                        <ActivityIndicator size="large" color="#0000ff" />
-                    </View>
-                ) : filteredUsers.length > 0 ? (
+                {filteredUsers.length > 0 ? (
                     <CustomList>
                         {filteredUsers.map(user => (
                             <ItemList
@@ -115,7 +123,7 @@ function UsersScreen() {
                                 onPress={() => handleSelectUser(user.id)}
                             />
                         ))}
-                        {isMoreLoading && !allLoaded && (
+                        {isMoreLoading && (
                             <ActivityIndicator size="large" color="#0000ff" />
                         )}
                     </CustomList>
@@ -126,6 +134,11 @@ function UsersScreen() {
         </SafeAreaView>
     );
 }
+
+const isCloseToBottom = ({ layoutMeasurement, contentOffset, contentSize }) => {
+    const paddingToBottom = 20;
+    return layoutMeasurement.height + contentOffset.y >= contentSize.height - paddingToBottom;
+};
 
 const styles = StyleSheet.create({
     container: {

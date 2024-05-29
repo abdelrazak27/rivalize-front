@@ -86,6 +86,11 @@ function ProfileScreen({ route }) {
             }
         };
 
+        fetchPlayerDetails();
+        fetchPendingInvitations();
+    }, [userId, user.teams]);
+
+    useEffect(() => {
         const fetchTeamName = async () => {
             if (playerDetails && playerDetails.accountType === 'player' && playerDetails.team) {
                 const name = await getTeamName(playerDetails.team);
@@ -100,11 +105,10 @@ function ProfileScreen({ route }) {
             }
         };
 
-        fetchPlayerDetails();
-        fetchPendingInvitations();
         fetchTeamName();
         fetchCoachTeamsNames();
-    }, [userId, user.teams, playerDetails]);
+    }, [playerDetails])
+
 
     const handleInvitePlayer = async () => {
         setIsLoading(true);
@@ -195,208 +199,204 @@ function ProfileScreen({ route }) {
         }
     };
 
-    if(!playerDetails) {
+    if (!playerDetails) {
         return (
             <LoadingOverlay visible={true} />
         )
     }
 
-    return (
-        <SafeAreaView style={globalStyles.container}>
-            {user && playerDetails ? (
-                <>
-                    <View style={globalStyles.headerContainer}>
-                        {isCurrentUserProfile ? (
-                            <Title>Vos <PrimaryColorText>informations et données</PrimaryColorText></Title>
-                        ) : (
-                            <Title><PrimaryColorText>{playerDetails.firstname} {playerDetails.lastname}</PrimaryColorText></Title>
-                        )}
-                    </View>
+    if (user && playerDetails) {
+        return (
+            <SafeAreaView style={globalStyles.container}>
+                <View style={globalStyles.headerContainer}>
+                    {isCurrentUserProfile ? (
+                        <Title>Vos <PrimaryColorText>informations et données</PrimaryColorText></Title>
+                    ) : (
+                        <Title><PrimaryColorText>{playerDetails.firstname} {playerDetails.lastname}</PrimaryColorText></Title>
+                    )}
+                </View>
 
-                    <ScrollView
-                        contentContainerStyle={globalStyles.scrollContainer}
-                    >
-                        {playerDetails && (
-                            <>
-                                {isCurrentUserProfile && (
-                                    <View style={styles.section}>
-                                        <Text style={styles.sectionTitle}>Vos informations de connexion</Text>
-                                        <CustomTextInput label="Email" value={playerDetails.email} readOnly />
-                                        <Spacer top={12} />
-                                    </View>
-                                )}
+                <ScrollView
+                    contentContainerStyle={globalStyles.scrollContainer}
+                >
+                    {playerDetails && (
+                        <>
+                            {isCurrentUserProfile && (
                                 <View style={styles.section}>
-                                    <Text style={styles.sectionTitle}>{isCurrentUserProfile ? "Vos informations personnelles" : "Informations personnelles"}</Text>
-                                    <View style={{ flexDirection: 'row', gap: 20 }}>
-                                        <View style={{ flex: 1 }}>
-                                            <CustomTextInput label="Prénom" value={playerDetails.firstname} readOnly />
-                                        </View>
-                                        <View style={{ flex: 1 }}>
-                                            <CustomTextInput label="Nom" value={playerDetails.lastname} readOnly />
-                                        </View>
-                                    </View>
-                                    <View style={{ flexDirection: 'row', gap: 20 }}>
-                                        <View style={{ flex: 1 }}>
-                                            <CustomTextInput label="Âge" value={calculateAge(playerDetails.birthday)} readOnly />
-                                        </View>
-                                        <View style={{ flex: 1 }}>
-                                            <CustomTextInput label="Commune" value={playerDetails.city ? playerDetails.city : "Non renseigné"} readOnly />
-                                        </View>
-                                    </View>
+                                    <Text style={styles.sectionTitle}>Vos informations de connexion</Text>
+                                    <CustomTextInput label="Email" value={playerDetails.email} readOnly />
                                     <Spacer top={12} />
                                 </View>
-                                <View style={styles.section}>
-                                    <Text style={styles.sectionTitle}>{isCurrentUserProfile ? "Vos informations professionnelles" : "Informations professionnelles"}</Text>
-                                    <CustomTextInput label="Type de compte" value={playerDetails.accountType === 'player' ? ("Joueur") : playerDetails.accountType === 'coach' ? ("Coach") : playerDetails.accountType === 'visitor' && ("Visiteur")} readOnly />
-                                    {playerDetails.accountType === 'player' && (
-                                        <>
-                                            <View style={{ flexDirection: 'row', gap: 20 }}>
-                                                <View style={{ flex: 1 }}>
-                                                    <CustomTextInput label="Nom de joueur" value={playerDetails.playerName} readOnly />
-                                                </View>
-                                                <View style={{ flex: 1 }}>
-                                                    <CustomTextInput label="Numéro" value={playerDetails.playerNumber} readOnly />
-                                                </View>
-                                            </View>
-                                            <CustomTextInput label="Licence" value={playerDetails.licenceNumber} readOnly />
-                                            <View>
-                                                <Label color={colors.secondary}>Club</Label>
-                                                <ItemList
-                                                    text={playerDetails.team ? teamName : "N/A"}
-                                                    onPress={() => {
-                                                        if (playerDetails.team) {
-                                                            navigation.navigate('TeamScreen', { teamId: playerDetails.team });
-                                                        }
-                                                    }}
-                                                />
-                                            </View>
-                                        </>
-                                    )}
-                                    {playerDetails.accountType === 'coach' && (
-                                        <>
-                                            <CustomTextInput label="Licence" value={playerDetails.licenceNumber} readOnly />
-                                            <Label color={colors.secondary}>Clubs</Label>
-                                            {teamNames && teamNames.length > 0 ? (
-                                                <View>
-                                                    <View style={{ gap: 5 }}>
-                                                        {teamNames.map((teamName, index) => (
-                                                            <ItemList
-                                                                key={index}
-                                                                text={teamName}
-                                                                onPress={() => {
-                                                                    navigation.navigate('TeamScreen', { teamId: playerDetails.teams[index] });
-                                                                }}
-                                                            />
-                                                        ))}
-                                                    </View>
-                                                </View>
-                                            ) : (
-                                                <View>
-                                                    <ItemList
-                                                        text="N/A"
-                                                    />
-                                                </View>
-                                            )}
-                                        </>
-                                    )}
+                            )}
+                            <View style={styles.section}>
+                                <Text style={styles.sectionTitle}>{isCurrentUserProfile ? "Vos informations personnelles" : "Informations personnelles"}</Text>
+                                <View style={{ flexDirection: 'row', gap: 20 }}>
+                                    <View style={{ flex: 1 }}>
+                                        <CustomTextInput label="Prénom" value={playerDetails.firstname} readOnly />
+                                    </View>
+                                    <View style={{ flex: 1 }}>
+                                        <CustomTextInput label="Nom" value={playerDetails.lastname} readOnly />
+                                    </View>
                                 </View>
-                                {isCurrentUserProfile && playerDetails.accountType === 'player' && playerDetails.requestedJoinClubId && requestedClubName && (
+                                <View style={{ flexDirection: 'row', gap: 20 }}>
+                                    <View style={{ flex: 1 }}>
+                                        <CustomTextInput label="Âge" value={calculateAge(playerDetails.birthday)} readOnly />
+                                    </View>
+                                    <View style={{ flex: 1 }}>
+                                        <CustomTextInput label="Commune" value={playerDetails.city ? playerDetails.city : "Non renseigné"} readOnly />
+                                    </View>
+                                </View>
+                                <Spacer top={12} />
+                            </View>
+                            <View style={styles.section}>
+                                <Text style={styles.sectionTitle}>{isCurrentUserProfile ? "Vos informations professionnelles" : "Informations professionnelles"}</Text>
+                                <CustomTextInput label="Type de compte" value={playerDetails.accountType === 'player' ? ("Joueur") : playerDetails.accountType === 'coach' ? ("Coach") : playerDetails.accountType === 'visitor' && ("Visiteur")} readOnly />
+                                {playerDetails.accountType === 'player' && (
                                     <>
-                                        <Spacer top={12} />
-                                        <View style={styles.section}>
-                                            <Text style={styles.sectionTitle}>Demande en cours</Text>
-                                            <Text style={styles.sectionSubtitle}>Votre demande concernant le club {requestedClubName} est toujours en attente.</Text>
-                                            <FunctionButton title="Annuler ma demande" onPress={handleCancelRequest} variant="primaryOutline" />
-                                            <Spacer />
+                                        <View style={{ flexDirection: 'row', gap: 20 }}>
+                                            <View style={{ flex: 1 }}>
+                                                <CustomTextInput label="Nom de joueur" value={playerDetails.playerName} readOnly />
+                                            </View>
+                                            <View style={{ flex: 1 }}>
+                                                <CustomTextInput label="Numéro" value={playerDetails.playerNumber} readOnly />
+                                            </View>
+                                        </View>
+                                        <CustomTextInput label="Licence" value={playerDetails.licenceNumber} readOnly />
+                                        <View>
+                                            <Label color={colors.secondary}>Club</Label>
+                                            <ItemList
+                                                text={playerDetails.team ? teamName : "N/A"}
+                                                onPress={() => {
+                                                    if (playerDetails.team) {
+                                                        navigation.navigate('TeamScreen', { teamId: playerDetails.team });
+                                                    }
+                                                }}
+                                            />
                                         </View>
                                     </>
                                 )}
-                                {user.accountType === 'coach' && availableTeams.length > 0 && playerDetails.accountType === "player" && (
+                                {playerDetails.accountType === 'coach' && (
                                     <>
-                                        <Spacer top={12} />
-                                        <FunctionButton title="Inviter ce joueur" onPress={() => setModalVisible(true)} />
-                                        <Modal
-                                            transparent={true}
-                                            visible={isModalVisible}
-                                            onRequestClose={() => setModalVisible(false)}
-                                        >
-                                            <View style={globalStyles.modal}>
-                                                <SafeAreaView style={globalStyles.container}>
-                                                    <View style={globalStyles.headerContainer}>
-                                                        <Title>Choisissez <PrimaryColorText>un club</PrimaryColorText>,</Title>
-                                                    </View>
-
-                                                    <ScrollView
-                                                        contentContainerStyle={globalStyles.scrollContainer}
-                                                    >
-                                                        <Picker
-                                                            selectedValue={selectedTeam}
-                                                            onValueChange={(itemValue) => setSelectedTeam(itemValue)}
-                                                        >
-                                                            <Picker.Item label="Choisir le club" value="" />
-                                                            {availableTeams.map((team) => (
-                                                                <Picker.Item key={team.id} label={team.name} value={team.id} />
-                                                            ))}
-                                                        </Picker>
-                                                    </ScrollView>
-                                                </SafeAreaView>
-                                                <View style={{ paddingHorizontal: 30, gap: 8, paddingBottom: 30 }}>
-                                                    <FunctionButton title="Inviter" onPress={handleInvitePlayer} />
-                                                    <FunctionButton title="Annuler" onPress={() => setModalVisible(false)} variant='primaryOutline' />
+                                        <CustomTextInput label="Licence" value={playerDetails.licenceNumber} readOnly />
+                                        <Label color={colors.secondary}>Clubs</Label>
+                                        {teamNames && teamNames.length > 0 ? (
+                                            <View>
+                                                <View style={{ gap: 5 }}>
+                                                    {teamNames.map((teamName, index) => (
+                                                        <ItemList
+                                                            key={index}
+                                                            text={teamName}
+                                                            onPress={() => {
+                                                                navigation.navigate('TeamScreen', { teamId: playerDetails.teams[index] });
+                                                            }}
+                                                        />
+                                                    ))}
                                                 </View>
                                             </View>
-                                        </Modal>
+                                        ) : (
+                                            <View>
+                                                <ItemList
+                                                    text="N/A"
+                                                />
+                                            </View>
+                                        )}
                                     </>
                                 )}
-                                {user.accountType === 'coach' && availableTeams.length === 0 && playerDetails.accountType === "player" && playerDetails.team === null && (
-                                    <FunctionButton title="Aucun club possédé est compatible" onPress={() => setModalVisible(true)} disabled />
-                                )}
-                                {isCurrentUserProfile && (
-                                    <>
-                                        <Spacer top={12} />
-                                        <FunctionButton title="Se déconnecter" onPress={async () => {
-                                            try {
-                                                Alert.alert(
-                                                    "Déconnexion",
-                                                    "Êtes-vous sûr de vouloir vous déconnecter ?",
-                                                    [
-                                                        {
-                                                            text: "Annuler",
-                                                            onPress: () => { },
-                                                            style: "cancel"
+                            </View>
+                            {isCurrentUserProfile && playerDetails.accountType === 'player' && playerDetails.requestedJoinClubId && requestedClubName && (
+                                <>
+                                    <Spacer top={12} />
+                                    <View style={styles.section}>
+                                        <Text style={styles.sectionTitle}>Demande en cours</Text>
+                                        <Text style={styles.sectionSubtitle}>Votre demande concernant le club {requestedClubName} est toujours en attente.</Text>
+                                        <FunctionButton title="Annuler ma demande" onPress={handleCancelRequest} variant="primaryOutline" />
+                                        <Spacer />
+                                    </View>
+                                </>
+                            )}
+                            {user.accountType === 'coach' && availableTeams.length > 0 && playerDetails.accountType === "player" && (
+                                <>
+                                    <Spacer top={12} />
+                                    <FunctionButton title="Inviter ce joueur" onPress={() => setModalVisible(true)} />
+                                    <Modal
+                                        transparent={true}
+                                        visible={isModalVisible}
+                                        onRequestClose={() => setModalVisible(false)}
+                                    >
+                                        <View style={globalStyles.modal}>
+                                            <SafeAreaView style={globalStyles.container}>
+                                                <View style={globalStyles.headerContainer}>
+                                                    <Title>Choisissez <PrimaryColorText>un club</PrimaryColorText>,</Title>
+                                                </View>
+
+                                                <ScrollView
+                                                    contentContainerStyle={globalStyles.scrollContainer}
+                                                >
+                                                    <Picker
+                                                        selectedValue={selectedTeam}
+                                                        onValueChange={(itemValue) => setSelectedTeam(itemValue)}
+                                                    >
+                                                        <Picker.Item label="Choisir le club" value="" />
+                                                        {availableTeams.map((team) => (
+                                                            <Picker.Item key={team.id} label={team.name} value={team.id} />
+                                                        ))}
+                                                    </Picker>
+                                                </ScrollView>
+                                            </SafeAreaView>
+                                            <View style={{ paddingHorizontal: 30, gap: 8, paddingBottom: 30 }}>
+                                                <FunctionButton title="Inviter" onPress={handleInvitePlayer} />
+                                                <FunctionButton title="Annuler" onPress={() => setModalVisible(false)} variant='primaryOutline' />
+                                            </View>
+                                        </View>
+                                    </Modal>
+                                </>
+                            )}
+                            {user.accountType === 'coach' && availableTeams.length === 0 && playerDetails.accountType === "player" && playerDetails.team === null && (
+                                <FunctionButton title="Aucun club possédé est compatible" onPress={() => setModalVisible(true)} disabled />
+                            )}
+                            {isCurrentUserProfile && (
+                                <>
+                                    <Spacer top={12} />
+                                    <FunctionButton title="Se déconnecter" onPress={async () => {
+                                        try {
+                                            Alert.alert(
+                                                "Déconnexion",
+                                                "Êtes-vous sûr de vouloir vous déconnecter ?",
+                                                [
+                                                    {
+                                                        text: "Annuler",
+                                                        onPress: () => { },
+                                                        style: "cancel"
+                                                    },
+                                                    {
+                                                        text: "Déconnexion",
+                                                        onPress: async () => {
+                                                            navigation.dispatch(
+                                                                CommonActions.reset({
+                                                                    index: 0,
+                                                                    routes: [{ name: 'ConnexionScreen' }],
+                                                                })
+                                                            );
+                                                            await setUser(null);
+                                                            await signOut(auth);
                                                         },
-                                                        {
-                                                            text: "Déconnexion",
-                                                            onPress: async () => {
-                                                                navigation.dispatch(
-                                                                    CommonActions.reset({
-                                                                        index: 0,
-                                                                        routes: [{ name: 'ConnexionScreen' }],
-                                                                    })
-                                                                );
-                                                                await setUser(null);
-                                                                await signOut(auth);
-                                                            },
-                                                            style: "destructive"
-                                                        }
-                                                    ]
-                                                );
-                                            } catch (error) {
-                                                console.log(error);
-                                                Alert.alert("Erreur", "Une erreur est survenue lors de la déconnexion.");
-                                            }
-                                        }} />
-                                    </>
-                                )}
-                            </>
-                        )}
-                    </ScrollView>
-                </>
-            ) : (
-                <Text>Chargement...</Text>
-            )}
-        </SafeAreaView>
-    );
+                                                        style: "destructive"
+                                                    }
+                                                ]
+                                            );
+                                        } catch (error) {
+                                            console.log(error);
+                                            Alert.alert("Erreur", "Une erreur est survenue lors de la déconnexion.");
+                                        }
+                                    }} />
+                                </>
+                            )}
+                        </>
+                    )}
+                </ScrollView>
+            </SafeAreaView>
+        );
+    }
 }
 
 export default ProfileScreen;

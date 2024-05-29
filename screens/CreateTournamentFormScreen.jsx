@@ -17,6 +17,7 @@ import Spacer from '../components/Spacer';
 import { LinearGradient } from 'expo-linear-gradient';
 import { darkenColor } from '../utils/colors';
 import FunctionButton from '../components/FunctionButton';
+import { useLoading } from '../context/LoadingContext';
 
 const categories = [
     'U6', 'U6 F', 'U7', 'U7 F', 'U8', 'U8 F', 'U9', 'U9 F', 'U10', 'U10 F',
@@ -61,17 +62,19 @@ const initializeMatches = (slots, returnMatches) => {
 function CreateTournamentFormScreen({ route }) {
     const { user } = route.params;
     const navigation = useNavigation();
+    const { setIsLoading } = useLoading();
     const [searchQuery, setSearchQuery] = useState('');
     const [filteredCities, setFilteredCities] = useState([]);
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
     const [isTimePickerVisible, setTimePickerVisibility] = useState(false);
     const [currentMatch, setCurrentMatch] = useState({ roundIndex: 0, matchIndex: 0 });
+    const [currentMatchDate, setCurrentMatchDate] = useState(new Date());
 
     const [tournamentDetails, setTournamentDetails] = useState({
         id: '',
         name: '',
         place: '',
-        playersPerTeam: '5v5',
+        playersPerTeam: '5',
         category: 'U6',
         gender: 'M',
         availableSlots: 4,
@@ -81,6 +84,7 @@ function CreateTournamentFormScreen({ route }) {
         isDisabled: false,
         startDate: new Date(),
         endDate: new Date(),
+        participatingClubs: []
     });
 
     const handleChange = (name, value) => {
@@ -105,6 +109,7 @@ function CreateTournamentFormScreen({ route }) {
         newMatches[currentMatch.roundIndex].matches[currentMatch.matchIndex].date = selectedDate || newMatches[currentMatch.roundIndex].matches[currentMatch.matchIndex].date;
         handleChange('matches', newMatches);
         updateTournamentDates(newMatches);
+        setCurrentMatchDate(selectedDate || newMatches[currentMatch.roundIndex].matches[currentMatch.matchIndex].date);
         setDatePickerVisibility(false);
     };
 
@@ -141,7 +146,7 @@ function CreateTournamentFormScreen({ route }) {
             availableSlots: 'Nombre de places',
             gameDuration: 'Temps de jeu'
         };
-    
+
         const requiredFields = ['name', 'place', 'playersPerTeam', 'category', 'availableSlots', 'gameDuration'];
         for (const field of requiredFields) {
             if (!tournamentDetails[field]) {
@@ -149,7 +154,7 @@ function CreateTournamentFormScreen({ route }) {
             }
         }
         return null;
-    };    
+    };
 
     const handleSubmit = async () => {
         const validationError = validateFields();
@@ -177,18 +182,15 @@ function CreateTournamentFormScreen({ route }) {
         };
 
         try {
+            setIsLoading(true);
             await setDoc(doc(db, 'tournois', tournamentId), tournamentData);
             const today = new Date();
             const initialSection = tournamentDetails.startDate.toDateString() === today.toDateString() ? 'current' : 'upcoming';
-            Alert.alert('Succès', 'Le tournoi a été créé avec succès.', [
-                {
-                    text: 'OK',
-                    onPress: () => {
-                        navigation.navigate('TournamentsScreen', { refresh: true, initialSection: initialSection });
-                    }
-                }
-            ]);
+            navigation.navigate('TournamentsScreen', { refresh: true, initialSection: initialSection });
+            setIsLoading(false);
+            Alert.alert('Succès', 'Le tournoi a été créé avec succès.');
         } catch (error) {
+            setIsLoading(false);
             console.error('Erreur lors de la création du tournoi :', error);
             Alert.alert('Erreur', 'Une erreur est survenue lors de la création du tournoi.');
         }
@@ -217,7 +219,9 @@ function CreateTournamentFormScreen({ route }) {
     };
 
     const showTimePicker = (roundIndex, matchIndex) => {
+        const matchDate = tournamentDetails.matches[roundIndex].matches[matchIndex].date;
         setCurrentMatch({ roundIndex, matchIndex });
+        setCurrentMatchDate(matchDate);
         setTimePickerVisibility(true);
     };
 
@@ -322,7 +326,7 @@ function CreateTournamentFormScreen({ route }) {
                         Matchs retours
                     </Text>
                 </View>
-                <Spacer top={10}/>
+                <Spacer top={10} />
                 <View style={styles.matchsContainer}>
                     <Text style={styles.matchsTitle}>Matchs</Text>
                 </View>
@@ -338,7 +342,7 @@ function CreateTournamentFormScreen({ route }) {
                                 locations={[0.3, 1]}
                                 style={{ borderRadius: 10 }}
                             >
-                                
+
                                 <View key={matchIndex} style={styles.matchContainer}>
                                     <View style={styles.matchInfoClubLeft}>
                                         <Image
@@ -390,7 +394,7 @@ function CreateTournamentFormScreen({ route }) {
                     mode="time"
                     onConfirm={handleMatchTimeChange}
                     onCancel={() => setTimePickerVisibility(false)}
-                    minimumDate={new Date()}
+                    minimumDate={isToday(currentMatchDate) ? new Date() : undefined}
                     headerTextIOS="Choisissez une heure"
                     confirmTextIOS="Confirmer"
                     cancelTextIOS="Annuler"

@@ -15,6 +15,7 @@ import ItemList from "../../components/ItemList";
 import FunctionButton from "../../components/FunctionButton";
 import { fonts } from "../../styles/fonts";
 import colors from "../../styles/colors";
+import { useLoading } from "../../context/LoadingContext";
 
 function InviteFirstPlayers() {
     const [players, setPlayers] = useState([]);
@@ -25,15 +26,22 @@ function InviteFirstPlayers() {
     const route = useRoute();
     const { teamId } = route.params;
     const { setUser } = useUser();
+    const { setIsLoading } = useLoading();
 
     useEffect(() => {
-        const backHandler = BackHandler.addEventListener(
-            'hardwareBackPress',
-            () => true
-        );
-
-        return () => backHandler.remove();
-    }, []);
+        setIsLoading(true);
+        const q = query(collection(db, "utilisateurs"), where("accountType", "==", "player"));
+        const unsubscribe = onSnapshot(q, (querySnapshot) => {
+            const playersArray = [];
+            querySnapshot.forEach((doc) => {
+                playersArray.push({ uid: doc.id, ...doc.data() });
+            });
+            setPlayers(playersArray);
+            setIsLoading(false);
+        });
+    
+        return () => unsubscribe();
+    }, []);    
 
     useEffect(() => {
         const q = query(collection(db, "utilisateurs"), where("accountType", "==", "player"));
@@ -78,23 +86,24 @@ function InviteFirstPlayers() {
     };
 
     const finishSelection = async () => {
+        setIsLoading(true);
         console.log('Selected Player UIDs:', selectedPlayerUids);
         addTeamToCoach(teamId);
-
+    
         if (selectedPlayerUids.length > 0) {
             const operationsPromises = selectedPlayerUids.flatMap(uid => {
                 const invitationId = uuid.v4();
                 const notificationId = uuid.v4();
                 const invitationRef = doc(db, 'invitations', invitationId);
                 const notificationRef = doc(db, 'notifications', notificationId);
-
+    
                 const invitationDetails = {
                     invitedUid: uid,
                     timestamp: Timestamp.now(),
                     clubId: teamId,
                     state: 'pending',
                 };
-
+    
                 const notificationDetails = {
                     userId: uid,
                     message: "Vous êtes invité à rejoindre un club",
@@ -103,26 +112,29 @@ function InviteFirstPlayers() {
                     type: "invitation",
                     invitationId: invitationId,
                 };
-
+    
                 const setInvitationPromise = setDoc(invitationRef, invitationDetails);
                 const setNotificationPromise = setDoc(notificationRef, notificationDetails);
-
+    
                 return [setInvitationPromise, setNotificationPromise];
             });
-
+    
             try {
                 await Promise.all(operationsPromises.flat());
                 console.log("Toutes les invitations et notifications ont été créées.");
             } catch (error) {
                 console.error("Erreur lors de la création des invitations et notifications : ", error);
+                setIsLoading(false);
                 return;
             }
         } else {
             console.log("Aucun joueur sélectionné pour envoyer une invitation.");
         }
-
+    
+        setIsLoading(false);
         navigateHome();
     };
+    
 
     const navigateHome = () => {
         navigation.dispatch(

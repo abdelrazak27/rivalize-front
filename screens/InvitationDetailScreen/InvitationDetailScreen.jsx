@@ -1,4 +1,4 @@
-import { View, Text, Button, Alert, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, Alert, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import { useRoute, useNavigation, CommonActions } from '@react-navigation/native';
 import { arrayUnion, collection, doc, getDoc, getDocs, query, updateDoc, where } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
@@ -12,12 +12,15 @@ import { getPlayerNameById } from '../../utils/users';
 import { fonts } from '../../styles/fonts';
 import colors from '../../styles/colors';
 import FunctionButton from '../../components/FunctionButton';
+import { useLoading } from '../../context/LoadingContext';
+import LoadingOverlay from '../LoadingOverlay';
 
 function InvitationDetailScreen() {
     const route = useRoute();
     const { invitationId } = route.params;
     const navigation = useNavigation();
     const { user, setUser } = useUser();
+    const { setIsLoading } = useLoading();
 
     const [invitationDetails, setInvitationDetails] = useState('');
     const [hasTeam, setHasTeam] = useState(false);
@@ -32,7 +35,7 @@ function InvitationDetailScreen() {
                 const invitationData = invitationDoc.data();
                 setInvitationDetails(invitationData);
 
-                const teamName = await getTeamName(invitationData.clubId)
+                const teamName = await getTeamName(invitationData.clubId);
                 setClubName(teamName);
             }
         };
@@ -45,13 +48,12 @@ function InvitationDetailScreen() {
             }
         };
 
-
-
         fetchInvitation();
         checkUserTeam();
     }, [invitationId, user.uid]);
 
     const handleInvitationResponse = async (newState) => {
+        setIsLoading(true);
         if (newState === 'accepted') {
             const userRef = doc(db, 'utilisateurs', user.uid);
             const userDoc = await getDoc(userRef);
@@ -63,23 +65,28 @@ function InvitationDetailScreen() {
                     [
                         {
                             text: "Annuler",
-                            style: "cancel"
+                            style: "cancel",
+                            onPress: () => setIsLoading(false)
                         },
                         {
                             text: "Continuer",
                             style: "destructive",
                             onPress: async () => {
                                 await updateInvitationAndUser(userRef, invitationRef);
+                                setIsLoading(false);
                             }
                         }
                     ]
                 );
             } else {
                 await updateInvitationAndUser(userRef, invitationRef);
+                setIsLoading(false);
             }
         } else {
             await updateDoc(invitationRef, { state: newState });
             Alert.alert("Invitation refusée");
+
+            setIsLoading(false);
 
             navigation.dispatch(
                 CommonActions.reset({
@@ -91,6 +98,7 @@ function InvitationDetailScreen() {
     };
 
     const updateInvitationAndUser = async (userRef, invitationRef) => {
+        setIsLoading(true);
         const { clubId } = (await getDoc(invitationRef)).data();
         await updateDoc(userRef, { team: clubId, requestedJoinClubId: null });
         const teamRef = doc(db, 'equipes', clubId);
@@ -115,6 +123,9 @@ function InvitationDetailScreen() {
         await setUser(updatedUserData);
 
         Alert.alert("Invitation acceptée");
+
+        setIsLoading(false);
+
         navigation.dispatch(
             CommonActions.reset({
                 index: 0,
@@ -123,6 +134,11 @@ function InvitationDetailScreen() {
         );
     };
 
+    if (!invitationDetails) {
+        return (
+            <ActivityIndicator size="large" style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}/>
+        )
+    }
 
     return (
         <SafeAreaView style={globalStyles.container}>
@@ -134,9 +150,9 @@ function InvitationDetailScreen() {
             <ScrollView
                 style={{ marginTop: 50, paddingHorizontal: 30 }}
             >
-                {invitationDetails && (
+                {invitationDetails && clubName && (
                     <View>
-                        <Title>Le club <PrimaryColorText>{clubName}</PrimaryColorText> souhaite vous voir parmi ses membres</Title>                        
+                        <Title>Le club <PrimaryColorText>{clubName}</PrimaryColorText> souhaite vous voir parmi ses membres</Title>
                         {invitationDetails.state === 'pending' ? (
                             <View style={styles.buttons}>
                                 <FunctionButton
@@ -174,7 +190,6 @@ function InvitationDetailScreen() {
                         )}
                     </View>
                 )}
-                {!invitationDetails && <Text>Chargement des détails de la demande...</Text>}
             </ScrollView>
         </SafeAreaView>
     );

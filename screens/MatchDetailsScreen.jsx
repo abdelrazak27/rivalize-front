@@ -18,6 +18,7 @@ import { getTeamName } from '../utils/teams';
 import SquareButtonIcon from '../components/SquareButtonIcon';
 import Foundation from 'react-native-vector-icons/Foundation';
 import { useNavigation } from '@react-navigation/native';
+import { useLoading } from '../context/LoadingContext';
 
 const MatchDetailsScreen = ({ route }) => {
     const { roundIndex, matchIndex, tournamentId } = route.params;
@@ -38,6 +39,7 @@ const MatchDetailsScreen = ({ route }) => {
     const [inputPenaltyScoreB, setInputPenaltyScoreB] = useState('');
     const [teamNames, setTeamNames] = useState({});
     const [teamLogos, setTeamLogos] = useState({ clubA: null, clubB: null });
+    const { setIsLoading } = useLoading();
 
     const navigation = useNavigation();
     const { user } = useUser();
@@ -88,6 +90,7 @@ const MatchDetailsScreen = ({ route }) => {
     };
 
     const updateMatchWinner = async (winnerClub, finalScoreA, finalScoreB, penScoreA = 0, penScoreB = 0) => {
+        setIsLoading(true);
         const tournamentRef = doc(db, 'tournois', tournamentId);
         try {
             const tournamentData = (await getDoc(tournamentRef)).data();
@@ -107,6 +110,7 @@ const MatchDetailsScreen = ({ route }) => {
             await updateDoc(tournamentRef, {
                 matches: tournamentData.matches
             });
+            setIsLoading(false);
 
             if (penScoreA > 0 || penScoreB > 0) {
                 Alert.alert("Match terminé", `${winnerClubName} remporte le match avec un score final de ${finalScoreA}-${finalScoreB} et un score de tirs au but de ${penScoreA}-${penScoreB}.`, [{ text: "OK" }]);
@@ -115,40 +119,58 @@ const MatchDetailsScreen = ({ route }) => {
             }
 
         } catch (error) {
+            setIsLoading(false);
             console.error("Failed to update match details:", error);
             Alert.alert("Erreur", "Échec de la mise à jour des détails du match.", [{ text: "Réessayer" }]);
         }
     };
 
     const incrementScoreA = async () => {
+        setIsLoading(true);
         const newScore = scoreA + 1;
         if (await updateScoresInFirestore(newScore, scoreB)) {
+            setIsLoading(false);
             setScoreA(newScore);
+        } else {
+            setIsLoading(false);
         }
     };
 
     const decrementScoreA = async () => {
+        setIsLoading(true);
         const newScore = scoreA > 0 ? scoreA - 1 : 0;
         if (await updateScoresInFirestore(newScore, scoreB)) {
+            setIsLoading(false);
             setScoreA(newScore);
+        } else {
+            setIsLoading(false);
         }
     };
 
     const incrementScoreB = async () => {
+        setIsLoading(true);
         const newScore = scoreB + 1;
         if (await updateScoresInFirestore(scoreA, newScore)) {
+            setIsLoading(false);
             setScoreB(newScore);
+        } else {
+            setIsLoading(false);
         }
     };
 
     const decrementScoreB = async () => {
+        setIsLoading(true);
         const newScore = scoreB > 0 ? scoreB - 1 : 0;
         if (await updateScoresInFirestore(scoreA, newScore)) {
+            setIsLoading(false);
             setScoreB(newScore);
+        } else {
+            setIsLoading(false);
         }
     };
 
     const updateScoresInFirestore = async (newScoreA, newScoreB) => {
+        setIsLoading(true);
         const tournamentRef = doc(db, 'tournois', tournamentId);
         try {
             const tournamentData = (await getDoc(tournamentRef)).data();
@@ -159,8 +181,10 @@ const MatchDetailsScreen = ({ route }) => {
                 matches: tournamentData.matches
             });
             console.log("Scores updated successfully!");
+            setIsLoading(false);
             return true;
         } catch (error) {
+            setIsLoading(false);
             console.error("Failed to update scores:", error);
             Alert.alert("Erreur", "Échec de la mise à jour des scores.", [{ text: "Réessayer" }]);
             return false;
@@ -168,17 +192,21 @@ const MatchDetailsScreen = ({ route }) => {
     };
 
     const fetchTeamLogo = async (teamId) => {
+        setIsLoading(true);
         const teamRef = doc(db, 'equipes', teamId);
         const teamDoc = await getDoc(teamRef);
         if (teamDoc.exists()) {
+            setIsLoading(false);
             return teamDoc.data().logo_link;
         } else {
+            setIsLoading(false);
             return null;
         }
     };
 
     useEffect(() => {
         const fetchMatchDetails = async () => {
+            setIsLoading(true);
             const tournamentRef = doc(db, 'tournois', tournamentId);
             const tournamentSnap = await getDoc(tournamentRef);
             if (tournamentSnap.exists()) {
@@ -208,6 +236,7 @@ const MatchDetailsScreen = ({ route }) => {
                     setWinnerName(winnerClubName);
                 }
             }
+            setIsLoading(false);
         };
 
         fetchMatchDetails();
@@ -215,11 +244,13 @@ const MatchDetailsScreen = ({ route }) => {
 
     useEffect(() => {
         const fetchTeamNames = async () => {
+            setIsLoading(true);
             const names = {};
             for (const clubId of tournamentDetails?.participatingClubs || []) {
                 names[clubId] = await getTeamName(clubId);
             }
             setTeamNames(names);
+            setIsLoading(false);
         };
 
         fetchTeamNames();
@@ -242,6 +273,7 @@ const MatchDetailsScreen = ({ route }) => {
 
     const saveClubSelection = async () => {
         if (clubA && clubB) {
+            setIsLoading(true);
             const tournamentRef = doc(db, 'tournois', tournamentId);
             const tournamentSnap = await getDoc(tournamentRef);
             if (tournamentSnap.exists()) {
@@ -257,11 +289,10 @@ const MatchDetailsScreen = ({ route }) => {
                     await updateDoc(tournamentRef, {
                         matches: tournamentData.matches
                     });
-                    Alert.alert("Succès", "Les détails du match ont été mis à jour avec succès.", [{ text: "OK" }]);
-
+                    
                     const [nameA, nameB] = await Promise.all([getTeamName(clubA), getTeamName(clubB)]);
                     const [logoA, logoB] = await Promise.all([fetchTeamLogo(clubA), fetchTeamLogo(clubB)]);
-
+                    
                     setTeamNames(prevNames => ({ ...prevNames, [clubA]: nameA, [clubB]: nameB }));
                     setTeamLogos({ clubA: logoA, clubB: logoB });
                     setMatchDetails(prevDetails => ({
@@ -269,7 +300,11 @@ const MatchDetailsScreen = ({ route }) => {
                         clubA,
                         clubB
                     }));
+
+                    setIsLoading(false);
+                    Alert.alert("Succès", "Les détails du match ont été mis à jour avec succès.", [{ text: "OK" }]);
                 } catch (error) {
+                    setIsLoading(false);
                     console.error("Failed to update the match:", error);
                     Alert.alert("Erreur", "Échec de la mise à jour du match.", [{ text: "Réessayer" }]);
                 }
@@ -281,7 +316,7 @@ const MatchDetailsScreen = ({ route }) => {
         <SafeAreaView style={globalStyles.container}>
             <View style={{ height: 1, backgroundColor: colors.lightgrey, marginHorizontal: 30 }} />
             <ScrollView contentContainerStyle={globalStyles.scrollContainer}>
-                {matchDetails ? (
+                {matchDetails && (
                     <>
                         <View style={styles.imageContainer}>
                             <Image
@@ -557,8 +592,6 @@ const MatchDetailsScreen = ({ route }) => {
                             </>
                         )}
                     </>
-                ) : (
-                    <Text>Chargement des détails du match...</Text>
                 )}
             </ScrollView>
         </SafeAreaView>

@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'rgba(237, 237, 237, .8)',
+        backgroundColor: colors.verylightgrey,
     },
     container: {
         justifyContent: 'center',

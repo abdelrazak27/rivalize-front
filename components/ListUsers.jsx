@@ -9,14 +9,16 @@ import ItemList from "./ItemList";
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import colors from "../styles/colors";
 import { fonts } from "../styles/fonts";
+import { useLoading } from "../context/LoadingContext";
 
 function ListUsers({ arrayList, navigation, setTeamData, teamId }) {
     const [users, setUsers] = useState([]);
-    const [loading, setLoading] = useState(true);
     const { user } = useUser();
+    const { isLoading, setIsLoading } = useLoading();
 
     useEffect(() => {
         const fetchUsers = async () => {
+            setIsLoading(true);
             const usersData = [];
             for (const userId of arrayList) {
                 const userRef = doc(db, "utilisateurs", userId);
@@ -28,7 +30,7 @@ function ListUsers({ arrayList, navigation, setTeamData, teamId }) {
                 }
             }
             setUsers(usersData);
-            setLoading(false);
+            setIsLoading(false);
         };
 
         fetchUsers();
@@ -87,12 +89,11 @@ function ListUsers({ arrayList, navigation, setTeamData, teamId }) {
         }
     };
 
-    if (loading) {
+    if (isLoading) {
         return <ActivityIndicator size="large" />;
     }
 
     return (
-
         <View>
             <CustomList>
                 {users.length > 0 && users.map((userOfList, index) => (
@@ -127,4 +128,4 @@ const styles = StyleSheet.create({
         fontFamily: fonts.OutfitSemiBold,
         textAlign: 'center'
     }
-})
+});

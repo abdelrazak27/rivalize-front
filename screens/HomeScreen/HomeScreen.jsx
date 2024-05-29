@@ -15,11 +15,14 @@ import Spacer from "../../components/Spacer";
 import ItemList from "../../components/ItemList";
 import CustomList from "../../components/CustomList";
 import { getTeamName } from "../../utils/teams";
+import { useLoading } from "../../context/LoadingContext";
+import { darkenColor } from "../../utils/colors";
 
 function HomeScreen({ route }) {
     const navigation = useNavigation();
     const { teamRefresh } = route.params || {};
     const { user, setUser } = useUser();
+    const { setIsLoading } = useLoading();
     const [requestedClubName, setRequestedClubName] = useState('');
     const [teamNames, setTeamNames] = useState({});
 
@@ -53,6 +56,23 @@ function HomeScreen({ route }) {
 
     useFocusEffect(
         React.useCallback(() => {
+            const fetchUserData = async () => {
+                setIsLoading(true);
+                try {
+                    const userRef = doc(db, 'utilisateurs', user.uid);
+                    const userDoc = await getDoc(userRef);
+                    if (userDoc.exists()) {
+                        const userData = { uid: user.uid, email: user.email, ...userDoc.data() };
+                        setUser(userData);
+                    }
+                } catch (error) {
+                    console.error("Erreur lors de la récupération des données utilisateur :", error);
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+
+            fetchUserData();
             fetchTeamList();
             return () => { };
         }, [teamRefresh])
@@ -61,7 +81,13 @@ function HomeScreen({ route }) {
     useEffect(() => {
         const fetchTeamNames = async () => {
             if (user) {
-                const teamsToFetch = user.accountType === 'coach' ? user.teams : [user.team];
+                const teamsToFetch = user.accountType === 'coach' ? (user.teams || []) : [user.team].filter(Boolean);
+                if (teamsToFetch.length === 0) {
+                    setTeamNames({});
+                    setIsLoading(false);
+                    return;
+                }
+                setIsLoading(true);
                 const names = {};
                 for (const teamId of teamsToFetch) {
                     if (teamId) {
@@ -70,6 +96,7 @@ function HomeScreen({ route }) {
                     }
                 }
                 setTeamNames(names);
+                setIsLoading(false);
             }
         };
 
@@ -162,60 +189,56 @@ function HomeScreen({ route }) {
         )
     }
 
-    return (
-        <SafeAreaView style={globalStyles.container}>
-            {user ? (
-                <>
-                    <View style={globalStyles.headerContainer}>
-                        <Title>Bonjour <PrimaryColorText>{user.firstname}</PrimaryColorText>,</Title>
+    if (user) {
+        return (
+            <SafeAreaView style={globalStyles.container}>
+                <View style={globalStyles.headerContainer}>
+                    <Title>Bonjour <PrimaryColorText>{user.firstname}</PrimaryColorText>,</Title>
+                </View>
+                <ScrollView
+                    contentContainerStyle={globalStyles.scrollContainer}
+                >
+                    {user.accountType === 'player' && user.requestedJoinClubId && requestedClubName && (
+                        <View style={styles.section}>
+                            <Text style={styles.sectionTitle}>Demande en cours</Text>
+                            <Text style={styles.sectionSubtitle}>Votre demande concernant le club <Text style={{ color: darkenColor(colors.secondary, -20) }}>{requestedClubName}</Text> est toujours en attente.</Text>
+                            <FunctionButton title="Annuler ma demande" onPress={handleCancelRequest} variant="primaryOutline" />
+                            <Spacer />
+                        </View>
+                    )}
+                    {fetchTeamList()}
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>Tournois</Text>
+                        <Text style={styles.sectionSubtitle}>Retrouvez tous les tournois inscrit sur l’application</Text>
+                        <RedirectLinkButton
+                            routeName="TournamentsScreen"
+                            title="Voir les tournois"
+                            params={{ user: user }}
+                        />
+                        <Spacer />
                     </View>
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>Clubs</Text>
+                        <Text style={styles.sectionSubtitle}>Retrouvez tous les clubs et leurs informations</Text>
+                        <RedirectLinkButton
+                            routeName="TeamsScreen"
+                            title="Voir les clubs"
+                        />
+                        <Spacer />
+                    </View>
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>Utilisateurs</Text>
+                        <Text style={styles.sectionSubtitle}>Retrouvez tous les utilisateurs : coachs, joueurs et même les visiteurs</Text>
+                        <RedirectLinkButton
+                            routeName="UsersScreen"
+                            title="Rechercher un utilisateur"
+                        />
+                    </View>
+                </ScrollView>
+            </SafeAreaView>
+        )
+    }
 
-                    <ScrollView
-                        contentContainerStyle={globalStyles.scrollContainer}
-                    >
-                        {user.accountType === 'player' && user.requestedJoinClubId && requestedClubName && (
-                            <View style={styles.section}>
-                                <Text style={styles.sectionTitle}>Demande en cours</Text>
-                                <Text style={styles.sectionSubtitle}>Votre demande concernant le club {requestedClubName} est toujours en attente.</Text>
-                                <FunctionButton title="Annuler ma demande" onPress={handleCancelRequest} variant="primaryOutline" />
-                                <Spacer />
-                            </View>
-                        )}
-                        {fetchTeamList()}
-                        <View style={styles.section}>
-                            <Text style={styles.sectionTitle}>Tournois</Text>
-                            <Text style={styles.sectionSubtitle}>Retrouvez tous les tournois inscrit sur l’application</Text>
-                            <RedirectLinkButton
-                                routeName="TournamentsScreen"
-                                title="Voir les tournois"
-                                params={{ user: user }}
-                            />
-                            <Spacer />
-                        </View>
-                        <View style={styles.section}>
-                            <Text style={styles.sectionTitle}>Clubs</Text>
-                            <Text style={styles.sectionSubtitle}>Retrouvez tous les clubs et leurs informations</Text>
-                            <RedirectLinkButton
-                                routeName="TeamsScreen"
-                                title="Voir les clubs"
-                            />
-                            <Spacer />
-                        </View>
-                        <View style={styles.section}>
-                            <Text style={styles.sectionTitle}>Utilisateurs</Text>
-                            <Text style={styles.sectionSubtitle}>Retrouvez tous les utilisateurs : coachs, joueurs et même les visiteurs</Text>
-                            <RedirectLinkButton
-                                routeName="UsersScreen"
-                                title="Rechercher un utilisateur"
-                            />
-                        </View>
-                    </ScrollView>
-                </>
-            ) : (
-                <Text>Chargement...</Text>
-            )}
-        </SafeAreaView>
-    )
 }
 
 export default HomeScreen;

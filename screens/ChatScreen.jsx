@@ -13,9 +13,9 @@ function ChatScreen({ route }) {
     const [messages, setMessages] = useState([]);
     const { user } = useUser();
 
-    LogBox.ignoreLogs([
-        'Avatar: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.'
-    ]);
+    // LogBox.ignoreLogs([
+    //     'Avatar: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.'
+    // ]);
 
     useEffect(() => {
         if (!user) return;
