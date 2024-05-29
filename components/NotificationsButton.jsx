@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import { db } from '../firebaseConfig';
+import { db, auth } from '../firebaseConfig'; // Importez auth ici
 import { collection, query, where, getDocs, updateDoc, doc, Timestamp } from 'firebase/firestore';
+import { onAuthStateChanged } from 'firebase/auth'; // Importez onAuthStateChanged ici
 import { useNavigation } from '@react-navigation/native';
 import { formatTimestamp } from '../utils/date';
 import SquareButtonIcon from './SquareButtonIcon';
@@ -20,35 +21,46 @@ const NotificationsButton = ({ userId }) => {
     const [hasUnread, setHasUnread] = useState(false);
     const insets = useSafeAreaInsets();
     const navigation = useNavigation();
+    const intervalRef = useRef(null);
 
     // Booléen pour activer ou désactiver les notifications
     const activateNotification = false;
 
     useEffect(() => {
-        if (activateNotification && userId) {
-            const fetchNotifications = async () => {
-                const notificationsRef = collection(db, 'notifications');
-                const q = query(notificationsRef, where('userId', '==', userId));
-                const querySnapshot = await getDocs(q);
-                const loadedNotifications = [];
-                querySnapshot.forEach((doc) => {
-                    loadedNotifications.push({ ...doc.data(), id: doc.id });
-                });
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            if (user && activateNotification && userId) {
+                const fetchNotifications = async () => {
+                    try {
+                        const notificationsRef = collection(db, 'notifications');
+                        const q = query(notificationsRef, where('userId', '==', userId));
+                        const querySnapshot = await getDocs(q);
+                        const loadedNotifications = [];
+                        querySnapshot.forEach((doc) => {
+                            loadedNotifications.push({ ...doc.data(), id: doc.id });
+                        });
 
-                loadedNotifications.sort((a, b) => b.timestamp.toMillis() - a.timestamp.toMillis());
+                        loadedNotifications.sort((a, b) => b.timestamp.toMillis() - a.timestamp.toMillis());
 
-                // A (dé)commenter pour cacher/voir les logs des notifications
-                // console.log(loadedNotifications);
-                setNotifications(loadedNotifications);
-                checkForUnreadNotifications(loadedNotifications);
-            };
+                        // A (dé)commenter pour cacher/voir les logs des notifications
+                        // console.log(loadedNotifications);
+                        setNotifications(loadedNotifications);
+                        checkForUnreadNotifications(loadedNotifications);
+                    } catch (error) {
+                        console.error("Error fetching notifications:", error);
+                    }
+                };
 
-            const interval = setInterval(fetchNotifications, 10000);
-            fetchNotifications();
+                intervalRef.current = setInterval(fetchNotifications, 10000);
+                fetchNotifications();
+            } else {
+                clearInterval(intervalRef.current);
+            }
+        });
 
-            return () => clearInterval(interval);
-        }
-
+        return () => {
+            clearInterval(intervalRef.current);
+            unsubscribe();
+        };
     }, [userId]);
 
     const checkForUnreadNotifications = (notifications) => {
