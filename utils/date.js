@@ -23,3 +23,12 @@ export const formatTimestamp = (timestamp, options = {}) => {
 
     return date.toLocaleDateString('fr-FR', formatOptions);
 };
+
+export const roundToNextFiveMinutes = (date) => {
+    const minutes = date.getMinutes();
+    const roundedMinutes = Math.ceil(minutes / 5) * 5;
+    date.setMinutes(roundedMinutes);
+    date.setSeconds(0);
+    date.setMilliseconds(0);
+    return date;
+};

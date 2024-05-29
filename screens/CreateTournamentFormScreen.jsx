@@ -18,6 +18,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { darkenColor } from '../utils/colors';
 import FunctionButton from '../components/FunctionButton';
 import { useLoading } from '../context/LoadingContext';
+import { roundToNextFiveMinutes } from '../utils/date';
 
 const categories = [
     'U6', 'U6 F', 'U7', 'U7 F', 'U8', 'U8 F', 'U9', 'U9 F', 'U10', 'U10 F',
@@ -43,7 +44,7 @@ const initializeMatches = (slots, returnMatches) => {
         matches: Array.from({ length: Math.pow(2, numberOfRounds - round - 1) }, () => ({
             matchId: uuid.v4(),
             date: new Date(),
-            time: new Date()
+            time: roundToNextFiveMinutes(new Date())
         }))
     }));
 
@@ -394,7 +395,7 @@ function CreateTournamentFormScreen({ route }) {
                     mode="time"
                     onConfirm={handleMatchTimeChange}
                     onCancel={() => setTimePickerVisibility(false)}
-                    minimumDate={isToday(currentMatchDate) ? new Date() : undefined}
+                    minimumDate={isToday(currentMatchDate) ? roundToNextFiveMinutes(new Date()) : undefined}
                     headerTextIOS="Choisissez une heure"
                     confirmTextIOS="Confirmer"
                     cancelTextIOS="Annuler"
