@@ -87,55 +87,6 @@ function ConnexionScreen() {
             });
     };
 
-    const handleSignInForce = (type) => {
-        setIsLoading(true);
-        let email = "";
-        let password = "";
-        if (type === "player") {
-            email = "player@rivalize.fr";
-            password = "@Player1";
-        } else if (type === "player2") {
-            email = "player2@rivalize.fr";
-            password = "@Player2";
-        } else if (type === "coach") {
-            email = "coach@rivalize.fr";
-            password = "@Coach11";
-        } else if (type === "coach2") {
-            email = "coach2@rivalize.fr";
-            password = "@Coach22";
-        } else if (type === "visitor") {
-            email = "visitor@rivalize.fr";
-            password = "@Visitor1";
-        }
-
-        signInWithEmailAndPassword(auth, email, password)
-            .then(async (userCredentials) => {
-                const user = userCredentials.user;
-                const userRef = doc(db, "utilisateurs", user.uid);
-                const userSnap = await getDoc(userRef);
-                if (userSnap.exists()) {
-                    const userData = { uid: user.uid, email: user.email, ...userSnap.data() };
-                    setUser(userData);
-                    setIsLoading(false);
-                    navigation.dispatch(
-                        CommonActions.reset({
-                            index: 0,
-                            routes: [{ name: 'HomeScreen', params: { noAnimation: true } }],
-                        })
-                    );
-                } else {
-                    setIsLoading(false);
-                    Alert.alert('Erreur de connexion', 'Une erreur est survenue dans la récupération des données.');
-                }
-            })
-            .catch((error) => {
-                setIsLoading(false);
-                const errorCode = error.code;
-                const errorMessage = getErrorMessage(errorCode);
-                Alert.alert('Erreur de connexion', errorMessage);
-            });
-    };
-
     const getErrorMessage = (errorCode) => {
         switch (errorCode) {
             case 'auth/invalid-credential':
@@ -184,12 +135,6 @@ function ConnexionScreen() {
                     <Text style={styles.orText}>ou</Text>
                     <RedirectLinkButton routeName="SignUpScreen" title="S'inscrire" variant='primaryOutline' />
                 </View>
-
-                <Button title="Se connecter en tant que joueur" onPress={() => handleSignInForce("player")} />
-                <Button title="Se connecter en tant que joueurBis" onPress={() => handleSignInForce("player2")} />
-                <Button title="Se connecter en tant que coach" onPress={() => handleSignInForce("coach")} />
-                <Button title="Se connecter en tant que coachBis" onPress={() => handleSignInForce("coach2")} />
-                <Button title="Se connecter en tant que visiteur" onPress={() => handleSignInForce("visitor")} />
             </ScrollView>
         </SafeAreaView>
     );
