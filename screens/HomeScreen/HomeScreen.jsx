@@ -110,22 +110,58 @@ function HomeScreen({ route }) {
             Alert.alert("Aucune demande active", "Vous n'avez pas de demande active à annuler.");
             return;
         }
-
+    
         try {
+            setIsLoading(true);
             const requestRef = doc(db, 'requests_join_club', user.requestedJoinClubId);
+            const requestDoc = await getDoc(requestRef);
+    
+            if (!requestDoc.exists()) {
+                setIsLoading(false);
+                Alert.alert("Erreur", "La demande n'existe pas.");
+                return;
+            }
+    
+            const requestData = requestDoc.data();
+            const { state, clubId } = requestData;
+    
+            if (state !== "pending") {
+                if (state === "accepted") {
+                    const teamRef = doc(db, 'equipes', clubId);
+                    const teamDoc = await getDoc(teamRef);
+    
+                    if (teamDoc.exists()) {
+                        setUser(prevState => ({ ...prevState, team: clubId, requestedJoinClubId: null }));
+                        Alert.alert("Impossible d'annuler", `Votre demande a déjà été acceptée et vous avez rejoint le club ${teamDoc.data().name}.`);
+                    } else {
+                        setUser(prevState => ({ ...prevState, requestedJoinClubId: null }));
+                        Alert.alert("Erreur", "Le club associé à la demande acceptée n'existe pas.");
+                    }
+                } else {
+                    setUser(prevState => ({ ...prevState, requestedJoinClubId: null }));
+                    Alert.alert("Impossible d'annuler", "La demande n'est plus en cours.");
+                }
+                setIsLoading(false);
+                return;
+            }
+    
             await updateDoc(requestRef, { state: "canceled" });
-
+    
             const userRef = doc(db, 'utilisateurs', user.uid);
             await updateDoc(userRef, { requestedJoinClubId: null });
-
+    
             setUser(prevState => ({ ...prevState, requestedJoinClubId: null }));
-
+    
+            setIsLoading(false);
             Alert.alert("Demande annulée", "Votre demande pour rejoindre le club a été annulée avec succès.");
         } catch (error) {
+            setIsLoading(false);
             console.error("Erreur lors de l'annulation de la demande :", error);
             Alert.alert("Erreur", "Une erreur est survenue lors de l'annulation de la demande.");
         }
     };
+    
+
 
     const fetchTeamList = () => {
         return (
