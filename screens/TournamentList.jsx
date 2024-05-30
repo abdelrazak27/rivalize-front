@@ -63,9 +63,9 @@ const TournamentList = ({ refresh, state, showMyTournaments, userId, searchQuery
             let queries = [];
 
             if (showMyTournaments) {
-                queries.push(query(collection(db, 'tournois'), where('createdBy', '==', userId)));
+                queries.push(query(collection(db, 'tournois'), where('createdBy', '==', userId), where('isDisabled', '==', false)));
                 if (userTeamIds.length > 0) {
-                    queries.push(query(collection(db, 'tournois'), where('participatingClubs', 'array-contains-any', userTeamIds)));
+                    queries.push(query(collection(db, 'tournois'), where('participatingClubs', 'array-contains-any', userTeamIds), where('isDisabled', '==', false)));
                 }
             } else {
                 queries.push(query(collection(db, 'tournois'), where('isDisabled', '==', false)));
@@ -94,7 +94,7 @@ const TournamentList = ({ refresh, state, showMyTournaments, userId, searchQuery
         } finally {
             setIsLoading(false);
         }
-    };
+    };    
 
     useEffect(() => {
         fetchTournaments();

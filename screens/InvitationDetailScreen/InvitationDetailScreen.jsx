@@ -59,6 +59,7 @@ function InvitationDetailScreen() {
             const userDoc = await getDoc(userRef);
 
             if (userDoc.data().team) {
+                setIsLoading(false);
                 Alert.alert(
                     "Changement de club",
                     "Accepter cette invitation vous fera quitter votre club actuel. Voulez-vous continuer ?",
@@ -66,28 +67,23 @@ function InvitationDetailScreen() {
                         {
                             text: "Annuler",
                             style: "cancel",
-                            onPress: () => setIsLoading(false)
                         },
                         {
                             text: "Continuer",
                             style: "destructive",
                             onPress: async () => {
                                 await updateInvitationAndUser(userRef, invitationRef);
-                                setIsLoading(false);
                             }
                         }
                     ]
                 );
             } else {
                 await updateInvitationAndUser(userRef, invitationRef);
-                setIsLoading(false);
             }
         } else {
             await updateDoc(invitationRef, { state: newState });
-            Alert.alert("Invitation refusée");
-
             setIsLoading(false);
-
+            Alert.alert("Invitation refusée");
             navigation.dispatch(
                 CommonActions.reset({
                     index: 0,
@@ -122,10 +118,8 @@ function InvitationDetailScreen() {
         };
         await setUser(updatedUserData);
 
-        Alert.alert("Invitation acceptée");
-
         setIsLoading(false);
-
+        Alert.alert("Invitation acceptée");
         navigation.dispatch(
             CommonActions.reset({
                 index: 0,

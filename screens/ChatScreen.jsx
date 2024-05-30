@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { GiftedChat, InputToolbar, Bubble, Send, Composer } from 'react-native-gifted-chat';
 import { collection, query, onSnapshot, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from '../firebaseConfig';
-import { View, Text, ActivityIndicator, StyleSheet, LogBox } from 'react-native';
+import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { useUser } from '../context/UserContext';
 import colors from '../styles/colors';
 import { fonts } from '../styles/fonts';
@@ -12,10 +12,6 @@ function ChatScreen({ route }) {
     const { tournamentId } = route.params;
     const [messages, setMessages] = useState([]);
     const { user } = useUser();
-
-    // LogBox.ignoreLogs([
-    //     'Avatar: Support for defaultProps will be removed from function components in a future major release. Use JavaScript default parameters instead.'
-    // ]);
 
     useEffect(() => {
         if (!user) return;

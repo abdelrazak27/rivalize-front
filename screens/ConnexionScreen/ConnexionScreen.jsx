@@ -138,14 +138,12 @@ function ConnexionScreen() {
 
     const getErrorMessage = (errorCode) => {
         switch (errorCode) {
-            case 'auth/invalid-email':
-                return 'L\'adresse email saisie n\'est pas valide.';
+            case 'auth/invalid-credential':
+                return 'Le mot de passe ou l\'email est incorrect.';
             case 'auth/user-disabled':
                 return 'Ce compte a été désactivé.';
             case 'auth/user-not-found':
                 return 'Aucun utilisateur trouvé avec cet email.';
-            case 'auth/wrong-password':
-                return 'Le mot de passe est incorrect.';
             case 'auth/network-request-failed':
                 return 'La connexion a échoué. Veuillez vérifier votre connexion Internet.';
             case 'auth/too-many-requests':

@@ -157,135 +157,153 @@ const TournamentDetailScreen = ({ route, navigation }) => {
     };
 
     const confirmJoin = async () => {
-        setIsLoading(true);
         if (!selectedTeam) {
-            setIsLoading(false);
             Alert.alert('Erreur', 'Merci de bien vouloir sélectionner un club.');
             return;
         }
-
+    
         try {
+            setIsLoading(true);
             const teamRef = doc(db, 'equipes', selectedTeam);
             const teamSnap = await getDoc(teamRef);
-
+    
             if (!teamSnap.exists()) {
                 setIsLoading(false);
                 Alert.alert('Erreur', 'Club introuvable');
                 return;
             }
-
+    
             const teamData = teamSnap.data();
-
+    
             // Assez de joueurs ?
             if (teamData.players.length < tournament.playersPerTeam) {
                 setIsLoading(false);
                 Alert.alert('Erreur', `Le club doit avoir au moins ${tournament.playersPerTeam} joueurs.`);
                 return;
             }
-
+    
             // Catégorie ?
             const teamCategory = teamData.category;
-
+    
             if (teamCategory !== tournament.category) {
                 setIsLoading(false);
                 Alert.alert('Erreur', 'La catégorie ou le genre du club ne correspond pas à celui du tournoi.');
                 return;
             }
-
+    
             // Place disponible ?
             if (tournament.availableSlots <= 0) {
                 setIsLoading(false);
                 Alert.alert('Erreur', 'Aucune place disponible pour le tournoi.');
                 return;
             }
-
+    
             // Déjà participant ?
             if (tournament.participatingClubs?.includes(selectedTeam)) {
                 setIsLoading(false);
                 Alert.alert('Erreur', 'Ce club participe déjà au tournoi.');
                 return;
             }
-
+    
             const tournamentRef = doc(db, 'tournois', tournamentId);
             const tournamentSnap = await getDoc(tournamentRef);
             const currentAvailableSlots = tournamentSnap.data().availableSlots;
-
+    
             await updateDoc(tournamentRef, {
                 participatingClubs: arrayUnion(selectedTeam),
                 availableSlots: currentAvailableSlots - 1,
             });
-
-            const names = { ...teamNames, [selectedTeam]: await getTeamName(selectedTeam) };
+    
+            const teamName = await getTeamName(selectedTeam);
+            const names = { ...teamNames, [selectedTeam]: teamName };
             setTeamNames(names);
-
+    
             const teamLogoRef = doc(db, 'equipes', selectedTeam);
             const teamLogoDoc = await getDoc(teamLogoRef);
+            let teamLogoLink = null;
             if (teamLogoDoc.exists()) {
-                const logos = { ...teamLogos, [selectedTeam]: teamLogoDoc.data().logo_link };
+                teamLogoLink = teamLogoDoc.data().logo_link;
+                const logos = { ...teamLogos, [selectedTeam]: teamLogoLink };
                 setTeamLogos(logos);
             }
-
+    
+            setTournament(prevTournament => ({
+                ...prevTournament,
+                participatingClubs: [...prevTournament.participatingClubs, selectedTeam],
+                availableSlots: prevTournament.availableSlots - 1,
+                clubDetails: [...prevTournament.clubDetails, { id: selectedTeam, name: teamName, logo_link: teamLogoLink }],
+            }));
+    
             setIsLoading(false);
             Alert.alert('Succès', 'Votre club a rejoint le tournoi.');
             console.log('Joining tournament with team ID:', selectedTeam);
             setModalVisible(false);
-            fetchTournament();
         } catch (error) {
             setIsLoading(false);
             console.error('Erreur lors de la tentative de rejoindre le tournoi:', error);
             Alert.alert('Erreur', 'Une erreur est survenue lors de la tentative pour rejoindre le tournoi.');
         }
-    };
+    };    
 
     // FOR TESTS
     // TODO : à retirer pour version finale
     const confirmJoinForce = async () => {
-        setIsLoading(true);
         if (!selectedTeam) {
-            setIsLoading(false);
             Alert.alert('Erreur', 'Aucune club n\'est sélectionné.');
             return;
         }
-
+    
         try {
+            setIsLoading(true);
             const teamRef = doc(db, 'equipes', selectedTeam);
             const teamSnap = await getDoc(teamRef);
-
+    
             if (!teamSnap.exists()) {
                 setIsLoading(false);
                 Alert.alert('Erreur', 'Club introuvable.');
                 return;
             }
-
+    
             const tournamentRef = doc(db, 'tournois', tournamentId);
             const tournamentSnap = await getDoc(tournamentRef);
             const currentAvailableSlots = tournamentSnap.data().availableSlots;
-
+    
             await updateDoc(tournamentRef, {
                 participatingClubs: arrayUnion(selectedTeam),
                 availableSlots: currentAvailableSlots - 1,
             });
-
-            const names = { ...teamNames, [selectedTeam]: await getTeamName(selectedTeam) };
+    
+            const teamName = await getTeamName(selectedTeam);
+            const names = { ...teamNames, [selectedTeam]: teamName };
             setTeamNames(names);
-
+    
             const teamLogoRef = doc(db, 'equipes', selectedTeam);
             const teamLogoDoc = await getDoc(teamLogoRef);
+            let teamLogoLink = null;
             if (teamLogoDoc.exists()) {
-                const logos = { ...teamLogos, [selectedTeam]: teamLogoDoc.data().logo_link };
+                teamLogoLink = teamLogoDoc.data().logo_link;
+                const logos = { ...teamLogos, [selectedTeam]: teamLogoLink };
                 setTeamLogos(logos);
             }
+    
+            setTournament(prevTournament => ({
+                ...prevTournament,
+                participatingClubs: [...prevTournament.participatingClubs, selectedTeam],
+                availableSlots: prevTournament.availableSlots - 1,
+                clubDetails: [...prevTournament.clubDetails, { id: selectedTeam, name: teamName, logo_link: teamLogoLink }],
+            }));
+    
             setIsLoading(false);
             Alert.alert('Succès', 'Votre club a rejoint le tournoi.');
             console.log('Joining tournament with team ID:', selectedTeam);
             setModalVisible(false);
-            fetchTournament();
         } catch (error) {
             setIsLoading(false);
             console.error('Erreur lors de la tentative de rejoindre le tournoi:', error);
             Alert.alert('Erreur', 'Une erreur est survenue lors de la tentative de rejoindre le tournoi.');
         }
     };
+    
 
     const handleClubPress = (clubId) => {
         navigation.navigate('TeamScreen', { teamId: clubId });

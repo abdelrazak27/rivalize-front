@@ -403,7 +403,7 @@ export default ProfileScreen;
 
 const styles = StyleSheet.create({
     section: {
-        flex: 1,
+        // flex: 1,
         display: 'flex',
         flexDirection: 'column',
         gap: 13,

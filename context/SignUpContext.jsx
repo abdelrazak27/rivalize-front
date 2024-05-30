@@ -164,7 +164,10 @@ export const SignUpProvider = ({ children }) => {
             if (userDetails.accountType === "visitor") {
                 delete userData.licenceNumber;
             }
-
+            if (userDetails.accountType === "coach") {
+                userData.teams = [];
+            }
+    
             const userRef = doc(db, 'utilisateurs', userFirebase.uid);
             await setDoc(userRef, userData);
             setUser({ ...userDetails, uid: userFirebase.uid });
@@ -177,7 +180,7 @@ export const SignUpProvider = ({ children }) => {
             setIsLoading(false);
             if (onFail) onFail();
         }
-    };
+    };    
 
     const getErrorMessage = (errorCode) => {
         switch (errorCode) {
