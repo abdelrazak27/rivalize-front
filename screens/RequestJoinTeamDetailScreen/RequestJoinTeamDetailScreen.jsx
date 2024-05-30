@@ -1,4 +1,4 @@
-import { View, Text, Alert, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, Alert, StyleSheet } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { arrayUnion, doc, getDoc, setDoc, Timestamp, updateDoc } from 'firebase/firestore';
 import { useEffect, useState } from 'react';

@@ -1,4 +1,4 @@
-import { BackHandler, Text, View, TextInput, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
+import { BackHandler, Text, View, StyleSheet, ScrollView } from "react-native";
 import { useEffect, useState } from "react";
 import { db } from '../../firebaseConfig';
 import { collection, query, where, onSnapshot, Timestamp, setDoc, doc } from "firebase/firestore";

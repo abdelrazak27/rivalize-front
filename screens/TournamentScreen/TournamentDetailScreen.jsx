@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Alert, ScrollView, Modal, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Alert, ScrollView, Modal, Image, TouchableOpacity } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { arrayUnion, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
 import { useUser } from '../../context/UserContext';
 import FunctionButton from '../../components/FunctionButton';
-import RedirectLinkButton from '../../components/RedirectLinkButton';
 import globalStyles from '../../styles/globalStyles';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import colors from '../../styles/colors';
@@ -243,7 +242,8 @@ const TournamentDetailScreen = ({ route, navigation }) => {
             console.error('Erreur lors de la tentative de rejoindre le tournoi:', error);
             Alert.alert('Erreur', 'Une erreur est survenue lors de la tentative pour rejoindre le tournoi.');
         }
-    };    
+    };
+
 
     // FOR TESTS
     // TODO : à retirer pour version finale

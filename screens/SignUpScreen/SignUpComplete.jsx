@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { BackHandler, Button, ScrollView } from 'react-native';
+import { BackHandler } from 'react-native';
 import { Text, View } from "react-native";
 import styles from './styles';
 import { CommonActions, useNavigation } from '@react-navigation/native';

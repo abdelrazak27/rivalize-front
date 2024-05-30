@@ -1,7 +1,7 @@
 import { CommonActions, useFocusEffect, useNavigation, useRoute } from "@react-navigation/native";
 import { collection, getDoc, getDocs, updateDoc, doc, setDoc, Timestamp } from "firebase/firestore";
-import React, { useEffect, useState } from "react";
-import { Text, View, ActivityIndicator, Image, StyleSheet, Alert, ScrollView } from "react-native";
+import React, { useState } from "react";
+import { Text, View, Image, StyleSheet, Alert, ScrollView } from "react-native";
 import { db } from "../../firebaseConfig";
 import { useUser } from "../../context/UserContext";
 import FunctionButton from "../../components/FunctionButton";

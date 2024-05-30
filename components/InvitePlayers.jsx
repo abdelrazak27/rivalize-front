@@ -1,4 +1,4 @@
-import { Text, View, TextInput, StyleSheet, TouchableOpacity } from "react-native";
+import { Text, View, StyleSheet } from "react-native";
 import { useEffect, useState } from "react";
 import { collection, query, where, onSnapshot, Timestamp, setDoc, doc, getDocs } from "firebase/firestore";
 import { CommonActions, useNavigation, useRoute } from "@react-navigation/native";

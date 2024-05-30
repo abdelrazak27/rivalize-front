@@ -214,8 +214,6 @@ function CreateTeamForm({ user }) {
                 await setDoc(teamRef, teamDatas);
                 await addTeamToUser(user.uid, team_id);
 
-                // Alert.alert("Succès", "Le club a été enregistré avec succès.");
-
                 navigation.dispatch(
                     CommonActions.reset({
                         index: 0,

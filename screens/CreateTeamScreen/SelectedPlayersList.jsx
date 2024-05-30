@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { Label } from "../../components/TextComponents";
 import CustomList from "../../components/CustomList";
 import ItemList from "../../components/ItemList";

@@ -8,12 +8,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { PrimaryColorText, Subtitle, Title } from '../../components/TextComponents';
 import globalStyles from '../../styles/globalStyles';
 import { getTeamName } from '../../utils/teams';
-import { getPlayerNameById } from '../../utils/users';
 import { fonts } from '../../styles/fonts';
 import colors from '../../styles/colors';
 import FunctionButton from '../../components/FunctionButton';
 import { useLoading } from '../../context/LoadingContext';
-import LoadingOverlay from '../../components/LoadingOverlay';
 
 function InvitationDetailScreen() {
     const route = useRoute();

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Button, Alert, Modal, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, Alert, Modal, ScrollView, StyleSheet } from 'react-native';
 import { doc, getDoc, setDoc, Timestamp, query, collection, where, getDocs, updateDoc } from "firebase/firestore";
 import uuid from 'react-native-uuid';
 import { auth, db } from '../../firebaseConfig';
@@ -7,7 +7,7 @@ import { useUser } from '../../context/UserContext';
 import { Picker } from '@react-native-picker/picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import globalStyles from '../../styles/globalStyles';
-import { Label, PrimaryColorText, Subtitle, Title } from '../../components/TextComponents';
+import { Label, PrimaryColorText, Title } from '../../components/TextComponents';
 import { fonts } from '../../styles/fonts';
 import Spacer from '../../components/Spacer';
 import CustomTextInput from '../../components/CustomTextInput';
@@ -403,7 +403,6 @@ export default ProfileScreen;
 
 const styles = StyleSheet.create({
     section: {
-        // flex: 1,
         display: 'flex',
         flexDirection: 'column',
         gap: 13,

@@ -76,7 +76,6 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-start',
         alignItems: 'stretch',
         backgroundColor: 'white',
-        // paddingHorizontal: 30,
     },
     header: {
         flexDirection: 'row',

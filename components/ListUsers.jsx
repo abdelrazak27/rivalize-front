@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Text, View, ActivityIndicator, TouchableOpacity, Button, Alert, StyleSheet } from "react-native";
+import { View, ActivityIndicator, Alert, StyleSheet } from "react-native";
 import { arrayRemove, doc, getDoc, setDoc, Timestamp, updateDoc } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 import uuid from 'react-native-uuid';

@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Text, TextInput, View, Button, StyleSheet, ScrollView, Switch, Alert, Image, TouchableOpacity } from 'react-native';
+import { useState } from 'react';
+import { Text, View, StyleSheet, ScrollView, Switch, Alert, Image, TouchableOpacity } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { doc, setDoc } from 'firebase/firestore';

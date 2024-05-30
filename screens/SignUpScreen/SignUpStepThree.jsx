@@ -1,4 +1,4 @@
-import { View, TextInput, Button, Text, Alert, ScrollView } from 'react-native';
+import { View, Text, Alert, ScrollView } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import styles from './styles';
 import { useSignUp } from '../../context/SignUpContext';

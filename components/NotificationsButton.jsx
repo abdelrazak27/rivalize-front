@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import { db, auth } from '../firebaseConfig'; // Importez auth ici
-import { collection, query, where, getDocs, updateDoc, doc, Timestamp } from 'firebase/firestore';
-import { onAuthStateChanged } from 'firebase/auth'; // Importez onAuthStateChanged ici
+import { db, auth } from '../firebaseConfig';
+import { collection, query, where, getDocs, updateDoc, doc } from 'firebase/firestore';
+import { onAuthStateChanged } from 'firebase/auth';
 import { useNavigation } from '@react-navigation/native';
 import { formatTimestamp } from '../utils/date';
 import SquareButtonIcon from './SquareButtonIcon';

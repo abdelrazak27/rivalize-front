@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, Modal, Text } from 'react-native';
+import { View, StyleSheet, Modal } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import colors from '../styles/colors';
 import RotateInView from './RotateInView';

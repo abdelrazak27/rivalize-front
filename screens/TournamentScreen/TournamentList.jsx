@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
 import { useNavigation } from '@react-navigation/native';

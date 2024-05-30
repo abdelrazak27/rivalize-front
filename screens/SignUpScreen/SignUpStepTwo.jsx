@@ -1,11 +1,11 @@
-import { View, TextInput, Button, Text, Platform, ScrollView, Dimensions } from 'react-native';
+import { View, Button, Text, Platform, ScrollView } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import citiesData from '../../data/citiesFR.json';
 import { useState } from 'react';
 import styles from './styles';
 import ModalDateTimePicker from 'react-native-modal-datetime-picker';
 import { useSignUp } from '../../context/SignUpContext';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Label, Subtitle, Title } from '../../components/TextComponents';
 import CustomTextInput from '../../components/CustomTextInput';
 import FunctionButton from '../../components/FunctionButton';

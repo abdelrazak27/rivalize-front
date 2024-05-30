@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
 import app, { db } from '../../firebaseConfig';
 import { useUser } from '../../context/UserContext';
-import { doc, getDoc, getFirestore } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import FunctionButton from '../../components/FunctionButton';
 import RedirectLinkButton from '../../components/RedirectLinkButton';

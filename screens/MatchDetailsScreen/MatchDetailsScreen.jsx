@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, View, Text, StyleSheet, Button, Modal, TouchableOpacity, TextInput, ScrollView, Image } from 'react-native';
+import { Alert, View, Text, StyleSheet, Button, Modal, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
 import { useUser } from '../../context/UserContext';

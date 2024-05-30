@@ -1,6 +1,4 @@
-import colors from '../styles/colors';
-import { StyleSheet, Text, View } from 'react-native';
-import { fonts } from '../styles/fonts';
+import { StyleSheet, View } from 'react-native';
 
 const CustomList = ({ children }) => {
     return (
