@@ -2,27 +2,27 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Alert, ScrollView, Modal, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { arrayUnion, doc, getDoc, updateDoc } from 'firebase/firestore';
-import { db } from '../firebaseConfig';
-import { useUser } from '../context/UserContext';
-import FunctionButton from '../components/FunctionButton';
-import RedirectLinkButton from '../components/RedirectLinkButton';
-import globalStyles from '../styles/globalStyles';
+import { db } from '../../firebaseConfig';
+import { useUser } from '../../context/UserContext';
+import FunctionButton from '../../components/FunctionButton';
+import RedirectLinkButton from '../../components/RedirectLinkButton';
+import globalStyles from '../../styles/globalStyles';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import colors from '../styles/colors';
-import { fonts } from '../styles/fonts';
-import Spacer from '../components/Spacer';
-import { Label, PrimaryColorText, Subtitle, Title } from '../components/TextComponents';
+import colors from '../../styles/colors';
+import { fonts } from '../../styles/fonts';
+import Spacer from '../../components/Spacer';
+import { Label, PrimaryColorText, Subtitle, Title } from '../../components/TextComponents';
 import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { LinearGradient } from 'expo-linear-gradient';
-import { darkenColor } from '../utils/colors';
-import CustomList from '../components/CustomList';
-import ItemList from '../components/ItemList';
+import { darkenColor } from '../../utils/colors';
+import CustomList from '../../components/CustomList';
+import ItemList from '../../components/ItemList';
 import { BlurView } from 'expo-blur';
-import { getTeamName } from '../utils/teams';
-import { useChatModal } from '../context/ChatModalContext';
-import { useLoading } from '../context/LoadingContext';
+import { getTeamName } from '../../utils/teams';
+import { useChatModal } from '../../context/ChatModalContext';
+import { useLoading } from '../../context/LoadingContext';
 
 const TournamentDetailScreen = ({ route, navigation }) => {
     const { user } = useUser();
@@ -336,7 +336,7 @@ const TournamentDetailScreen = ({ route, navigation }) => {
                 <View style={{ height: 1, backgroundColor: colors.lightgrey, marginHorizontal: 30 }} />
                 <ScrollView contentContainerStyle={globalStyles.scrollContainer}>
                     <View style={styles.imageContainer}>
-                        <Image source={require('../assets/images/tournament.png')} style={styles.logo} />
+                        <Image source={require('../../assets/images/tournament.png')} style={styles.logo} />
                     </View>
                     <Text style={styles.tournamentName}>{tournament.name}</Text>
                     <Text style={styles.tournamentPlaces}>Place(s) disponible(s) : {tournament.availableSlots}</Text>
@@ -430,7 +430,7 @@ const TournamentDetailScreen = ({ route, navigation }) => {
                                                 {teamLogos[match.clubA] ? (
                                                     <Image source={{ uri: teamLogos[match.clubA] }} style={styles.matchInfoClubImage} />
                                                 ) : (
-                                                    <Image source={require('../assets/images/clubTeamEmpty.png')} style={styles.matchInfoClubImage} />
+                                                    <Image source={require('../../assets/images/clubTeamEmpty.png')} style={styles.matchInfoClubImage} />
                                                 )}
                                             </View>
                                             <View>
@@ -449,7 +449,7 @@ const TournamentDetailScreen = ({ route, navigation }) => {
                                                 {teamLogos[match.clubB] ? (
                                                     <Image source={{ uri: teamLogos[match.clubB] }} style={styles.matchInfoClubImage} />
                                                 ) : (
-                                                    <Image source={require('../assets/images/clubTeamEmpty.png')} style={styles.matchInfoClubImage} />
+                                                    <Image source={require('../../assets/images/clubTeamEmpty.png')} style={styles.matchInfoClubImage} />
                                                 )}
                                             </View>
                                         </View>

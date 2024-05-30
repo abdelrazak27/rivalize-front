@@ -18,7 +18,7 @@ import colors from '../../styles/colors';
 import { getTeamName } from '../../utils/teams';
 import ItemList from '../../components/ItemList';
 import { useLoading } from '../../context/LoadingContext';
-import LoadingOverlay from '../LoadingOverlay';
+import LoadingOverlay from '../../components/LoadingOverlay';
 
 function ProfileScreen({ route }) {
     const { userId } = route.params;

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, View, StyleSheet, Text, ActivityIndicator } from 'react-native';
-import ChatScreen from '../screens/ChatScreen';
 import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import SquareButtonIcon from './SquareButtonIcon';
@@ -8,6 +7,7 @@ import colors from '../styles/colors';
 import { fonts } from '../styles/fonts';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
+import ChatScreen from '../screens/ChatScreen/ChatScreen';
 
 
 const ChatModalContent = ({ onClose, tournamentId }) => {

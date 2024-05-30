@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { GiftedChat, InputToolbar, Bubble, Send, Composer } from 'react-native-gifted-chat';
 import { collection, query, onSnapshot, addDoc, serverTimestamp } from "firebase/firestore";
-import { db } from '../firebaseConfig';
+import { db } from '../../firebaseConfig';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
-import { useUser } from '../context/UserContext';
-import colors from '../styles/colors';
-import { fonts } from '../styles/fonts';
+import { useUser } from '../../context/UserContext';
+import colors from '../../styles/colors';
+import { fonts } from '../../styles/fonts';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
 function ChatScreen({ route }) {

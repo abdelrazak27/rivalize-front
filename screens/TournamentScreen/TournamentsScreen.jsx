@@ -1,16 +1,16 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Switch, ScrollViewBase, ScrollView } from 'react-native';
-import RedirectLinkButton from '../components/RedirectLinkButton';
+import RedirectLinkButton from '../../components/RedirectLinkButton';
 import { useFocusEffect, useRoute } from '@react-navigation/native';
 import TournamentList from './TournamentList';
-import { useUser } from '../context/UserContext';
+import { useUser } from '../../context/UserContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import globalStyles from '../styles/globalStyles';
-import { Label, PrimaryColorText, Subtitle, Title } from '../components/TextComponents';
-import CustomTextInput from '../components/CustomTextInput';
-import Spacer from '../components/Spacer';
-import colors from '../styles/colors';
-import { fonts } from '../styles/fonts';
+import globalStyles from '../../styles/globalStyles';
+import { Label, PrimaryColorText, Subtitle, Title } from '../../components/TextComponents';
+import CustomTextInput from '../../components/CustomTextInput';
+import Spacer from '../../components/Spacer';
+import colors from '../../styles/colors';
+import { fonts } from '../../styles/fonts';
 
 function TournamentsScreen() {
     const { user } = useUser();

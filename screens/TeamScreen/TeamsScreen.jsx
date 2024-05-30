@@ -1,19 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
 import { collection, query, getDocs, limit, startAfter, where } from 'firebase/firestore';
-import { db } from '../firebaseConfig';
-import { useUser } from '../context/UserContext';
+import { db } from '../../firebaseConfig';
+import { useUser } from '../../context/UserContext';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { PrimaryColorText, Subtitle, Title } from '../components/TextComponents';
-import CustomTextInput from '../components/CustomTextInput';
-import CustomList from '../components/CustomList';
-import ItemList from '../components/ItemList';
-import globalStyles from '../styles/globalStyles';
-import { fonts } from '../styles/fonts';
-import colors from '../styles/colors';
-import Spacer from '../components/Spacer';
-import { useLoading } from '../context/LoadingContext';
+import { PrimaryColorText, Subtitle, Title } from '../../components/TextComponents';
+import CustomTextInput from '../../components/CustomTextInput';
+import CustomList from '../../components/CustomList';
+import ItemList from '../../components/ItemList';
+import globalStyles from '../../styles/globalStyles';
+import { fonts } from '../../styles/fonts';
+import colors from '../../styles/colors';
+import Spacer from '../../components/Spacer';
+import { useLoading } from '../../context/LoadingContext';
 
 function TeamsScreen() {
     const [userTeams, setUserTeams] = useState([]);

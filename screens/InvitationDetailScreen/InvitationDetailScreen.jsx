@@ -13,7 +13,7 @@ import { fonts } from '../../styles/fonts';
 import colors from '../../styles/colors';
 import FunctionButton from '../../components/FunctionButton';
 import { useLoading } from '../../context/LoadingContext';
-import LoadingOverlay from '../LoadingOverlay';
+import LoadingOverlay from '../../components/LoadingOverlay';
 
 function InvitationDetailScreen() {
     const route = useRoute();

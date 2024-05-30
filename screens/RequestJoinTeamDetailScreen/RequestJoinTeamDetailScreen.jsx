@@ -2,17 +2,17 @@ import { View, Text, Alert, ScrollView, StyleSheet } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { arrayUnion, doc, getDoc, setDoc, Timestamp, updateDoc } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
-import { db } from '../firebaseConfig';
+import { db } from '../../firebaseConfig';
 import uuid from 'react-native-uuid';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import globalStyles from '../styles/globalStyles';
-import { PrimaryColorText, Subtitle, Title } from '../components/TextComponents';
-import FunctionButton from '../components/FunctionButton';
-import { getPlayerNameById } from '../utils/users';
-import { getTeamName } from '../utils/teams';
-import { fonts } from '../styles/fonts';
-import colors from '../styles/colors';
-import { useLoading } from '../context/LoadingContext';
+import globalStyles from '../../styles/globalStyles';
+import { PrimaryColorText, Subtitle, Title } from '../../components/TextComponents';
+import FunctionButton from '../../components/FunctionButton';
+import { getPlayerNameById } from '../../utils/users';
+import { getTeamName } from '../../utils/teams';
+import { fonts } from '../../styles/fonts';
+import colors from '../../styles/colors';
+import { useLoading } from '../../context/LoadingContext';
 
 function RequestJoinTeamDetailScreen() {
     const route = useRoute();

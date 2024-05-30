@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
 import { collection, getDocs, limit, query, startAfter } from 'firebase/firestore';
-import { db } from '../firebaseConfig';
+import { db } from '../../firebaseConfig';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import globalStyles from '../styles/globalStyles';
-import { PrimaryColorText, Subtitle, Title } from '../components/TextComponents';
-import CustomTextInput from '../components/CustomTextInput';
-import CustomList from '../components/CustomList';
-import ItemList from '../components/ItemList';
-import { fonts } from '../styles/fonts';
-import colors from '../styles/colors';
-import { useLoading } from '../context/LoadingContext';
+import globalStyles from '../../styles/globalStyles';
+import { PrimaryColorText, Subtitle, Title } from '../../components/TextComponents';
+import CustomTextInput from '../../components/CustomTextInput';
+import CustomList from '../../components/CustomList';
+import ItemList from '../../components/ItemList';
+import { fonts } from '../../styles/fonts';
+import colors from '../../styles/colors';
+import { useLoading } from '../../context/LoadingContext';
 
 function UsersScreen() {
     const [users, setUsers] = useState([]);

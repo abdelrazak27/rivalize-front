@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { collection, getDocs, query, where } from 'firebase/firestore';
-import { db } from '../firebaseConfig';
+import { db } from '../../firebaseConfig';
 import { useNavigation } from '@react-navigation/native';
-import { useUser } from '../context/UserContext';
-import CustomList from '../components/CustomList';
-import ItemList from '../components/ItemList';
-import { fonts } from '../styles/fonts';
-import colors from '../styles/colors';
-import { useLoading } from '../context/LoadingContext';
+import { useUser } from '../../context/UserContext';
+import CustomList from '../../components/CustomList';
+import ItemList from '../../components/ItemList';
+import { fonts } from '../../styles/fonts';
+import colors from '../../styles/colors';
+import { useLoading } from '../../context/LoadingContext';
 
 const TournamentList = ({ refresh, state, showMyTournaments, userId, searchQuery }) => {
     const { user } = useUser();

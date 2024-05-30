@@ -4,21 +4,21 @@ import { Picker } from '@react-native-picker/picker';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { doc, setDoc } from 'firebase/firestore';
 import { useNavigation } from '@react-navigation/native';
-import { db } from '../firebaseConfig';
 import uuid from 'uuid';
-import citiesData from '../data/citiesFR.json';
+import citiesData from '../../data/citiesFR.json';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import globalStyles from '../styles/globalStyles';
-import { Label, PrimaryColorText, Title } from '../components/TextComponents';
-import CustomTextInput from '../components/CustomTextInput';
-import colors from '../styles/colors';
-import { fonts } from '../styles/fonts';
-import Spacer from '../components/Spacer';
+import globalStyles from '../../styles/globalStyles';
+import { Label, PrimaryColorText, Title } from '../../components/TextComponents';
+import CustomTextInput from '../../components/CustomTextInput';
+import colors from '../../styles/colors';
+import { fonts } from '../../styles/fonts';
+import Spacer from '../../components/Spacer';
 import { LinearGradient } from 'expo-linear-gradient';
-import { darkenColor } from '../utils/colors';
-import FunctionButton from '../components/FunctionButton';
-import { useLoading } from '../context/LoadingContext';
-import { roundToNextFiveMinutes } from '../utils/date';
+import { darkenColor } from '../../utils/colors';
+import FunctionButton from '../../components/FunctionButton';
+import { useLoading } from '../../context/LoadingContext';
+import { roundToNextFiveMinutes } from '../../utils/date';
+import { db } from '../../firebaseConfig';
 
 const categories = [
     'U6', 'U6 F', 'U7', 'U7 F', 'U8', 'U8 F', 'U9', 'U9 F', 'U10', 'U10 F',
@@ -347,7 +347,7 @@ function CreateTournamentFormScreen({ route }) {
                                 <View key={matchIndex} style={styles.matchContainer}>
                                     <View style={styles.matchInfoClubLeft}>
                                         <Image
-                                            source={require('../assets/images/clubTeamEmpty.png')}
+                                            source={require('../../assets/images/clubTeamEmpty.png')}
                                             style={styles.matchInfoClubImage}
                                         />
                                     </View>
@@ -366,7 +366,7 @@ function CreateTournamentFormScreen({ route }) {
                                     </View>
                                     <View style={styles.matchInfoClubRight}>
                                         <Image
-                                            source={require('../assets/images/clubTeamEmpty.png')}
+                                            source={require('../../assets/images/clubTeamEmpty.png')}
                                             style={styles.matchInfoClubImage}
                                         />
                                     </View>

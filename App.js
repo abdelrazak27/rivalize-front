@@ -13,14 +13,13 @@ import TeamScreen from './screens/TeamScreen/TeamScreen';
 import InvitationDetailScreen from './screens/InvitationDetailScreen/InvitationDetailScreen';
 import ProfileScreen from './screens/ProfileScreen/ProfileScreen';
 import EditTeamScreen from './screens/TeamScreen/EditTeamScreen';
-import TournamentsScreen from './screens/TournamentsScreen';
-import TeamsScreen from './screens/TeamsScreen';
-import UsersScreen from './screens/UsersScreen';
-import CreateTournamentFormScreen from './screens/CreateTournamentFormScreen';
-import TournamentDetailScreen from './screens/TournamentDetailScreen';
-import RequestJoinTeamDetailScreen from './screens/RequestJoinTeamDetailScreen';
-import MatchDetailsScreen from './screens/MatchDetailsScreen';
-import LandingScreen from './screens/LandingScreen';
+import TournamentsScreen from './screens/TournamentScreen/TournamentsScreen';
+import TeamsScreen from './screens/TeamScreen/TeamsScreen';
+import UsersScreen from './screens/UsersScreen/UsersScreen';
+import TournamentDetailScreen from './screens/TournamentScreen/TournamentDetailScreen';
+import RequestJoinTeamDetailScreen from './screens/RequestJoinTeamDetailScreen/RequestJoinTeamDetailScreen';
+import MatchDetailsScreen from './screens/MatchDetailsScreen/MatchDetailsScreen';
+import LandingScreen from './screens/LandingScreen/LandingScreen';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import SquareButtonIcon from './components/SquareButtonIcon';
 
@@ -34,7 +33,8 @@ import { auth } from './firebaseConfig';
 import { ChatModalProvider, useChatModal } from './context/ChatModalContext';
 import ChatModal from './components/ChatModal';
 import { LoadingProvider, useLoading } from './context/LoadingContext';
-import LoadingOverlay from './screens/LoadingOverlay';
+import LoadingOverlay from './components/LoadingOverlay';
+import CreateTournamentFormScreen from './screens/TournamentScreen/CreateTournamentFormScreen';
 
 const Stack = createStackNavigator();
 

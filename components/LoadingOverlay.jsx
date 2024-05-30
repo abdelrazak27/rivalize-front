@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, StyleSheet, Modal, Text } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import RotateInView from './RotateInView'; 
 import colors from '../styles/colors';
+import RotateInView from './RotateInView';
 
 const LoadingOverlay = ({ visible }) => {
     return (

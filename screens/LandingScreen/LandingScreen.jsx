@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Text, View, StyleSheet, Animated, ActivityIndicator } from 'react-native';
-import { useAppFonts, fonts } from '../styles/fonts';
-import colors from '../styles/colors';
+import { useAppFonts, fonts } from '../../styles/fonts';
+import colors from '../../styles/colors';
 
 function LandingScreen({ navigation }) {
     let [fontsLoaded] = useAppFonts();

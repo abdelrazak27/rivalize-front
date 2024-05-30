@@ -1,24 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import { Alert, View, Text, StyleSheet, Button, Modal, TouchableOpacity, TextInput, ScrollView, Image } from 'react-native';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { db } from '../firebaseConfig';
-import { useUser } from '../context/UserContext';
+import { db } from '../../firebaseConfig';
+import { useUser } from '../../context/UserContext';
 import { Picker } from '@react-native-picker/picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import globalStyles from '../styles/globalStyles';
-import { fonts } from '../styles/fonts';
-import colors from '../styles/colors';
-import Spacer from '../components/Spacer';
+import globalStyles from '../../styles/globalStyles';
+import { fonts } from '../../styles/fonts';
+import colors from '../../styles/colors';
+import Spacer from '../../components/Spacer';
 import { LinearGradient } from 'expo-linear-gradient';
-import { darkenColor } from '../utils/colors';
-import { Label, PrimaryColorText, Title } from '../components/TextComponents';
-import FunctionButton from '../components/FunctionButton';
-import CustomTextInput from '../components/CustomTextInput';
-import { getTeamName } from '../utils/teams';
-import SquareButtonIcon from '../components/SquareButtonIcon';
+import { darkenColor } from '../../utils/colors';
+import { Label, PrimaryColorText, Title } from '../../components/TextComponents';
+import FunctionButton from '../../components/FunctionButton';
+import CustomTextInput from '../../components/CustomTextInput';
+import { getTeamName } from '../../utils/teams';
+import SquareButtonIcon from '../../components/SquareButtonIcon';
 import Foundation from 'react-native-vector-icons/Foundation';
 import { useNavigation } from '@react-navigation/native';
-import { useLoading } from '../context/LoadingContext';
+import { useLoading } from '../../context/LoadingContext';
 
 const MatchDetailsScreen = ({ route }) => {
     const { roundIndex, matchIndex, tournamentId } = route.params;
@@ -336,7 +336,7 @@ const MatchDetailsScreen = ({ route }) => {
                     <>
                         <View style={styles.imageContainer}>
                             <Image
-                                source={require('../assets/images/tournament.png')}
+                                source={require('../../assets/images/tournament.png')}
                                 style={styles.logo}
                             />
                         </View>
@@ -356,7 +356,7 @@ const MatchDetailsScreen = ({ route }) => {
                                     <View style={styles.matchInfoClubLeft}>
                                         {!matchDetails.clubA ? (
                                             <Image
-                                                source={require('../assets/images/clubTeamEmpty.png')}
+                                                source={require('../../assets/images/clubTeamEmpty.png')}
                                                 style={styles.matchInfoClubImage}
                                             />
                                         ) : (
@@ -380,7 +380,7 @@ const MatchDetailsScreen = ({ route }) => {
                                     <View style={styles.matchInfoClubRight}>
                                         {!matchDetails.clubB ? (
                                             <Image
-                                                source={require('../assets/images/clubTeamEmpty.png')}
+                                                source={require('../../assets/images/clubTeamEmpty.png')}
                                                 style={styles.matchInfoClubImage}
                                             />
                                         ) : (
