@@ -85,19 +85,19 @@ function TeamScreen() {
                 {
                     text: "Envoyer la demande",
                     onPress: async () => {
-                        const requestJoinClubId = uuid.v4();
-                        const notificationId = uuid.v4();
-
-                        const requestJoinClubRef = doc(db, 'requests_join_club', requestJoinClubId);
-                        const requestJoinClubDetails = {
-                            coachId: teamData.coach_id,
-                            clubId: teamId,
-                            userId: user.uid,
-                            timestamp: Timestamp.now(),
-                            state: "pending",
-                        };
-
                         try {
+                            setIsLoading(true);
+                            const requestJoinClubId = uuid.v4();
+                            const notificationId = uuid.v4();
+
+                            const requestJoinClubRef = doc(db, 'requests_join_club', requestJoinClubId);
+                            const requestJoinClubDetails = {
+                                coachId: teamData.coach_id,
+                                clubId: teamId,
+                                userId: user.uid,
+                                timestamp: Timestamp.now(),
+                                state: "pending",
+                            };
                             await setDoc(requestJoinClubRef, requestJoinClubDetails);
 
                             const notificationRef = doc(db, 'notifications', notificationId);
@@ -117,9 +117,11 @@ function TeamScreen() {
                             });
 
                             setUser({ ...user, requestedJoinClubId: requestJoinClubId });
+                            setIsLoading(false);
 
                             Alert.alert("Demande envoyée", "Votre demande pour rejoindre le club a été envoyée.");
                         } catch (error) {
+                            setIsLoading(false);
                             console.error("Erreur lors de l'envoi de la demande :", error);
                             Alert.alert("Erreur", "Une erreur est survenue lors de l'envoi de la demande.");
                         }
@@ -142,6 +144,7 @@ function TeamScreen() {
                     text: "Supprimer",
                     onPress: async () => {
                         try {
+                            setIsLoading(true);
                             const invitationsSnapshot = await getDocs(collection(db, 'invitations'));
                             const invitationsToUpdate = [];
                             invitationsSnapshot.forEach((doc) => {
@@ -197,15 +200,16 @@ function TeamScreen() {
                                 teams: newTeams,
                             };
                             await setUser(updatedUserData);
-
+                            setIsLoading(false);
+                            Alert.alert("Club supprimé", "Votre club a été supprimé avec succès.");
                             navigation.dispatch(
                                 CommonActions.reset({
                                     index: 0,
                                     routes: [{ name: 'HomeScreen', params: { teamRefresh: true } }],
                                 })
                             );
-
                         } catch (error) {
+                            setIsLoading(false);
                             console.error("Une erreur s'est produite lors de la suppression du club :", error);
                         }
                     },
@@ -229,6 +233,7 @@ function TeamScreen() {
                         text: "Quitter",
                         style: "destructive",
                         onPress: async () => {
+                            setIsLoading(true);
                             const userRef = doc(db, 'utilisateurs', user.uid);
                             await updateDoc(userRef, {
                                 team: null,
@@ -258,6 +263,7 @@ function TeamScreen() {
                             };
                             await setUser(updatedUserData);
 
+                            setIsLoading(false);
                             Alert.alert("Vous avez quitté le club.");
 
                             navigation.dispatch(
