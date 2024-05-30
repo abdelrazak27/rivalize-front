@@ -336,7 +336,7 @@ const TournamentDetailScreen = ({ route, navigation }) => {
                 <View style={{ height: 1, backgroundColor: colors.lightgrey, marginHorizontal: 30 }} />
                 <ScrollView contentContainerStyle={globalStyles.scrollContainer}>
                     <View style={styles.imageContainer}>
-                        <Image source={require('../assets/tournament.png')} style={styles.logo} />
+                        <Image source={require('../assets/images/tournament.png')} style={styles.logo} />
                     </View>
                     <Text style={styles.tournamentName}>{tournament.name}</Text>
                     <Text style={styles.tournamentPlaces}>Place(s) disponible(s) : {tournament.availableSlots}</Text>
@@ -430,7 +430,7 @@ const TournamentDetailScreen = ({ route, navigation }) => {
                                                 {teamLogos[match.clubA] ? (
                                                     <Image source={{ uri: teamLogos[match.clubA] }} style={styles.matchInfoClubImage} />
                                                 ) : (
-                                                    <Image source={require('../assets/clubTeamEmpty.png')} style={styles.matchInfoClubImage} />
+                                                    <Image source={require('../assets/images/clubTeamEmpty.png')} style={styles.matchInfoClubImage} />
                                                 )}
                                             </View>
                                             <View>
@@ -449,7 +449,7 @@ const TournamentDetailScreen = ({ route, navigation }) => {
                                                 {teamLogos[match.clubB] ? (
                                                     <Image source={{ uri: teamLogos[match.clubB] }} style={styles.matchInfoClubImage} />
                                                 ) : (
-                                                    <Image source={require('../assets/clubTeamEmpty.png')} style={styles.matchInfoClubImage} />
+                                                    <Image source={require('../assets/images/clubTeamEmpty.png')} style={styles.matchInfoClubImage} />
                                                 )}
                                             </View>
                                         </View>

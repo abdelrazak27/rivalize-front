@@ -347,7 +347,7 @@ function CreateTournamentFormScreen({ route }) {
                                 <View key={matchIndex} style={styles.matchContainer}>
                                     <View style={styles.matchInfoClubLeft}>
                                         <Image
-                                            source={require('../assets/clubTeamEmpty.png')}
+                                            source={require('../assets/images/clubTeamEmpty.png')}
                                             style={styles.matchInfoClubImage}
                                         />
                                     </View>
@@ -366,7 +366,7 @@ function CreateTournamentFormScreen({ route }) {
                                     </View>
                                     <View style={styles.matchInfoClubRight}>
                                         <Image
-                                            source={require('../assets/clubTeamEmpty.png')}
+                                            source={require('../assets/images/clubTeamEmpty.png')}
                                             style={styles.matchInfoClubImage}
                                         />
                                     </View>

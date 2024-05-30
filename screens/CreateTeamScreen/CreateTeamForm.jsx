@@ -12,7 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import globalStyles from '../../styles/globalStyles';
 import FunctionButtonMini from '../../components/FunctionButtonMini';
 import Spacer from '../../components/Spacer';
-import defaultImage from '../../assets/default-image.png';
+import defaultImage from '../../assets/images/default-image.png';
 import colors from '../../styles/colors';
 import CustomTextInput from '../../components/CustomTextInput';
 import { Label } from '../../components/TextComponents';

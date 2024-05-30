@@ -336,7 +336,7 @@ const MatchDetailsScreen = ({ route }) => {
                     <>
                         <View style={styles.imageContainer}>
                             <Image
-                                source={require('../assets/tournament.png')}
+                                source={require('../assets/images/tournament.png')}
                                 style={styles.logo}
                             />
                         </View>
@@ -356,7 +356,7 @@ const MatchDetailsScreen = ({ route }) => {
                                     <View style={styles.matchInfoClubLeft}>
                                         {!matchDetails.clubA ? (
                                             <Image
-                                                source={require('../assets/clubTeamEmpty.png')}
+                                                source={require('../assets/images/clubTeamEmpty.png')}
                                                 style={styles.matchInfoClubImage}
                                             />
                                         ) : (
@@ -380,7 +380,7 @@ const MatchDetailsScreen = ({ route }) => {
                                     <View style={styles.matchInfoClubRight}>
                                         {!matchDetails.clubB ? (
                                             <Image
-                                                source={require('../assets/clubTeamEmpty.png')}
+                                                source={require('../assets/images/clubTeamEmpty.png')}
                                                 style={styles.matchInfoClubImage}
                                             />
                                         ) : (
