@@ -402,7 +402,7 @@ const TournamentDetailScreen = ({ route, navigation }) => {
                     </View>
                     <Spacer />
                     <View style={styles.matchsContainer}>
-                        <Text style={styles.matchsTitle}>Match du tournois</Text>
+                        <Text style={styles.matchsTitle}>Matchs du tournoi</Text>
                     </View>
 
                     {tournament.matches.map((round, roundIndex) => (

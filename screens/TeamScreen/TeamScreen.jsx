@@ -452,7 +452,6 @@ const styles = StyleSheet.create({
         height: 150,
         resizeMode: 'contain',
         borderRadius: 10,
-        backgroundColor: colors.lightgrey
     },
     teamName: {
         textTransform: 'uppercase',
