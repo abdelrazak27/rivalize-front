@@ -24,7 +24,7 @@ const NotificationsButton = ({ userId }) => {
     const intervalRef = useRef(null);
 
     // Booléen pour activer ou désactiver les notifications
-    const activateNotification = false;
+    const activateNotification = true;
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
